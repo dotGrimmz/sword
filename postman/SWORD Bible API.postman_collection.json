@@ -140,13 +140,71 @@
       "response": []
     },
     {
+      "name": "Auth - Email Sign In",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.access_token) {",
+              "  pm.collectionVariables.set('authAccessToken', json.access_token);",
+              "  pm.collectionVariables.set('authRefreshToken', json.refresh_token || '');",
+              "  pm.collectionVariables.set('authTokenType', json.token_type || 'bearer');",
+              "}",
+              "if (json.user && json.user.id) {",
+              "  pm.collectionVariables.set('authUserId', json.user.id);",
+              "}",
+              "pm.collectionVariables.set('noteId', pm.collectionVariables.get('noteId') || '');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{supabaseAnonKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{supabaseUrl}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{supabaseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "List Notes",
       "request": {
         "method": "GET",
         "header": [
           {
-            "key": "x-user-id",
-            "value": "{{userId}}"
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
           }
         ],
         "url": {
@@ -173,8 +231,8 @@
             "value": "application/json"
           },
           {
-            "key": "x-user-id",
-            "value": "{{userId}}"
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
           }
         ],
         "body": {
@@ -205,8 +263,8 @@
             "value": "application/json"
           },
           {
-            "key": "x-user-id",
-            "value": "{{userId}}"
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
           }
         ],
         "body": {
@@ -234,8 +292,8 @@
         "method": "DELETE",
         "header": [
           {
-            "key": "x-user-id",
-            "value": "{{userId}}"
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
           }
         ],
         "url": {
@@ -264,8 +322,36 @@
       "value": ""
     },
     {
-      "key": "userId",
-      "value": "mock-user-123"
+      "key": "supabaseUrl",
+      "value": "https://zuurfduimfwclfpptyyz.supabase.co"
+    },
+    {
+      "key": "supabaseAnonKey",
+      "value": "{{NEXT_PUBLIC_SUPABASE_ANON_KEY}}"
+    },
+    {
+      "key": "authAccessToken",
+      "value": ""
+    },
+    {
+      "key": "authRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "authTokenType",
+      "value": "bearer"
+    },
+    {
+      "key": "authUserId",
+      "value": ""
+    },
+    {
+      "key": "userEmail",
+      "value": ""
+    },
+    {
+      "key": "userPassword",
+      "value": ""
     }
   ]
 }

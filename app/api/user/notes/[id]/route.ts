@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getUserIdFromRequest, unauthorizedResponse } from "@/lib/auth/context";
+import {
+  getAccessTokenFromRequest,
+  unauthorizedResponse,
+} from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
 import { sanitiseNoteBody, mapNoteRow } from "@/lib/user/notes";
 import type { NoteRouteParams } from "@/types/user";
@@ -41,9 +44,20 @@ const extractNoteId = async ({
 };
 
 export async function PATCH(request: Request, context: NoteRouteParams) {
-  const userId = getUserIdFromRequest(request);
+  const accessToken = getAccessTokenFromRequest(request);
 
-  if (!userId) {
+  if (!accessToken) {
+    return unauthorizedResponse();
+  }
+
+  const supabase = await createClient(accessToken);
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
     return unauthorizedResponse();
   }
 
@@ -69,13 +83,11 @@ export async function PATCH(request: Request, context: NoteRouteParams) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const supabase = await createClient();
-
   const { data, error } = await supabase
     .from("user_notes")
     .update({ body: validation.body })
     .eq("id", noteId)
-    .eq("user_id", userId)
+    .eq("user_id", user.id)
     .select(
       "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
     )
@@ -98,9 +110,20 @@ export async function PATCH(request: Request, context: NoteRouteParams) {
 }
 
 export async function DELETE(request: Request, context: NoteRouteParams) {
-  const userId = getUserIdFromRequest(request);
+  const accessToken = getAccessTokenFromRequest(request);
 
-  if (!userId) {
+  if (!accessToken) {
+    return unauthorizedResponse();
+  }
+
+  const supabase = await createClient(accessToken);
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
     return unauthorizedResponse();
   }
 
@@ -110,13 +133,11 @@ export async function DELETE(request: Request, context: NoteRouteParams) {
     return NextResponse.json({ error: "Note id is required" }, { status: 400 });
   }
 
-  const supabase = await createClient();
-
   const { data, error } = await supabase
     .from("user_notes")
     .delete()
     .eq("id", noteId)
-    .eq("user_id", userId)
+    .eq("user_id", user.id)
     .select("id");
 
   if (error) {

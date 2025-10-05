@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getUserIdFromRequest, unauthorizedResponse } from "@/lib/auth/context";
+import { getAccessTokenFromRequest, unauthorizedResponse } from "@/lib/auth/context";
 import { parseLimitParam } from "@/lib/bible/utils";
+import { fetchTranslationByCode } from "@/lib/bible/queries";
 import { createClient } from "@/lib/supabase/server";
-import { toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
+import { isUuid, toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
 import { mapNoteRow, sanitiseNoteBody } from "@/lib/user/notes";
 import type { CreateUserNotePayload } from "@/types/user";
 
@@ -93,20 +94,29 @@ export async function GET(request: Request) {
     );
   }
 
-  const userId = getUserIdFromRequest(request);
+  const accessToken = getAccessTokenFromRequest(request);
 
-  if (!userId) {
+  if (!accessToken) {
     return unauthorizedResponse();
   }
 
-  const supabase = await createClient();
+  const supabase = await createClient(accessToken);
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return unauthorizedResponse();
+  }
 
   const { data, error } = await supabase
     .from("user_notes")
     .select(
       "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
     )
-    .eq("user_id", userId)
+    .eq("user_id", user.id)
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false, nullsFirst: false })
     .limit(limit);
@@ -140,19 +150,47 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const userId = getUserIdFromRequest(request);
+  const accessToken = getAccessTokenFromRequest(request);
 
-  if (!userId) {
+  if (!accessToken) {
     return unauthorizedResponse();
   }
 
-  const supabase = await createClient();
+  const supabase = await createClient(accessToken);
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return unauthorizedResponse();
+  }
+
+  let translationId = validation.data.translationId;
+
+  if (typeof translationId === "string" && translationId.length > 0 && !isUuid(translationId)) {
+    const {
+      data: translation,
+      error: translationLookupError,
+    } = await fetchTranslationByCode(supabase, translationId);
+
+    if (translationLookupError) {
+      return NextResponse.json({ error: "Failed to resolve translation" }, { status: 500 });
+    }
+
+    if (!translation) {
+      return NextResponse.json({ error: "Translation not found" }, { status: 400 });
+    }
+
+    translationId = translation.id;
+  }
 
   const { data, error } = await supabase
     .from("user_notes")
     .insert({
-      user_id: userId,
-      translation_id: validation.data.translationId,
+      user_id: user.id,
+      translation_id: translationId,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse_start: validation.data.verseStart,
@@ -167,7 +205,9 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json(
       {
-        error: `Failed to create note because ${error.cause || error.message}`,
+        error: "Failed to create note",
+        message: error.message,
+        details: error.details ?? null,
       },
       { status: 500 }
     );
