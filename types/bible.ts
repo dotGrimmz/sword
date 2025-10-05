@@ -53,3 +53,22 @@ export type ChapterRouteParams = {
     chapter: string;
   }>;
 };
+
+export type BibleSearchResult = {
+  bookId: string;
+  bookName: string;
+  bookAbbreviation: string | null;
+  chapter: number;
+  verse: number;
+  text: string;
+};
+
+export type BibleSearchResponse = {
+  query: string;
+  translation: {
+    code: string;
+    name: string;
+  };
+  totalMatches: number;
+  results: BibleSearchResult[];
+};

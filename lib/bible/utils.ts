@@ -4,6 +4,8 @@ export const normaliseBookSlug = (raw: string): string =>
     .replace(/\s+/g, " ")
     .trim();
 
+export const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
+
 export const toTitleCaseBookName = (value: string): string => {
   if (!value) {
     return value;
@@ -35,4 +37,22 @@ export const parsePositiveInteger = (value: string): number | null => {
   }
 
   return parsed;
+};
+
+export const parseLimitParam = (
+  value: string | null,
+  defaultValue: number,
+  maxValue: number
+): number | null => {
+  if (value === null) {
+    return defaultValue;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return null;
+  }
+
+  return Math.min(parsed, maxValue);
 };

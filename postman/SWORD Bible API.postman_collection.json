@@ -100,6 +100,39 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Search (faith)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/search?q=faith&translation=WEB&limit=25",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "faith"
+            },
+            {
+              "key": "translation",
+              "value": "WEB"
+            },
+            {
+              "key": "limit",
+              "value": "25"
+            }
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
