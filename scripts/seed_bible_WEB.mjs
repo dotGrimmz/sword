@@ -2,15 +2,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-// const SUPABASE_SERVICE_ROLE_KEY =
-//   process.env.SUPABASE_SERVICE_ROLE_KEY ??
-//   process.env.SUPABASE_KEY ??
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const SUPABASE_URL = "https://zuurfduimfwclfpptyyz.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1dXJmZHVpbWZ3Y2xmcHB0eXl6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTY3Mjg5OCwiZXhwIjoyMDc1MjQ4ODk4fQ.Xc-M0J-2zztFwcVogV5BvPc4khAE2frq0cLFaKdNu_4";
-// NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1dXJmZHVpbWZ3Y2xmcHB0eXl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NzI4OTgsImV4cCI6MjA3NTI0ODg5OH0.E2eSph2DGazh1HDQWbptd78hB0PuFgXeiBGs10lGo28
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL) {
   console.error(
@@ -390,9 +383,7 @@ async function main() {
     const versesByChapter = groupVersesByChapter(rawEntries);
 
     if (versesByChapter.size === 0) {
-      console.warn(
-        `⚠️  Unable to derive verses for ${bookKey}, skipping.`
-      );
+      console.warn(`⚠️  Unable to derive verses for ${bookKey}, skipping.`);
       continue;
     }
 
