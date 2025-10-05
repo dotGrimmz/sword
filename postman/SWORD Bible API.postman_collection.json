@@ -9,7 +9,12 @@
       "name": "Get All Translations",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
         "url": {
           "raw": "{{baseUrl}}/api/bible/translations",
           "host": [
@@ -133,12 +138,134 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "List Notes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Note",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"translationId\": \"WEB\",\n  \"bookId\": null,\n  \"chapter\": 1,\n  \"verseStart\": 1,\n  \"verseEnd\": 3,\n  \"body\": \"In the beginning...\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Note",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"body\": \"Updated note text\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Note",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "noteId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "mock-user-123"
     }
   ]
 }
