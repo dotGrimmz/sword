@@ -1,17 +1,8 @@
-import { createClient } from "../lib/supabase/server";
-
-type TranslationSummary = {
-  code: string;
-  name: string;
-  language: string;
-  version: string;
-};
-
-type BookPreview = {
-  id: number;
-  name: string;
-  chapters: number;
-};
+import { createClient } from "@/lib/supabase/server";
+import type {
+  BibleBookPreview,
+  BibleTranslationSummary,
+} from "@/types/bible";
 
 export default async function Page() {
   const supabase = await createClient();
@@ -43,7 +34,7 @@ export default async function Page() {
 
   let bookCount: number | null = null;
   let chunkCount: number | null = null;
-  let bookPreview: BookPreview[] = [];
+  let bookPreview: BibleBookPreview[] = [];
 
   if (webTranslation) {
     const [{ count: books, error: countBooksError }, { count: chunks, error: countChunksError }] =
@@ -79,7 +70,7 @@ export default async function Page() {
       return <p>❌ Failed to load book preview: {previewError.message}</p>;
     }
 
-    bookPreview = previewData ?? [];
+    bookPreview = (previewData ?? []) as BibleBookPreview[];
   }
 
   const statusMessage = webTranslation
@@ -149,7 +140,7 @@ export default async function Page() {
       <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold">All Translations</h2>
         <ul className="mt-3 divide-y divide-slate-200">
-          {(translations as TranslationSummary[]).map((translation) => (
+          {((translations ?? []) as BibleTranslationSummary[]).map((translation) => (
             <li key={translation.code} className="flex flex-col py-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <span className="text-base font-medium">{translation.code}</span>

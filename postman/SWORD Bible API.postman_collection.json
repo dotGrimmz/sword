@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "SWORD Bible API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for testing the Bible API endpoints exposed by the SWORD app."
+  },
+  "item": [
+    {
+      "name": "Get All Translations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/translations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "translations"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Books (WEB)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/books?translation=WEB",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "translation",
+              "value": "WEB"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Chapter (Genesis 1)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/Genesis/1?translation=WEB",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "Genesis",
+            "1"
+          ],
+          "query": [
+            {
+              "key": "translation",
+              "value": "WEB"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Chapter (Esther 1)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/Esther/1?translation=WEB",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "Esther",
+            "1"
+          ],
+          "query": [
+            {
+              "key": "translation",
+              "value": "WEB"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ]
+}
