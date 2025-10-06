@@ -1,0 +1,380 @@
+.container {
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: linear-gradient(180deg, #e0f2ff 0%, #f5f9ff 45%, #ffffff 100%);
+  width: 100%;
+}
+
+.card {
+  width: min(100%, 840px);
+  max-width: 840px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 48px 48px 44px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.logoBadge {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, rgba(14, 165, 233, 0.16), rgba(59, 130, 246, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.6);
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.heading {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #0f172a;
+}
+
+.subheading {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #475569;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.inner {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.formCard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 30px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 26px 50px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(16px);
+  box-sizing: border-box;
+}
+
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.formIconCircle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0ea5e9;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(12, 74, 110, 0.28));
+}
+
+.formHeaderIcon {
+  width: 28px;
+  height: 28px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.formSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.formTabList {
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  background: rgba(14, 165, 233, 0.08);
+  padding: 4px;
+}
+
+.formTabButton {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formTabButtonActive {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.35);
+}
+
+.formTabButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.formTabButton:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.formInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.formInputIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.formInput {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px 0 48px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #f8fafc;
+  font-size: 15px;
+  color: #0f172a;
+  transition: border 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.formInput:focus-visible {
+  outline: none;
+  border-color: #0ea5e9;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+}
+
+.formInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formAlert {
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(254, 226, 226, 0.65);
+  padding: 12px 16px;
+}
+
+.formAlertTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.formAlertDescription {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.formSubmit {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.formSubmit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
+}
+
+.formSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formSubmit:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+.formSubmitIcon {
+  width: 18px;
+  height: 18px;
+  animation: spin 0.9s linear infinite;
+}
+
+.formDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #7c8aa1;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.formDividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.formOauthButton {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formOauthButton:hover:not(:disabled) {
+  background: #f1f5ff;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
+.formOauthButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formOauthButton:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
+}
+
+.formOauthIcon {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 36px 28px 32px;
+    gap: 32px;
+    border-radius: 28px;
+  }
+
+  .inner {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .formCard {
+    padding: 26px;
+  }
+}
+
+@media (max-width: 520px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .card {
+    padding: 32px 24px 28px;
+    gap: 28px;
+  }
+
+  .formCard {
+    padding: 24px;
+    border-radius: 22px;
+  }
+}

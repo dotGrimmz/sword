@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { LoginScreen } from "@/components/LoginScreen";
-import AuthForm from "@/components/auth/AuthForm";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -18,9 +17,5 @@ export default async function LoginPage() {
     redirect("/dashboard");
   }
 
-  return (
-    <LoginScreen>
-      <AuthForm className="border-0 bg-transparent p-0 shadow-none" />
-    </LoginScreen>
-  );
+  return <LoginScreen redirectTo="/dashboard" />;
 }
