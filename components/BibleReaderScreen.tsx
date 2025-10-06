@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -7,10 +9,14 @@ import { ChevronLeft, ChevronRight, Bookmark, Heart, MessageSquare, Settings } f
 import { motion } from "motion/react";
 
 interface BibleReaderScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
+  const handleNavigate = (screen: string) => {
+    onNavigate?.(screen);
+  };
+
   const [currentChapter, setCurrentChapter] = useState({ book: "Matthew", chapter: 5 });
   const [highlightedVerses, setHighlightedVerses] = useState<number[]>([4, 8]);
 
@@ -66,7 +72,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => onNavigate('settings')}
+            onClick={() => handleNavigate("settings")}
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -99,7 +105,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className={`group relative p-4 rounded-lg transition-all duration-200 ${
+              className={`group relative cursor-pointer p-4 rounded-lg transition-all duration-200 ${
                 highlightedVerses.includes(verse.number)
                   ? 'bg-accent/20 border-l-4 border-accent'
                   : 'hover:bg-card/60'

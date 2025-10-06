@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -8,7 +10,7 @@ import { Plus, Search, Edit, Trash2, Calendar, BookOpen } from "lucide-react";
 import { motion } from "motion/react";
 
 interface NotesScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 interface Note {
@@ -21,7 +23,8 @@ interface Note {
   tags: string[];
 }
 
-export function NotesScreen({ onNavigate }: NotesScreenProps) {
+export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
+  void onNavigate;
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   

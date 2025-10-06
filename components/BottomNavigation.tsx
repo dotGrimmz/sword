@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "./ui/button";
 import { Home, BookOpen, Heart, Brain, FileText, Settings } from "lucide-react";
 import { motion } from "motion/react";

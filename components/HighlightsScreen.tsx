@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -8,7 +10,7 @@ import { Search, Heart, BookOpen, Calendar, Filter, Share } from "lucide-react";
 import { motion } from "motion/react";
 
 interface HighlightsScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 interface Highlight {
@@ -23,7 +25,8 @@ interface Highlight {
   note?: string;
 }
 
-export function HighlightsScreen({ onNavigate }: HighlightsScreenProps) {
+export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
+  void onNavigate;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState("all");
   

@@ -1,0 +1,324 @@
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-size: 16px;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --radius: 0.75rem;
+}
+
+:root,
+[data-theme="ocean"] {
+  --background: #f0f8ff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0891b2;
+  --primary-foreground: #ffffff;
+  --secondary: #e0f2fe;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #0ea5e9;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(15, 23, 42, 0.1);
+  --input: transparent;
+  --input-background: #e0f2fe;
+  --switch-background: #cbd5e1;
+  --ring: rgba(14, 165, 233, 0.3);
+  --chart-1: #0ea5e9;
+  --chart-2: #0891b2;
+  --chart-3: #0369a1;
+  --chart-4: #7dd3fc;
+  --chart-5: #38bdf8;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0891b2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e0f2fe;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: rgba(15, 23, 42, 0.1);
+  --sidebar-ring: rgba(14, 165, 233, 0.3);
+}
+
+[data-theme="sunset"] {
+  --background: #fff7ed;
+  --foreground: #7c2d12;
+  --card: #ffffff;
+  --card-foreground: #7c2d12;
+  --popover: #ffffff;
+  --popover-foreground: #7c2d12;
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --secondary: #fed7aa;
+  --secondary-foreground: #7c2d12;
+  --muted: #fef3e8;
+  --muted-foreground: #a16207;
+  --accent: #f97316;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(124, 45, 18, 0.1);
+  --input: transparent;
+  --input-background: #fed7aa;
+  --switch-background: #fdba74;
+  --ring: rgba(249, 115, 22, 0.3);
+  --chart-1: #f97316;
+  --chart-2: #ea580c;
+  --chart-3: #c2410c;
+  --chart-4: #fb923c;
+  --chart-5: #fdba74;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #7c2d12;
+  --sidebar-primary: #ea580c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fed7aa;
+  --sidebar-accent-foreground: #7c2d12;
+  --sidebar-border: rgba(124, 45, 18, 0.1);
+  --sidebar-ring: rgba(249, 115, 22, 0.3);
+}
+
+[data-theme="forest"] {
+  --background: #f0fdf4;
+  --foreground: #14532d;
+  --card: #ffffff;
+  --card-foreground: #14532d;
+  --popover: #ffffff;
+  --popover-foreground: #14532d;
+  --primary: #059669;
+  --primary-foreground: #ffffff;
+  --secondary: #dcfce7;
+  --secondary-foreground: #14532d;
+  --muted: #f7fef0;
+  --muted-foreground: #65a30d;
+  --accent: #10b981;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(20, 83, 45, 0.1);
+  --input: transparent;
+  --input-background: #dcfce7;
+  --switch-background: #bbf7d0;
+  --ring: rgba(16, 185, 129, 0.3);
+  --chart-1: #10b981;
+  --chart-2: #059669;
+  --chart-3: #047857;
+  --chart-4: #6ee7b7;
+  --chart-5: #a7f3d0;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14532d;
+  --sidebar-primary: #059669;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dcfce7;
+  --sidebar-accent-foreground: #14532d;
+  --sidebar-border: rgba(20, 83, 45, 0.1);
+  --sidebar-ring: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="purple"] {
+  --background: #faf5ff;
+  --foreground: #581c87;
+  --card: #ffffff;
+  --card-foreground: #581c87;
+  --popover: #ffffff;
+  --popover-foreground: #581c87;
+  --primary: #9333ea;
+  --primary-foreground: #ffffff;
+  --secondary: #e9d5ff;
+  --secondary-foreground: #581c87;
+  --muted: #f5f3ff;
+  --muted-foreground: #7c3aed;
+  --accent: #a855f7;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(88, 28, 135, 0.1);
+  --input: transparent;
+  --input-background: #e9d5ff;
+  --switch-background: #ddd6fe;
+  --ring: rgba(168, 85, 247, 0.3);
+  --chart-1: #a855f7;
+  --chart-2: #9333ea;
+  --chart-3: #7c3aed;
+  --chart-4: #c4b5fd;
+  --chart-5: #ddd6fe;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #581c87;
+  --sidebar-primary: #9333ea;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9d5ff;
+  --sidebar-accent-foreground: #581c87;
+  --sidebar-border: rgba(88, 28, 135, 0.1);
+  --sidebar-ring: rgba(168, 85, 247, 0.3);
+}
+
+[data-theme="cherry"] {
+  --background: #fdf2f8;
+  --foreground: #831843;
+  --card: #ffffff;
+  --card-foreground: #831843;
+  --popover: #ffffff;
+  --popover-foreground: #831843;
+  --primary: #ec4899;
+  --primary-foreground: #ffffff;
+  --secondary: #fbcfe8;
+  --secondary-foreground: #831843;
+  --muted: #fce7f3;
+  --muted-foreground: #be185d;
+  --accent: #f472b6;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(131, 24, 67, 0.1);
+  --input: transparent;
+  --input-background: #fbcfe8;
+  --switch-background: #f9a8d4;
+  --ring: rgba(244, 114, 182, 0.3);
+  --chart-1: #f472b6;
+  --chart-2: #ec4899;
+  --chart-3: #db2777;
+  --chart-4: #f9a8d4;
+  --chart-5: #fbcfe8;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #831843;
+  --sidebar-primary: #ec4899;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fbcfe8;
+  --sidebar-accent-foreground: #831843;
+  --sidebar-border: rgba(131, 24, 67, 0.1);
+  --sidebar-ring: rgba(244, 114, 182, 0.3);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer base {
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .scripture-text {
+    font-family: "Merriweather", Georgia, serif;
+  }
+
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      font-family: "Inter", sans-serif;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      font-family: "Inter", sans-serif;
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      font-family: "Inter", sans-serif;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      font-family: "Inter", sans-serif;
+    }
+
+    p {
+      font-size: 1rem;
+      font-weight: var(--font-weight-normal);
+      line-height: 1.6;
+      font-family: "Inter", sans-serif;
+    }
+
+    label {
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: "Inter", sans-serif;
+    }
+
+    button {
+      font-size: 1rem;
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: "Inter", sans-serif;
+    }
+
+    input {
+      font-size: 1rem;
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+      font-family: "Inter", sans-serif;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

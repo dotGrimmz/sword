@@ -1,6 +1,15 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+"use client";
 
-export type Theme = 'ocean' | 'sunset' | 'forest' | 'purple' | 'cherry';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from "react";
+
+export type Theme = "ocean" | "sunset" | "forest" | "purple" | "cherry";
 
 interface ThemeContextType {
   theme: Theme;
@@ -12,7 +21,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
 }
@@ -22,23 +31,32 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Get theme from localStorage or default to 'ocean'
-    const saved = localStorage.getItem('sword-theme');
-    return (saved as Theme) || 'ocean';
-  });
+  const [theme, setTheme] = useState<Theme>("ocean");
 
   useEffect(() => {
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('sword-theme', theme);
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const saved = window.localStorage.getItem("sword-theme") as Theme | null;
+    const initialTheme = saved ?? "ocean";
+
+    setTheme(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("sword-theme", theme);
   }, [theme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export const themeOptions = [

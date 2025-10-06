@@ -33,11 +33,11 @@ const labelClassName = "block text-sm font-medium text-slate-700";
 const errorClassName = "mt-2 text-sm text-rose-600";
 
 const submitButtonClassName =
-  "flex w-full items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60";
+  "flex w-full cursor-pointer items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60";
 
-const toggleButtonClassName = "text-sm font-semibold text-slate-900 hover:underline";
+const toggleButtonClassName = "cursor-pointer text-sm font-semibold text-slate-900 hover:underline";
 
-const AuthForm = ({ redirectTo = "/" }: { redirectTo?: string }) => {
+const AuthForm = ({ redirectTo = "/app" }: { redirectTo?: string }) => {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
@@ -257,7 +257,7 @@ const AuthForm = ({ redirectTo = "/" }: { redirectTo?: string }) => {
 
       <button
         type="button"
-        className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
         onClick={handleGoogleSignIn}
         disabled={isLoading}
       >

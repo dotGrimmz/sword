@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -7,7 +9,7 @@ import { Plus, Brain, CheckCircle, RotateCcw, Target, Calendar } from "lucide-re
 import { motion } from "motion/react";
 
 interface MemoryScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 interface MemoryVerse {
@@ -22,7 +24,8 @@ interface MemoryVerse {
   streak: number;
 }
 
-export function MemoryScreen({ onNavigate }: MemoryScreenProps) {
+export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
+  void onNavigate;
   const [currentMode, setCurrentMode] = useState<"review" | "practice" | "list">("list");
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);

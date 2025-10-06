@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -10,10 +12,11 @@ import { motion } from "motion/react";
 import { useTheme, themeOptions } from "./ThemeContext";
 
 interface SettingsScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
-export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
+export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
+  void onNavigate;
   const [fontSize, setFontSize] = useState([16]);
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);

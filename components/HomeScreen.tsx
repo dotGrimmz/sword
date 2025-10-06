@@ -1,13 +1,19 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { BookOpen, Heart, Lightbulb, Brain, Calendar, Clock } from "lucide-react";
 import { motion } from "motion/react";
 
 interface HomeScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 export function HomeScreen({ onNavigate }: HomeScreenProps) {
+  const handleNavigate = (screen: string) => {
+    onNavigate?.(screen);
+  };
+
   const todaysVerse = {
     text: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, to give you hope and a future.",
     reference: "Jeremiah 29:11"
@@ -70,7 +76,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               >
                 <Card 
                   className="cursor-pointer hover:shadow-md transition-all duration-200 border-border/50 bg-card/80"
-                  onClick={() => onNavigate(action.screen)}
+                  onClick={() => handleNavigate(action.screen)}
                 >
                   <CardContent className="p-4 space-y-2">
                     <action.icon className="w-6 h-6 text-primary" />
