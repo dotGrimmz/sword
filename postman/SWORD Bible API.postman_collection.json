@@ -310,6 +310,92 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "List Highlights",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Highlight",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": null,\n  \"chapter\": 1,\n  \"verseStart\": 1,\n  \"verseEnd\": 5,\n  \"color\": \"#fde68a\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Highlight",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights?id={{highlightId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{highlightId}}"
+            }
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
@@ -351,6 +437,10 @@
     },
     {
       "key": "userPassword",
+      "value": ""
+    },
+    {
+      "key": "highlightId",
       "value": ""
     }
   ]
