@@ -312,6 +312,111 @@
       "response": []
     },
     {
+      "name": "List Bookmarks",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ]
+        },
+        "description": "Fetch all bookmarks for the authenticated user. Response entries include id, bookId, chapter, verse, label, createdAt."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Bookmark",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": \"{{bookmarkBookId}}\",\n  \"chapter\": 1,\n  \"verse\": 1,\n  \"label\": \"Favorite verse\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ]
+        },
+        "description": "Create or update a bookmark for the specified book and chapter. Response does not include updatedAt."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.id) {",
+              "  pm.collectionVariables.set('bookmarkId', json.id);",
+              "}",
+              "if (json && json.bookId) {",
+              "  pm.collectionVariables.set('bookmarkBookId', json.bookId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Bookmark",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks?id={{bookmarkId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookmarkId}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "List Highlights",
       "request": {
         "method": "GET",
@@ -441,6 +546,14 @@
     },
     {
       "key": "highlightId",
+      "value": ""
+    },
+    {
+      "key": "bookmarkId",
+      "value": ""
+    },
+    {
+      "key": "bookmarkBookId",
       "value": ""
     }
   ]
