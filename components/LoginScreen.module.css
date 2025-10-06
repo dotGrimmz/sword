@@ -4,9 +4,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px;
+  padding: 48px clamp(16px, 4vw, 32px);
   background: linear-gradient(180deg, #e0f2ff 0%, #f5f9ff 45%, #ffffff 100%);
   width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .card {
@@ -135,6 +137,20 @@
   border-radius: 16px;
   background: rgba(14, 165, 233, 0.08);
   padding: 4px;
+  position: relative;
+}
+
+.formTabList::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  box-shadow: 0 12px 20px rgba(2, 132, 199, 0.35);
+  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
 }
 
 .formTabButton {
@@ -148,12 +164,20 @@
   padding: 10px 14px;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .formTabButtonActive {
   color: #ffffff;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.35);
+}
+
+.formTabList[data-active="signin"]::before {
+  transform: translateX(0);
+}
+
+.formTabList[data-active="signup"]::before {
+  transform: translateX(calc(100% + 8px));
 }
 
 .formTabButton:disabled {

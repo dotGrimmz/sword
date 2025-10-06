@@ -4,12 +4,37 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Switch } from "./ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Slider } from "./ui/slider";
 import { Separator } from "./ui/separator";
-import { User, Book, Bell, Palette, Type, Moon, Sun, Download, Share, Shield, LogOut, Loader2 } from "lucide-react";
+import {
+  User,
+  Book,
+  Bell,
+  Palette,
+  Type,
+  Moon,
+  Sun,
+  Download,
+  Share,
+  Shield,
+  LogOut,
+  Loader2,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme, themeOptions } from "./ThemeContext";
 import { createClient } from "@/lib/supabase/client";
@@ -39,7 +64,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           label: "Bible Translation",
           description: "Choose your preferred translation",
           value: "ESV",
-          options: ["ESV", "NIV", "NASB", "KJV", "NLT"]
+          options: ["ESV", "NIV", "NASB", "KJV", "NLT"],
         },
         {
           type: "slider",
@@ -48,16 +73,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           value: fontSize,
           onChange: setFontSize,
           min: 12,
-          max: 24
+          max: 24,
         },
         {
           type: "select",
           label: "Reading Mode",
           description: "Single column or verse-by-verse",
           value: "verse",
-          options: ["paragraph", "verse", "single-column"]
-        }
-      ]
+          options: ["paragraph", "verse", "single-column"],
+        },
+      ],
     },
     {
       title: "Appearance",
@@ -68,16 +93,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           label: "Color Theme",
           description: "Choose your vibrant color scheme",
           value: theme,
-          onChange: setTheme
+          onChange: setTheme,
         },
         {
           type: "switch",
           label: "Dark Mode",
           description: "Use dark theme for low-light reading",
           value: darkMode,
-          onChange: setDarkMode
-        }
-      ]
+          onChange: setDarkMode,
+        },
+      ],
     },
     {
       title: "Study Tools",
@@ -88,23 +113,23 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           label: "Auto-Highlight",
           description: "Automatically highlight as you read",
           value: autoHighlight,
-          onChange: setAutoHighlight
+          onChange: setAutoHighlight,
         },
         {
           type: "select",
           label: "Default Note Color",
           description: "Your preferred highlight color",
           value: "yellow",
-          options: ["yellow", "blue", "green", "pink", "purple"]
+          options: ["yellow", "blue", "green", "pink", "purple"],
         },
         {
           type: "switch",
           label: "Show Cross-References",
           description: "Display related verses inline",
           value: true,
-          onChange: () => {}
-        }
-      ]
+          onChange: () => {},
+        },
+      ],
     },
     {
       title: "Notifications",
@@ -115,24 +140,24 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           label: "Daily Reminders",
           description: "Get reminded for daily reading",
           value: notifications,
-          onChange: setNotifications
+          onChange: setNotifications,
         },
         {
           type: "select",
           label: "Reminder Time",
           description: "When to send daily reminders",
           value: "8:00 AM",
-          options: ["6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "8:00 PM"]
+          options: ["6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "8:00 PM"],
         },
         {
           type: "switch",
           label: "Memory Verse Alerts",
           description: "Reminders to review memory verses",
           value: true,
-          onChange: () => {}
-        }
-      ]
-    }
+          onChange: () => {},
+        },
+      ],
+    },
   ];
 
   const renderSettingItem = (item: any, index: number) => {
@@ -141,8 +166,12 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         return (
           <div key={index} className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="text-sm font-medium text-foreground">{item.label}</div>
-              <div className="text-xs text-muted-foreground">{item.description}</div>
+              <div className="text-sm font-medium text-foreground">
+                {item.label}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {item.description}
+              </div>
             </div>
             <Switch checked={item.value} onCheckedChange={item.onChange} />
           </div>
@@ -151,8 +180,12 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         return (
           <div key={index} className="space-y-3">
             <div>
-              <div className="text-sm font-medium text-foreground">{item.label}</div>
-              <div className="text-xs text-muted-foreground">{item.description}</div>
+              <div className="text-sm font-medium text-foreground">
+                {item.label}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {item.description}
+              </div>
             </div>
             <div className="grid grid-cols-1 gap-3">
               {themeOptions.map((themeOption) => (
@@ -160,18 +193,24 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                   key={themeOption.value}
                   className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     item.value === themeOption.value
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-card hover:bg-accent/50'
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-card hover:bg-accent/50"
                   }`}
                   onClick={() => item.onChange(themeOption.value)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full ${themeOption.preview}`} />
+                    <div
+                      className={`w-8 h-8 rounded-full ${themeOption.preview}`}
+                    />
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-foreground">{themeOption.name}</div>
-                      <div className="text-xs text-muted-foreground">{themeOption.description}</div>
+                      <div className="text-sm font-medium text-foreground">
+                        {themeOption.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {themeOption.description}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -183,8 +222,12 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         return (
           <div key={index} className="space-y-2">
             <div>
-              <div className="text-sm font-medium text-foreground">{item.label}</div>
-              <div className="text-xs text-muted-foreground">{item.description}</div>
+              <div className="text-sm font-medium text-foreground">
+                {item.label}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {item.description}
+              </div>
             </div>
             <Select value={item.value}>
               <SelectTrigger className="bg-input-background border-border/50">
@@ -192,7 +235,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
               </SelectTrigger>
               <SelectContent>
                 {item.options.map((option: string) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -204,9 +249,13 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
             <div>
               <div className="text-sm font-medium text-foreground flex justify-between">
                 <span>{item.label}</span>
-                <span className="text-xs text-muted-foreground">{item.value[0]}px</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.value[0]}px
+                </span>
               </div>
-              <div className="text-xs text-muted-foreground">{item.description}</div>
+              <div className="text-xs text-muted-foreground">
+                {item.description}
+              </div>
             </div>
             <Slider
               value={item.value}
@@ -233,7 +282,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           </div>
           <div>
             <h1 className="text-xl text-primary">Settings</h1>
-            <p className="text-sm text-muted-foreground">Customize your study experience</p>
+            <p className="text-sm text-muted-foreground">
+              Customize your study experience
+            </p>
           </div>
         </div>
       </div>
@@ -250,15 +301,17 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
             <Card className="border-border/50 bg-card/80">
               <CardHeader className="pb-4">
                 <CardTitle className="text-base flex items-center space-x-2">
-                  <section.icon className="w-4 h-4 text-primary" />
-                  <span>{section.title}</span>
+                  <section.icon className="w-4 h-4 text-primary " />
+                  <span>{section.title} kop</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {section.items.map((item, itemIndex) => (
                   <div key={itemIndex}>
                     {renderSettingItem(item, itemIndex)}
-                    {itemIndex < section.items.length - 1 && <Separator className="mt-4" />}
+                    {itemIndex < section.items.length - 1 && (
+                      <Separator className="mt-4" />
+                    )}
                   </div>
                 ))}
               </CardContent>
@@ -310,7 +363,10 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                     toast.success("Signed out");
                     router.replace("/login");
                   } catch (error) {
-                    const message = error instanceof Error ? error.message : "Unable to sign out";
+                    const message =
+                      error instanceof Error
+                        ? error.message
+                        : "Unable to sign out";
                     toast.error(message);
                   } finally {
                     setIsSigningOut(false);

@@ -179,7 +179,12 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
                 </div>
               </div>
 
-              <div className={styles.formTabList} role="tablist" aria-label="Authentication mode">
+              <div
+                className={styles.formTabList}
+                role="tablist"
+                aria-label="Authentication mode"
+                data-active={mode}
+              >
                 <button
                   type="button"
                   className={cn(styles.formTabButton, mode === "signin" && styles.formTabButtonActive)}
