@@ -20,7 +20,7 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 safe-area-bottom">
+    <div className="w-full border-t border-border/50 bg-card/95 backdrop-blur-md safe-area-bottom">
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const isActive = currentScreen === item.id;
