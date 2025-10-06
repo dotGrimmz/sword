@@ -107,6 +107,44 @@
       "response": []
     },
     {
+      "name": "Get Passage (Romans 8:28-31)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/passage?book=Romans&start=8:28&end=8:31&translation=WEB",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "passage"
+          ],
+          "query": [
+            {
+              "key": "book",
+              "value": "Romans"
+            },
+            {
+              "key": "start",
+              "value": "8:28"
+            },
+            {
+              "key": "end",
+              "value": "8:31"
+            },
+            {
+              "key": "translation",
+              "value": "WEB"
+            }
+          ]
+        },
+        "description": "Fetches Romans 8:28-31 using the specified translation."
+      },
+      "response": []
+    },
+    {
       "name": "Search (faith)",
       "request": {
         "method": "GET",
