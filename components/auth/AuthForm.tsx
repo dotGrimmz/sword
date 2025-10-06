@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+import { cn } from "@/components/ui/utils";
 import { createClient } from "@/lib/supabase/client";
 
 const FORM_MODES = {
@@ -37,7 +38,13 @@ const submitButtonClassName =
 
 const toggleButtonClassName = "cursor-pointer text-sm font-semibold text-slate-900 hover:underline";
 
-const AuthForm = ({ redirectTo = "/app" }: { redirectTo?: string }) => {
+const AuthForm = ({
+  redirectTo = "/dashboard",
+  className,
+}: {
+  redirectTo?: string;
+  className?: string;
+}) => {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
@@ -157,7 +164,12 @@ const AuthForm = ({ redirectTo = "/app" }: { redirectTo?: string }) => {
   }, [supabase, isLoading]);
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+    <div
+      className={cn(
+        "flex w-full max-w-md flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl",
+        className,
+      )}
+    >
       <div className="flex flex-col items-center gap-3 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900">
           <Image src="/file.svg" alt="SWORD" width={28} height={28} priority />

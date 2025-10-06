@@ -14,7 +14,7 @@ export default async function Page() {
   }
 
   if (session) {
-    redirect("/app");
+    redirect("/dashboard");
   }
 
   redirect("/login");

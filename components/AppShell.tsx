@@ -21,7 +21,7 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const currentScreen: ScreenKey = useMemo(() => getScreenForPath(pathname ?? "/app"), [pathname]);
+  const currentScreen: ScreenKey = useMemo(() => getScreenForPath(pathname ?? "/dashboard"), [pathname]);
 
   const handleNavigate = (nextScreen: string) => {
     const target = getRouteForScreen(nextScreen);

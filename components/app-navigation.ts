@@ -1,10 +1,10 @@
 export const screenRoutes = {
-  home: "/app",
-  reader: "/app/reader",
-  highlights: "/app/highlights",
-  memory: "/app/memory",
-  notes: "/app/notes",
-  settings: "/app/settings",
+  home: "/dashboard",
+  reader: "/dashboard/reader",
+  highlights: "/dashboard/highlights",
+  memory: "/dashboard/memory",
+  notes: "/dashboard/notes",
+  settings: "/dashboard/settings",
 } as const;
 
 export type ScreenKey = keyof typeof screenRoutes;
@@ -31,7 +31,7 @@ export function getScreenForPath(pathname: string): ScreenKey {
 
 function normalizePathname(pathname: string): string {
   if (pathname === "/") {
-    return "/app";
+    return "/dashboard";
   }
 
   if (pathname.endsWith("/") && pathname.length > 1) {
