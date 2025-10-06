@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Slider } from "./ui/slider";
 import { Separator } from "./ui/separator";
-import { User, Book, Bell, Palette, Type, Moon, Sun, Download, Share, Shield } from "lucide-react";
+import { User, Book, Bell, Palette, Type, Moon, Sun, Download, Share, Shield, LogOut, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme, themeOptions } from "./ThemeContext";
+import { createClient } from "@/lib/supabase/client";
+import { clearCachedAccessToken } from "@/lib/api/session";
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -17,10 +21,12 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   void onNavigate;
+  const router = useRouter();
   const [fontSize, setFontSize] = useState([16]);
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [autoHighlight, setAutoHighlight] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
 
   const settingSections = [
@@ -282,7 +288,41 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                 <Share className="w-4 h-4 mr-2" />
                 Share with Friends
               </Button>
-              <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-destructive hover:text-destructive"
+                onClick={async () => {
+                  if (isSigningOut) {
+                    return;
+                  }
+
+                  setIsSigningOut(true);
+                  const supabase = createClient();
+
+                  try {
+                    const { error } = await supabase.auth.signOut();
+
+                    if (error) {
+                      throw error;
+                    }
+
+                    clearCachedAccessToken();
+                    toast.success("Signed out");
+                    router.replace("/login");
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : "Unable to sign out";
+                    toast.error(message);
+                  } finally {
+                    setIsSigningOut(false);
+                  }
+                }}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="mr-2 h-4 w-4" />
+                )}
                 Sign Out
               </Button>
             </CardContent>

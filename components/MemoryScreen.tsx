@@ -1,291 +1,557 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
+import { motion } from "motion/react";
+import {
+  Brain,
+  Calendar,
+  Loader2,
+  Plus,
+  Target,
+  Trash2,
+} from "lucide-react";
+
+import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Progress } from "./ui/progress";
-import { Badge } from "./ui/badge";
-import { Plus, Brain, CheckCircle, RotateCcw, Target, Calendar } from "lucide-react";
-import { motion } from "motion/react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import {
+  createUserMemoryVerse,
+  deleteUserMemoryVerse,
+  getUserMemoryVerses,
+} from "@/lib/api/memory";
+import type { BibleBookSummary } from "@/types/bible";
+import type { UserMemoryVerse } from "@/types/user";
+import {
+  MEMORY_UPDATED_EVENT,
+  dispatchMemoryUpdated,
+} from "@/lib/events";
 
 interface MemoryScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-interface MemoryVerse {
-  id: string;
-  verse: string;
-  reference: string;
-  category: string;
-  difficulty: "easy" | "medium" | "hard";
-  mastery: number;
-  lastReviewed: string;
-  nextReview: string;
-  streak: number;
-}
+type MemoryVerseViewModel = {
+  raw: UserMemoryVerse;
+  bookName: string;
+  referenceLabel: string | null;
+  verseText: string;
+  nextReviewLabel: string | null;
+};
+
+const formatDate = (iso: string | null) => {
+  if (!iso) {
+    return null;
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
 
 export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   void onNavigate;
-  const [currentMode, setCurrentMode] = useState<"review" | "practice" | "list">("list");
-  const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  
-  const [memoryVerses] = useState<MemoryVerse[]>([
-    {
-      id: "1",
-      verse: "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, to give you hope and a future.",
-      reference: "Jeremiah 29:11",
-      category: "Hope",
-      difficulty: "medium",
-      mastery: 85,
-      lastReviewed: "Oct 4, 2024",
-      nextReview: "Oct 6, 2024",
-      streak: 7
-    },
-    {
-      id: "2",
-      verse: "And we know that for those who love God all things work together for good, for those who are called according to his purpose.",
-      reference: "Romans 8:28",
-      category: "God's Sovereignty",
-      difficulty: "hard",
-      mastery: 65,
-      lastReviewed: "Oct 3, 2024",
-      nextReview: "Oct 5, 2024",
-      streak: 4
-    },
-    {
-      id: "3",
-      verse: "Be still, and know that I am God.",
-      reference: "Psalm 46:10",
-      category: "Peace",
-      difficulty: "easy",
-      mastery: 95,
-      lastReviewed: "Oct 5, 2024",
-      nextReview: "Oct 8, 2024",
-      streak: 12
-    },
-    {
-      id: "4",
-      verse: "I can do all things through him who strengthens me.",
-      reference: "Philippians 4:13",
-      category: "Strength",
-      difficulty: "easy",
-      mastery: 90,
-      lastReviewed: "Oct 2, 2024",
-      nextReview: "Oct 6, 2024",
-      streak: 9
-    },
-    {
-      id: "5",
-      verse: "Trust in the Lord with all your heart, and do not lean on your own understanding.",
-      reference: "Proverbs 3:5",
-      category: "Trust",
-      difficulty: "medium",
-      mastery: 75,
-      lastReviewed: "Oct 1, 2024",
-      nextReview: "Oct 5, 2024",
-      streak: 5
+
+  const {
+    books,
+    translationCode,
+    isLoadingTranslations,
+    isLoadingBooks,
+  } = useTranslationContext();
+
+  const [memoryVerses, setMemoryVerses] = useState<UserMemoryVerse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createBookId, setCreateBookId] = useState<string | null>(null);
+  const [createChapter, setCreateChapter] = useState("1");
+  const [createVerseStart, setCreateVerseStart] = useState("1");
+  const [createVerseEnd, setCreateVerseEnd] = useState("1");
+  const [createLabel, setCreateLabel] = useState("");
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [isSavingCreate, setIsSavingCreate] = useState(false);
+
+  const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
+  const verseTextsRef = useRef(verseTexts);
+  const pendingPassages = useRef(new Set<string>());
+
+  useEffect(() => {
+    verseTextsRef.current = verseTexts;
+  }, [verseTexts]);
+
+  const bookIndex = useMemo(() => {
+    const index = new Map<string, BibleBookSummary>();
+    for (const book of books) {
+      index.set(book.id, book);
     }
-  ]);
+    return index;
+  }, [books]);
 
-  const needReview = memoryVerses.filter(v => new Date(v.nextReview) <= new Date());
-  const totalMastery = Math.round(memoryVerses.reduce((sum, v) => sum + v.mastery, 0) / memoryVerses.length);
+  const resetCreateForm = useCallback(() => {
+    const firstBook = books[0]?.id ?? null;
+    setCreateBookId(firstBook);
+    setCreateChapter("1");
+    setCreateVerseStart("1");
+    setCreateVerseEnd("1");
+    setCreateLabel("");
+    setCreateError(null);
+  }, [books]);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "hard": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+  useEffect(() => {
+    if (isCreateOpen) {
+      resetCreateForm();
+    }
+  }, [isCreateOpen, resetCreateForm]);
+
+  useEffect(() => {
+    setCreateVerseEnd((current) => {
+      const startValue = Number.parseInt(createVerseStart, 10);
+      const endValue = Number.parseInt(current, 10);
+
+      if (!Number.isFinite(startValue)) {
+        return current;
+      }
+
+      if (!Number.isFinite(endValue) || endValue < startValue) {
+        return `${startValue}`;
+      }
+
+      return current;
+    });
+  }, [createVerseStart]);
+
+  const loadMemoryVerses = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getUserMemoryVerses();
+      setMemoryVerses(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load memory verses";
+      toast.error(message);
+      setMemoryVerses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMemoryVerses();
+  }, [loadMemoryVerses]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handler: EventListener = (event) => {
+      const custom = event as CustomEvent<{ source?: string }>;
+      if (custom.detail?.source === "memory-screen") {
+        return;
+      }
+      void loadMemoryVerses();
+    };
+
+    window.addEventListener(MEMORY_UPDATED_EVENT, handler);
+    return () => {
+      window.removeEventListener(MEMORY_UPDATED_EVENT, handler);
+    };
+  }, [loadMemoryVerses]);
+
+  useEffect(() => {
+    if (!translationCode) {
+      return;
+    }
+
+    for (const verse of memoryVerses) {
+      const key = verse.id;
+      if (verseTextsRef.current[key] !== undefined) {
+        continue;
+      }
+
+      if (pendingPassages.current.has(key)) {
+        continue;
+      }
+
+      const book = verse.bookId ? bookIndex.get(verse.bookId) : null;
+
+      if (!book || !verse.chapter || !verse.verseStart) {
+        setVerseTexts((prev) => ({ ...prev, [key]: "" }));
+        continue;
+      }
+
+      pendingPassages.current.add(key);
+
+      void getPassage(
+        translationCode,
+        book.name,
+        { chapter: verse.chapter, verse: verse.verseStart },
+        {
+          chapter: verse.chapter,
+          verse: verse.verseEnd ?? verse.verseStart,
+        }
+      )
+        .then((response) => {
+          const text = response.verses.map((entry) => entry.text).join(" ");
+          setVerseTexts((prev) => ({ ...prev, [key]: text }));
+        })
+        .catch(() => {
+          setVerseTexts((prev) => ({ ...prev, [key]: "" }));
+        })
+        .finally(() => {
+          pendingPassages.current.delete(key);
+        });
+    }
+  }, [memoryVerses, translationCode, bookIndex]);
+
+  const derivedVerses = useMemo<MemoryVerseViewModel[]>(() => {
+    return memoryVerses.map((verse) => {
+      const book = verse.bookId ? bookIndex.get(verse.bookId) : null;
+      const referenceLabel = buildReferenceLabel(
+        book ?? undefined,
+        verse.chapter,
+        verse.verseStart,
+        verse.verseEnd
+      );
+      return {
+        raw: verse,
+        bookName: book?.name ?? "",
+        referenceLabel,
+        verseText: verseTexts[verse.id] ?? "",
+        nextReviewLabel: formatDate(verse.nextReviewDate),
+      };
+    });
+  }, [memoryVerses, bookIndex, verseTexts]);
+
+  const filteredVerses = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return derivedVerses;
+    }
+    return derivedVerses.filter((verse) => {
+      return (
+        verse.bookName.toLowerCase().includes(query) ||
+        (verse.referenceLabel && verse.referenceLabel.toLowerCase().includes(query)) ||
+        verse.verseText.toLowerCase().includes(query)
+      );
+    });
+  }, [derivedVerses, searchQuery]);
+
+  const needsReviewCount = useMemo(() => {
+    const today = new Date();
+    return memoryVerses.filter((verse) => {
+      if (!verse.nextReviewDate) {
+        return false;
+      }
+      const nextReview = new Date(verse.nextReviewDate);
+      if (Number.isNaN(nextReview.getTime())) {
+        return false;
+      }
+      return nextReview <= today;
+    }).length;
+  }, [memoryVerses]);
+
+  const averageInterval = useMemo(() => {
+    if (memoryVerses.length === 0) {
+      return 0;
+    }
+    const sum = memoryVerses.reduce((accumulator, verse) => accumulator + (verse.intervalDays ?? 0), 0);
+    return Math.round(sum / memoryVerses.length);
+  }, [memoryVerses]);
+
+  const handleCreate = async () => {
+    if (!createBookId) {
+      setCreateError("Choose a book for this verse.");
+      return;
+    }
+
+    const chapterValue = Number.parseInt(createChapter, 10);
+    const verseStartValue = Number.parseInt(createVerseStart, 10);
+    const verseEndValue = Number.parseInt(createVerseEnd, 10);
+
+    if (!Number.isFinite(chapterValue) || chapterValue < 1) {
+      setCreateError("Chapter must be a positive number.");
+      return;
+    }
+
+    if (!Number.isFinite(verseStartValue) || verseStartValue < 1) {
+      setCreateError("Verse must be a positive number.");
+      return;
+    }
+
+    if (!Number.isFinite(verseEndValue) || verseEndValue < verseStartValue) {
+      setCreateError("Verse range is invalid.");
+      return;
+    }
+
+    setIsSavingCreate(true);
+    setCreateError(null);
+
+    try {
+      const created = await createUserMemoryVerse({
+        bookId: createBookId,
+        chapter: chapterValue,
+        verseStart: verseStartValue,
+        verseEnd: verseEndValue,
+        label: createLabel.trim() || null,
+      });
+
+      setMemoryVerses((prev) => [created, ...prev]);
+      setVerseTexts((prev) => {
+        const next = { ...prev };
+        delete next[created.id];
+        return next;
+      });
+      setIsCreateOpen(false);
+      toast.success("Memory verse added");
+      dispatchMemoryUpdated({ source: "memory-screen" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save memory verse";
+      toast.error(message);
+    } finally {
+      setIsSavingCreate(false);
     }
   };
 
-  const startReview = () => {
-    setCurrentMode("review");
-    setCurrentVerseIndex(0);
-    setShowAnswer(false);
-  };
+  const handleDelete = async (verse: UserMemoryVerse) => {
+    const previous = memoryVerses;
+    setMemoryVerses((prev) => prev.filter((item) => item.id !== verse.id));
+    setVerseTexts((prev) => {
+      const next = { ...prev };
+      delete next[verse.id];
+      return next;
+    });
 
-  const nextVerse = () => {
-    if (currentVerseIndex < needReview.length - 1) {
-      setCurrentVerseIndex(currentVerseIndex + 1);
-      setShowAnswer(false);
-    } else {
-      setCurrentMode("list");
+    try {
+      await deleteUserMemoryVerse(verse.id);
+      toast.success("Memory verse removed");
+      dispatchMemoryUpdated({ source: "memory-screen" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to remove memory verse";
+      toast.error(message);
+      setMemoryVerses(previous);
     }
   };
 
-  if (currentMode === "review" && needReview.length > 0) {
-    const currentVerse = needReview[currentVerseIndex];
-    return (
-      <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-secondary/10">
-        <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 p-4">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={() => setCurrentMode("list")}>
-              ← Back to List
-            </Button>
-            <div className="text-center">
-              <h2 className="text-lg text-primary">Review Session</h2>
-              <p className="text-sm text-muted-foreground">
-                {currentVerseIndex + 1} of {needReview.length}
-              </p>
-            </div>
-            <div className="w-16" />
-          </div>
-        </div>
+  const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
+  const chapterCount = selectedBook?.chapters ?? 1;
 
-        <div className="flex-1 flex items-center justify-center p-6">
-          <motion.div
-            key={currentVerse.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md"
-          >
-            <Card className="border-accent/30 bg-card/90">
-              <CardHeader className="text-center">
-                <CardTitle className="text-primary">{currentVerse.reference}</CardTitle>
-                <CardDescription>{currentVerse.category}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {!showAnswer ? (
-                  <div className="text-center space-y-4">
-                    <p className="text-muted-foreground">Try to recite this verse from memory</p>
-                    <Button onClick={() => setShowAnswer(true)}>
-                      Show Verse
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <blockquote className="scripture-text text-base leading-relaxed text-center italic">
-                      "{currentVerse.verse}"
-                    </blockquote>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={nextVerse}
-                      >
-                        Hard 😔
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={nextVerse}
-                      >
-                        Good 🙂
-                      </Button>
-                      <Button 
-                        className="flex-1 bg-primary hover:bg-primary/90"
-                        onClick={nextVerse}
-                      >
-                        Perfect! 🎉
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
+  const busy = isLoading || isLoadingTranslations || isLoadingBooks;
 
   return (
     <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-secondary/10">
-      {/* Header */}
       <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl text-primary">Memory Verses</h1>
-          <Button size="sm" className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-1" />
-            Add Verse
-          </Button>
+          <div>
+            <h1 className="text-xl text-primary">Memory Verses</h1>
+            <p className="text-xs text-muted-foreground">
+              {memoryVerses.length} saved • {needsReviewCount} ready for review
+            </p>
+          </div>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-primary hover:bg-primary/90" disabled={books.length === 0}>
+                <Plus className="mr-1 h-4 w-4" /> Add Verse
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[92vw] max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Add Memory Verse</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-muted-foreground">Book</span>
+                    <Select
+                      value={createBookId ?? undefined}
+                      onValueChange={(value) => {
+                        setCreateBookId(value);
+                        setCreateChapter("1");
+                        setCreateVerseStart("1");
+                        setCreateVerseEnd("1");
+                      }}
+                    >
+                      <SelectTrigger className="bg-input-background border-border/50">
+                        <SelectValue placeholder="Select book" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {books.map((book) => (
+                          <SelectItem key={book.id} value={book.id}>
+                            {book.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-muted-foreground">Chapter</span>
+                    <Select
+                      value={createChapter}
+                      onValueChange={(value) => {
+                        setCreateChapter(value);
+                        setCreateVerseStart("1");
+                        setCreateVerseEnd("1");
+                      }}
+                    >
+                      <SelectTrigger className="bg-input-background border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {Array.from({ length: chapterCount }, (_, index) => index + 1).map((chapterNumber) => (
+                          <SelectItem key={chapterNumber} value={`${chapterNumber}`}>
+                            {chapterNumber}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-muted-foreground">Verse start</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={createVerseStart}
+                      onChange={(event) => setCreateVerseStart(event.target.value)}
+                      className="bg-input-background border-border/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium text-muted-foreground">Verse end</span>
+                    <Input
+                      type="number"
+                      min={createVerseStart}
+                      value={createVerseEnd}
+                      onChange={(event) => setCreateVerseEnd(event.target.value)}
+                      className="bg-input-background border-border/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Label (optional)</span>
+                  <Input
+                    value={createLabel}
+                    onChange={(event) => setCreateLabel(event.target.value)}
+                    placeholder="Hope, Strength, Promise..."
+                    className="bg-input-background border-border/50"
+                  />
+                </div>
+                {createError ? <p className="text-sm text-destructive">{createError}</p> : null}
+                <Button
+                  className="w-full bg-primary hover:bg-primary/90"
+                  onClick={handleCreate}
+                  disabled={isSavingCreate}
+                >
+                  {isSavingCreate ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Save Memory Verse
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="p-3 bg-card/60">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
-                <Brain className="w-4 h-4 text-primary" />
-              </div>
-              <div className="text-lg font-medium text-foreground">{memoryVerses.length}</div>
-              <div className="text-xs text-muted-foreground">Total Verses</div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card className="border-border/40 bg-card/70 p-3 text-center">
+            <div className="flex justify-center text-primary">
+              <Brain className="h-4 w-4" />
             </div>
+            <div className="text-lg font-semibold text-foreground">{memoryVerses.length}</div>
+            <CardDescription>Total verses memorised</CardDescription>
           </Card>
-          <Card className="p-3 bg-card/60">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
-                <Target className="w-4 h-4 text-accent" />
-              </div>
-              <div className="text-lg font-medium text-foreground">{totalMastery}%</div>
-              <div className="text-xs text-muted-foreground">Avg Mastery</div>
+          <Card className="border-border/40 bg-card/70 p-3 text-center">
+            <div className="flex justify-center text-accent">
+              <Target className="h-4 w-4" />
             </div>
+            <div className="text-lg font-semibold text-foreground">{averageInterval} days</div>
+            <CardDescription>Average review interval</CardDescription>
           </Card>
-          <Card className="p-3 bg-card/60">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-1">
-                <RotateCcw className="w-4 h-4 text-orange-500" />
-              </div>
-              <div className="text-lg font-medium text-foreground">{needReview.length}</div>
-              <div className="text-xs text-muted-foreground">Need Review</div>
+          <Card className="border-border/40 bg-card/70 p-3 text-center">
+            <div className="flex justify-center text-orange-500">
+              <Calendar className="h-4 w-4" />
             </div>
+            <div className="text-lg font-semibold text-foreground">{needsReviewCount}</div>
+            <CardDescription>Ready for review</CardDescription>
           </Card>
         </div>
 
-        {needReview.length > 0 && (
-          <Button onClick={startReview} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-            Start Review Session ({needReview.length} verses)
-          </Button>
-        )}
+        <Input
+          placeholder="Search memorised verses..."
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          className="bg-input-background border-border/50"
+        />
       </div>
 
-      {/* Verses List */}
       <div className="flex-1 overflow-y-auto p-4 pb-20 space-y-4">
-        {memoryVerses.map((verse, index) => (
-          <motion.div
-            key={verse.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-          >
-            <Card className="border-border/50 bg-card/80 hover:shadow-md transition-all duration-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-base text-primary flex items-center space-x-2">
-                      <span>{verse.reference}</span>
-                      {verse.mastery >= 90 && <CheckCircle className="w-4 h-4 text-green-500" />}
+        {busy ? (
+          <div className="flex h-32 items-center justify-center text-muted-foreground">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading memory verses...
+          </div>
+        ) : filteredVerses.length === 0 ? (
+          <div className="mx-auto mt-12 max-w-md text-center text-muted-foreground">
+            <p className="text-sm">No memory verses yet. Add your first verse to begin a review rhythm.</p>
+          </div>
+        ) : (
+          filteredVerses.map((verse, index) => (
+            <motion.div
+              key={verse.raw.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: index * 0.03 }}
+            >
+              <Card className="border-border/40 bg-card/80 hover:shadow-md transition-all duration-200">
+                <CardHeader className="flex flex-row items-start justify-between gap-2">
+                  <div>
+                    <CardTitle className="text-base text-primary">
+                      {verse.referenceLabel ?? "Verse"}
                     </CardTitle>
-                    <CardDescription className="flex items-center space-x-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">{verse.category}</Badge>
-                      <Badge className={`text-xs ${getDifficultyColor(verse.difficulty)}`}>
-                        {verse.difficulty}
-                      </Badge>
+                    <CardDescription className="text-xs">
+                      {verse.bookName}
+                      {verse.raw.label ? ` • ${verse.raw.label}` : ""}
                     </CardDescription>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Streak: {verse.streak}</div>
-                    <div className="text-xs text-muted-foreground">Next: {verse.nextReview}</div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleDelete(verse.raw)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-foreground leading-relaxed">
+                  <blockquote className="scripture-text italic text-muted-foreground">
+                    “{verse.verseText || "Verse text not available yet."}”
+                  </blockquote>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span>
+                      Next review: {verse.nextReviewLabel ?? "Scheduled"}
+                    </span>
+                    {typeof verse.raw.intervalDays === "number" ? (
+                      <span>{verse.raw.intervalDays} day interval</span>
+                    ) : null}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <blockquote className="scripture-text text-sm leading-relaxed text-foreground">
-                  "{verse.verse}"
-                </blockquote>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Mastery</span>
-                    <span className="text-foreground">{verse.mastery}%</span>
-                  </div>
-                  <Progress value={verse.mastery} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   );

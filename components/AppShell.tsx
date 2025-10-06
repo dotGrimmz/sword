@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { ThemeProvider } from "@/components/ThemeContext";
+import { TranslationProvider } from "@/components/TranslationContext";
 import { Toaster } from "@/components/ui/sonner";
 import {
   getRouteForScreen,
@@ -32,13 +33,15 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <ThemeProvider>
-      <div className="mx-auto flex min-h-dvh w-full max-w-5xl justify-center bg-muted/30 px-4 py-6 sm:px-6">
-        <div className="relative flex h-full min-h-[720px] w-full max-w-xl flex-1 flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-xl">
-          <div className="flex-1 overflow-hidden">{children}</div>
-          <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+      <TranslationProvider>
+        <div className="mx-auto flex min-h-dvh w-full max-w-5xl justify-center bg-muted/30 px-4 py-6 sm:px-6">
+          <div className="relative flex h-full min-h-[720px] w-full max-w-xl flex-1 flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-xl">
+            <div className="flex-1 overflow-hidden">{children}</div>
+            <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+          </div>
         </div>
-      </div>
-      <Toaster position="top-center" />
+        <Toaster position="top-center" />
+      </TranslationProvider>
     </ThemeProvider>
   );
 }
