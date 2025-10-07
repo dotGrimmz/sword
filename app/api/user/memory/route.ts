@@ -5,7 +5,19 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
 
-type MemoryVerseRow = Database["public"]["Tables"]["user_memory_verses"]["Row"];
+type MemoryVerseRow = Pick<
+  Database["public"]["Tables"]["user_memory_verses"]["Row"],
+  | "id"
+  | "book_id"
+  | "chapter"
+  | "verse_start"
+  | "verse_end"
+  | "ease"
+  | "interval_days"
+  | "next_review_date"
+  | "created_at"
+  | "updated_at"
+>;
 
 const mapMemoryVerse = (row: MemoryVerseRow) => ({
   id: row.id,
