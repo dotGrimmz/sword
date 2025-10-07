@@ -4,12 +4,14 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 
 import styles from "./LoadingScreen.module.css";
+import { cn } from "./ui/utils";
 
 interface LoadingScreenProps {
   title?: string;
   subtitle?: string;
   icon?: ReactNode;
   className?: string;
+  variant?: "page" | "section";
 }
 
 export function LoadingScreen({
@@ -17,10 +19,19 @@ export function LoadingScreen({
   subtitle = "Please wait while we gather everything you need.",
   icon,
   className,
+  variant = "page",
 }: LoadingScreenProps) {
+  const containerClassName = cn(
+    styles.container,
+    variant === "page" ? styles.containerPage : styles.containerSection,
+    className,
+  );
+
+  const shellClassName = cn(styles.shell, variant === "section" && styles.shellSection);
+
   return (
-    <div className={`${styles.container} ${className ?? ""}`.trim()}>
-      <div className={styles.shell}>
+    <div className={containerClassName}>
+      <div className={shellClassName}>
         <div className={styles.glow} />
         <div className={styles.iconWrap}>
           {icon ?? (

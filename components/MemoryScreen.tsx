@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -24,16 +25,18 @@ import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalDescription,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from "./ui/modal";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   createUserMemoryVerse,
   deleteUserMemoryVerse,
@@ -373,8 +376,8 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
               {memoryVerses.length} saved • {needsReviewCount} ready for review
             </p>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
+          <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <ModalTrigger asChild>
               <Button
                 size="sm"
                 className={styles.addButton}
@@ -382,205 +385,215 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
               >
                 <Plus className={styles.addButtonIcon} /> Add Verse
               </Button>
-            </DialogTrigger>
-            <DialogContent className={styles.dialogContent}>
-              <DialogHeader className={styles.dialogHeader}>
-                <DialogTitle>Add Memory Verse</DialogTitle>
-                <DialogDescription className={styles.dialogDescription}>
+            </ModalTrigger>
+            <ModalContent size="md">
+              <ModalHeader className={styles.dialogHeader}>
+                <ModalTitle>Add Memory Verse</ModalTitle>
+                <ModalDescription className={styles.dialogDescription}>
                   Capture a passage and we&apos;ll schedule it into your review rhythm automatically.
-                </DialogDescription>
-              </DialogHeader>
+                </ModalDescription>
+              </ModalHeader>
 
-              <motion.div
-                className={styles.dialogHero}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                <span className={styles.dialogHeroIcon}>
-                  <Sparkles aria-hidden="true" />
-                </span>
-                <div>
-                  <p className={styles.dialogHeroTitle}>Build your verse library</p>
-                  <p className={styles.dialogHeroSubtitle}>
-                    Keep passages close at hand and let spaced repetition do the heavy lifting.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className={styles.dialogMetaRow}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
-              >
-                <div className={styles.dialogMetaTile}>
-                  <Brain className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>In rotation</p>
-                    <p className={styles.dialogMetaValue}>{memoryVerses.length} verses</p>
-                  </div>
-                </div>
-                <div className={styles.dialogMetaTile}>
-                  <Calendar className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>Ready today</p>
-                    <p className={styles.dialogMetaValue}>{needsReviewCount} for review</p>
-                  </div>
-                </div>
-                <div className={styles.dialogMetaTile}>
-                  <BookOpen className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>Translation</p>
-                    <p className={styles.dialogMetaValue}>{translationCode?.toUpperCase() ?? "Choose one"}</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className={styles.dialogDivider} />
-
-              <div className={styles.formStack}>
+              <ModalBody>
                 <motion.div
-                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                  className={styles.dialogHero}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                 >
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Book</span>
-                    <Select
-                      value={createBookId ?? undefined}
-                      onValueChange={(value) => {
-                        setCreateBookId(value);
-                        setCreateChapter("1");
-                        setCreateVerseStart("1");
-                        setCreateVerseEnd("1");
-                      }}
-                    >
-                      <SelectTrigger className={styles.selectTrigger}>
-                        <SelectValue placeholder="Select book" />
-                      </SelectTrigger>
-                      <SelectContent className={styles.selectContent}>
-                        {books.map((book) => (
-                          <SelectItem key={book.id} value={book.id} className={styles.selectItem}>
-                            {book.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className={styles.dialogHint}>
-                      {books.length > 0
-                        ? `${books.length} books available in ${translationCode?.toUpperCase() ?? "your library"}`
-                        : "Books will appear once a translation is loaded."}
-                    </p>
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Chapter</span>
-                    <Select
-                      value={createChapter}
-                      onValueChange={(value) => {
-                        setCreateChapter(value);
-                        setCreateVerseStart("1");
-                        setCreateVerseEnd("1");
-                      }}
-                    >
-                      <SelectTrigger className={styles.selectTrigger}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className={styles.selectContent}>
-                        {Array.from({ length: chapterCount }, (_, index) => index + 1).map((chapterNumber) => (
-                          <SelectItem
-                            key={chapterNumber}
-                            value={`${chapterNumber}`}
-                            className={styles.selectItem}
-                          >
-                            {chapterNumber}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className={styles.dialogHint}>
-                      {selectedBook
-                        ? `${selectedBook.chapters} chapters total`
-                        : "Pick a book to see chapter options."}
+                  <span className={styles.dialogHeroIcon}>
+                    <Sparkles aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className={styles.dialogHeroTitle}>Build your verse library</p>
+                    <p className={styles.dialogHeroSubtitle}>
+                      Keep passages close at hand and let spaced repetition do the heavy lifting.
                     </p>
                   </div>
                 </motion.div>
+
                 <motion.div
-                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                  initial={{ opacity: 0, y: 10 }}
+                  className={styles.dialogMetaRow}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
+                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
                 >
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Verse start</span>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={createVerseStart}
-                      onChange={(event) => setCreateVerseStart(event.target.value)}
-                      className={styles.input}
-                    />
-                    <p className={styles.dialogHint}>We&apos;ll fetch the passage text automatically.</p>
+                  <div className={styles.dialogMetaTile}>
+                    <Brain className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>In rotation</p>
+                      <p className={styles.dialogMetaValue}>{memoryVerses.length} verses</p>
+                    </div>
                   </div>
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Verse end</span>
-                    <Input
-                      type="number"
-                      min={createVerseStart}
-                      value={createVerseEnd}
-                      onChange={(event) => setCreateVerseEnd(event.target.value)}
-                      className={styles.input}
-                    />
-                    <p className={styles.dialogHint}>Use the same number to memorise a single verse.</p>
+                  <div className={styles.dialogMetaTile}>
+                    <Calendar className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>Ready today</p>
+                      <p className={styles.dialogMetaValue}>{needsReviewCount} for review</p>
+                    </div>
+                  </div>
+                  <div className={styles.dialogMetaTile}>
+                    <BookOpen className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>Translation</p>
+                      <p className={styles.dialogMetaValue}>{translationCode?.toUpperCase() ?? "Choose one"}</p>
+                    </div>
                   </div>
                 </motion.div>
-                <motion.div
-                  className={styles.fieldGroup}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
-                >
-                  <span className={styles.fieldLabel}>Label (optional)</span>
-                  <Input
-                    value={createLabel}
-                    onChange={(event) => setCreateLabel(event.target.value)}
-                    placeholder="Hope, Strength, Promise..."
-                    className={styles.input}
-                  />
-                  <p className={styles.dialogHint}>Add a short tag to group related verses.</p>
-                </motion.div>
-                {createError ? (
+
+                <div className={styles.dialogDivider} />
+
+                <div className={styles.formStack}>
+                  <motion.div
+                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
+                  >
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Book</span>
+                      <Select
+                        value={createBookId ?? undefined}
+                        onValueChange={(value) => {
+                          setCreateBookId(value);
+                          setCreateChapter("1");
+                          setCreateVerseStart("1");
+                          setCreateVerseEnd("1");
+                        }}
+                      >
+                        <SelectTrigger className={styles.selectTrigger}>
+                          <SelectValue placeholder="Select book" />
+                        </SelectTrigger>
+                        <SelectContent className={styles.selectContent}>
+                          {books.map((book) => (
+                            <SelectItem key={book.id} value={book.id} className={styles.selectItem}>
+                              {book.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className={styles.dialogHint}>
+                        {books.length > 0
+                          ? `${books.length} books available in ${translationCode?.toUpperCase() ?? "your library"}`
+                          : "Books will appear once a translation is loaded."}
+                      </p>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Chapter</span>
+                      <Select
+                        value={createChapter}
+                        onValueChange={(value) => {
+                          setCreateChapter(value);
+                          setCreateVerseStart("1");
+                          setCreateVerseEnd("1");
+                        }}
+                      >
+                        <SelectTrigger className={styles.selectTrigger}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className={styles.selectContent}>
+                          {Array.from({ length: chapterCount }, (_, index) => index + 1).map((chapterNumber) => (
+                            <SelectItem
+                              key={chapterNumber}
+                              value={`${chapterNumber}`}
+                              className={styles.selectItem}
+                            >
+                              {chapterNumber}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className={styles.dialogHint}>
+                        {selectedBook
+                          ? `${selectedBook.chapters} chapters total`
+                          : "Pick a book to see chapter options."}
+                      </p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
+                  >
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Verse start</span>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={createVerseStart}
+                        onChange={(event) => setCreateVerseStart(event.target.value)}
+                        className={styles.input}
+                      />
+                      <p className={styles.dialogHint}>We&apos;ll fetch the verse text automatically.</p>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Verse end</span>
+                      <Input
+                        type="number"
+                        min={createVerseStart}
+                        value={createVerseEnd}
+                        onChange={(event) => setCreateVerseEnd(event.target.value)}
+                        className={styles.input}
+                      />
+                      <p className={styles.dialogHint}>Use the same number to capture a single verse.</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className={styles.fieldGroup}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
+                  >
+                    <span className={styles.fieldLabel}>Reflection label</span>
+                    <Input
+                      placeholder="Optional descriptor to help you find this later"
+                      value={createLabel}
+                      onChange={(event) => setCreateLabel(event.target.value)}
+                      className={styles.input}
+                    />
+                    <p className={styles.dialogHint}>Try something memorable like “Daily strength” or “Peace in storms”.</p>
+                  </motion.div>
                   <motion.p
-                    className={styles.errorMessage}
+                    className={styles.dialogHint}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    {createError}
+                    Verses are scheduled automatically using spaced repetition.
                   </motion.p>
-                ) : null}
-                <motion.div
-                  className={styles.saveButtonWrap}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut", delay: 0.2 }}
-                >
-                  <Button
-                    className={styles.saveButton}
-                    onClick={handleCreate}
-                    disabled={isSavingCreate}
+                  {createError ? (
+                    <motion.p
+                      className={styles.errorMessage}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      {createError}
+                    </motion.p>
+                  ) : null}
+                  <motion.div
+                    className={styles.saveButtonWrap}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
                   >
-                    {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
-                    Save Memory Verse
-                  </Button>
-                  <p className={styles.dialogTip}>
-                    Tip: revisit saved verses from the Memory screen to keep your streak alive.
-                  </p>
-                </motion.div>
-              </div>
-            </DialogContent>
-          </Dialog>
+                    <Button
+                      className={styles.saveButton}
+                      onClick={handleCreate}
+                      disabled={isSavingCreate}
+                    >
+                      {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
+                      Save Memory Verse
+                    </Button>
+                    <p className={styles.dialogTip}>
+                      Tip: add labels so you can theme verses around topics or seasons.
+                    </p>
+                  </motion.div>
+                </div>
+              </ModalBody>
+            </ModalContent>
+          </Modal>
         </div>
 
         <div className={styles.statsGrid}>
@@ -617,12 +630,26 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
       <div className={styles.listArea}>
         {busy ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.spinnerLarge} /> Loading memory verses...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading memory verses…"
+            subtitle="We’re syncing your memorised passages and review schedule."
+          />
         ) : filteredVerses.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyCopy}>No memory verses yet. Add your first verse to begin a review rhythm.</p>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={84}
+                height={84}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>Build your first memory verse</h3>
+            <p className={styles.emptyCopy}>
+              Add a passage to start your spaced repetition rhythm and watch this list fill up.
+            </p>
           </div>
         ) : (
           filteredVerses.map((verse, index) => (

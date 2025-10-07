@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -26,7 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Loader } from "./ui/loader";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   createUserHighlight,
   deleteUserHighlight,
@@ -501,11 +502,27 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
       <div className={styles.contentArea}>
         {busy ? (
-          <div className={styles.loadingState}>
-            <Loader label="Loading highlights..." />
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading highlights…"
+            subtitle="We’re fetching your saved passages and colour filters."
+          />
         ) : filteredHighlights.length === 0 ? (
-          <div className={styles.emptyState}>No highlights match your filters yet.</div>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={88}
+                height={88}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>No highlights match your filters</h3>
+            <p className={styles.emptyCopy}>
+              Try adjusting your search or colour filter—or capture a new highlight to see it here.
+            </p>
+          </div>
         ) : (
           <Tabs value={tabValue} onValueChange={setTabValue} className={styles.tabs}>
             <TabsList data-active={tabValue} className={styles.tabsList}>

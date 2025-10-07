@@ -1,0 +1,252 @@
+@keyframes modalOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalOverlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalContentIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes modalContentOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(0.96);
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2.5px);
+  animation-duration: 220ms;
+  animation-fill-mode: forwards;
+}
+
+.overlay[data-state="open"] {
+  animation-name: modalOverlayIn;
+  animation-timing-function: ease-out;
+}
+
+.overlay[data-state="closed"] {
+  animation-name: modalOverlayOut;
+  animation-timing-function: ease-in;
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 70;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-height: calc(100vh - 2.5rem);
+  padding: clamp(22px, 5vw, 32px);
+  border-radius: 22px;
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background:
+    radial-gradient(140% 160% at 12% -10%, color-mix(in oklab, var(--secondary) 20%, transparent) 0%, transparent 48%),
+    linear-gradient(160deg, color-mix(in oklab, var(--card) 92%, transparent) 0%, color-mix(in oklab, var(--muted) 35%, transparent) 100%),
+    var(--card);
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.24),
+    0 12px 30px rgba(15, 23, 42, 0.18);
+  color: var(--foreground);
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 3vw, 26px);
+  overflow: hidden;
+  isolation: isolate;
+  animation-duration: 220ms;
+  animation-fill-mode: forwards;
+}
+
+.content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--primary) 16%, transparent) 0%, transparent 55%),
+    linear-gradient(25deg, color-mix(in oklab, var(--accent) 18%, transparent) 0%, transparent 70%);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 35%, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content > * {
+  position: relative;
+  z-index: 1;
+}
+
+.content[data-state="open"] {
+  animation-name: modalContentIn;
+  animation-timing-function: cubic-bezier(0.18, 0.82, 0.29, 1);
+}
+
+.content[data-state="closed"] {
+  animation-name: modalContentOut;
+  animation-timing-function: ease-in;
+}
+
+.content:focus-visible {
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.25),
+    0 0 0 2px var(--ring),
+    0 0 0 6px color-mix(in oklab, var(--background) 80%, transparent);
+}
+
+.sm {
+  width: min(92vw, 28rem);
+}
+
+.md {
+  width: min(92vw, 34rem);
+}
+
+.lg {
+  width: min(94vw, 42rem);
+}
+
+@media (min-width: 768px) {
+  .sm {
+    width: min(85vw, 26rem);
+  }
+
+  .md {
+    width: min(80vw, 36rem);
+  }
+
+  .lg {
+    width: min(78vw, 44rem);
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.header[data-align="center"] {
+  text-align: center;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.4vw, 22px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.body[data-tight="true"] {
+  gap: 12px;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.75rem;
+}
+
+.footer[data-direction="row"] {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.92rem;
+  color: color-mix(in oklab, var(--muted-foreground) 92%, transparent);
+  line-height: 1.6;
+}
+
+.closeButton {
+  position: absolute;
+  top: clamp(12px, 2vw, 18px);
+  right: clamp(12px, 2vw, 18px);
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  color: color-mix(in oklab, var(--foreground) 85%, transparent);
+  opacity: 0.85;
+  cursor: pointer;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.closeButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ring),
+    0 0 0 4px color-mix(in oklab, var(--background) 88%, transparent);
+}
+
+.closeButton svg {
+  width: 1rem;
+  height: 1rem;
+}

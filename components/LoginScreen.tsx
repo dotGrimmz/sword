@@ -109,7 +109,6 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
         }
 
         router.replace(redirectTo);
-        router.refresh();
       } catch (submitError) {
         setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
       } finally {

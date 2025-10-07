@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -25,16 +26,19 @@ import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  ModalTrigger,
+} from "./ui/modal";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Textarea } from "./ui/textarea";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import {
   createUserNote,
@@ -519,8 +523,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             <h1 className={styles.headerTitle}>Study Notes</h1>
             <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
+          <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <ModalTrigger asChild>
               <Button
                 size="sm"
                 className={styles.addButton}
@@ -529,207 +533,211 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                 <Plus className={styles.addButtonIcon} />
                 New Note
               </Button>
-            </DialogTrigger>
-            <DialogContent className={styles.dialogContent}>
-              <DialogHeader className={styles.dialogHeader}>
-                <DialogTitle>Create Note</DialogTitle>
-                <DialogDescription className={styles.dialogDescription}>
+            </ModalTrigger>
+            <ModalContent size="lg">
+              <ModalHeader className={styles.dialogHeader}>
+                <ModalTitle>Create Note</ModalTitle>
+                <ModalDescription className={styles.dialogDescription}>
                   Capture reflections, prayers, and applications as you study Scripture.
-                </DialogDescription>
-              </DialogHeader>
+                </ModalDescription>
+              </ModalHeader>
 
-              <motion.div
-                className={styles.dialogHero}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                <span className={styles.dialogHeroIcon}>
-                  <Sparkles aria-hidden="true" />
-                </span>
-                <div>
-                  <p className={styles.dialogHeroTitle}>Build a richer study archive</p>
-                  <p className={styles.dialogHeroSubtitle}>
-                    Anchor each insight to the passage you&apos;re exploring and watch themes emerge.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                className={styles.dialogMetaRow}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
-              >
-                <div className={styles.dialogMetaTile}>
-                  <NotebookPen className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>Saved notes</p>
-                    <p className={styles.dialogMetaValue}>{noteCount}</p>
-                  </div>
-                </div>
-                <div className={styles.dialogMetaTile}>
-                  <BookOpen className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>Linked verses</p>
-                    <p className={styles.dialogMetaValue}>
-                      {noteCount === 0 ? "—" : `${verseLinkedPercent}%`}
-                    </p>
-                  </div>
-                </div>
-                <div className={styles.dialogMetaTile}>
-                  <Calendar className={styles.dialogMetaIcon} aria-hidden="true" />
-                  <div>
-                    <p className={styles.dialogMetaLabel}>Last updated</p>
-                    <p className={styles.dialogMetaValue}>{latestNoteLabel}</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className={styles.dialogDivider} />
-
-              <div className={styles.formStack}>
+              <ModalBody>
                 <motion.div
-                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                  className={styles.dialogHero}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                 >
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Book</span>
-                    <Select
-                      value={createBookId ?? undefined}
-                      onValueChange={(value) => {
-                        setCreateBookId(value);
-                        setCreateChapter("1");
-                        setCreateVerseStart("1");
-                        setCreateVerseEnd("1");
-                      }}
-                    >
-                      <SelectTrigger className={styles.selectTrigger}>
-                        <SelectValue placeholder="Select book" />
-                      </SelectTrigger>
-                      <SelectContent className={styles.selectContent}>
-                        {books.map((book) => (
-                          <SelectItem key={book.id} value={book.id} className={styles.selectItem}>
-                            {book.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className={styles.dialogHint}>
-                      {books.length > 0
-                        ? `${books.length} books available in ${translationCode?.toUpperCase() ?? "your library"}`
-                        : "Books will appear once a translation is loaded."}
-                    </p>
-                  </div>
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Chapter</span>
-                    <Select
-                      value={createChapter}
-                      onValueChange={(value) => {
-                        setCreateChapter(value);
-                        setCreateVerseStart("1");
-                        setCreateVerseEnd("1");
-                      }}
-                    >
-                      <SelectTrigger className={styles.selectTrigger}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className={styles.selectContent}>
-                        {Array.from({ length: chapterOptions }, (_, index) => index + 1).map((chapterNumber) => (
-                          <SelectItem
-                            key={chapterNumber}
-                            value={`${chapterNumber}`}
-                            className={styles.selectItem}
-                          >
-                            {chapterNumber}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className={styles.dialogHint}>
-                      {selectedBook
-                        ? `${selectedBook.chapters} chapters in ${selectedBook.name}`
-                        : "Pick a book to see chapter options."}
+                  <span className={styles.dialogHeroIcon}>
+                    <Sparkles aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className={styles.dialogHeroTitle}>Build a richer study archive</p>
+                    <p className={styles.dialogHeroSubtitle}>
+                      Anchor each insight to the passage you&apos;re exploring and watch themes emerge.
                     </p>
                   </div>
                 </motion.div>
+
                 <motion.div
-                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                  initial={{ opacity: 0, y: 12 }}
+                  className={styles.dialogMetaRow}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
+                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
                 >
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Verse start</span>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={createVerseStart}
-                      onChange={(event) => setCreateVerseStart(event.target.value)}
-                      className={styles.input}
-                    />
-                    <p className={styles.dialogHint}>We&apos;ll fetch the verse text automatically.</p>
+                  <div className={styles.dialogMetaTile}>
+                    <NotebookPen className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>Saved notes</p>
+                      <p className={styles.dialogMetaValue}>{noteCount}</p>
+                    </div>
                   </div>
-                  <div className={styles.fieldGroup}>
-                    <span className={styles.fieldLabel}>Verse end</span>
-                    <Input
-                      type="number"
-                      min={createVerseStart}
-                      value={createVerseEnd}
-                      onChange={(event) => setCreateVerseEnd(event.target.value)}
-                      className={styles.input}
-                    />
-                    <p className={styles.dialogHint}>Use the same number to capture a single verse.</p>
+                  <div className={styles.dialogMetaTile}>
+                    <BookOpen className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>Linked verses</p>
+                      <p className={styles.dialogMetaValue}>
+                        {noteCount === 0 ? "—" : `${verseLinkedPercent}%`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.dialogMetaTile}>
+                    <Calendar className={styles.dialogMetaIcon} aria-hidden="true" />
+                    <div>
+                      <p className={styles.dialogMetaLabel}>Last updated</p>
+                      <p className={styles.dialogMetaValue}>{latestNoteLabel}</p>
+                    </div>
                   </div>
                 </motion.div>
-                <motion.div
-                  className={styles.fieldGroup}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
-                >
-                  <span className={styles.fieldLabel}>Reflection</span>
-                  <Textarea
-                    value={createBody}
-                    onChange={(event) => setCreateBody(event.target.value)}
-                    placeholder="Write your insights, prayers, and observations..."
-                    className={styles.textarea}
-                  />
-                  <p className={styles.dialogHint}>Focus on what stood out, why it matters, and how you&apos;ll respond.</p>
-                </motion.div>
-                {createError ? (
-                  <motion.p
-                    className={styles.errorMessage}
-                    initial={{ opacity: 0, y: 6 }}
+
+                <div className={styles.dialogDivider} />
+
+                <div className={styles.formStack}>
+                  <motion.div
+                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
                   >
-                    {createError}
-                  </motion.p>
-                ) : null}
-                <motion.div
-                  className={styles.saveButtonWrap}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
-                >
-                  <Button
-                    className={styles.saveButton}
-                    onClick={handleCreateNote}
-                    disabled={isSavingCreate}
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Book</span>
+                      <Select
+                        value={createBookId ?? undefined}
+                        onValueChange={(value) => {
+                          setCreateBookId(value);
+                          setCreateChapter("1");
+                          setCreateVerseStart("1");
+                          setCreateVerseEnd("1");
+                        }}
+                      >
+                        <SelectTrigger className={styles.selectTrigger}>
+                          <SelectValue placeholder="Select book" />
+                        </SelectTrigger>
+                        <SelectContent className={styles.selectContent}>
+                          {books.map((book) => (
+                            <SelectItem key={book.id} value={book.id} className={styles.selectItem}>
+                              {book.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className={styles.dialogHint}>
+                        {books.length > 0
+                          ? `${books.length} books available in ${translationCode?.toUpperCase() ?? "your library"}`
+                          : "Books will appear once a translation is loaded."}
+                      </p>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Chapter</span>
+                      <Select
+                        value={createChapter}
+                        onValueChange={(value) => {
+                          setCreateChapter(value);
+                          setCreateVerseStart("1");
+                          setCreateVerseEnd("1");
+                        }}
+                      >
+                        <SelectTrigger className={styles.selectTrigger}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className={styles.selectContent}>
+                          {Array.from({ length: chapterOptions }, (_, index) => index + 1).map((chapterNumber) => (
+                            <SelectItem
+                              key={chapterNumber}
+                              value={`${chapterNumber}`}
+                              className={styles.selectItem}
+                            >
+                              {chapterNumber}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className={styles.dialogHint}>
+                        {selectedBook
+                          ? `${selectedBook.chapters} chapters in ${selectedBook.name}`
+                          : "Pick a book to see chapter options."}
+                      </p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
                   >
-                    {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
-                    Save Note
-                  </Button>
-                  <p className={styles.dialogTip}>
-                    Tip: tag key verses so your notes surface alongside memory reviews.
-                  </p>
-                </motion.div>
-              </div>
-            </DialogContent>
-          </Dialog>
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Verse start</span>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={createVerseStart}
+                        onChange={(event) => setCreateVerseStart(event.target.value)}
+                        className={styles.input}
+                      />
+                      <p className={styles.dialogHint}>We&apos;ll fetch the verse text automatically.</p>
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>Verse end</span>
+                      <Input
+                        type="number"
+                        min={createVerseStart}
+                        value={createVerseEnd}
+                        onChange={(event) => setCreateVerseEnd(event.target.value)}
+                        className={styles.input}
+                      />
+                      <p className={styles.dialogHint}>Use the same number to capture a single verse.</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className={styles.fieldGroup}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
+                  >
+                    <span className={styles.fieldLabel}>Reflection</span>
+                    <Textarea
+                      value={createBody}
+                      onChange={(event) => setCreateBody(event.target.value)}
+                      placeholder="Write your insights, prayers, and observations..."
+                      className={styles.textarea}
+                    />
+                    <p className={styles.dialogHint}>
+                      Focus on what stood out, why it matters, and how you&apos;ll respond.
+                    </p>
+                  </motion.div>
+                  {createError ? (
+                    <motion.p
+                      className={styles.errorMessage}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                      {createError}
+                    </motion.p>
+                  ) : null}
+                  <motion.div
+                    className={styles.saveButtonWrap}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
+                  >
+                    <Button
+                      className={styles.saveButton}
+                      onClick={handleCreateNote}
+                      disabled={isSavingCreate}
+                    >
+                      {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
+                      Save Note
+                    </Button>
+                    <p className={styles.dialogTip}>
+                      Tip: tag key verses so your notes surface alongside memory reviews.
+                    </p>
+                  </motion.div>
+                </div>
+              </ModalBody>
+            </ModalContent>
+          </Modal>
         </div>
 
         <div className={styles.statsRow}>
@@ -761,12 +769,26 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
       <div className={styles.listArea}>
         {showLoadingState ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.spinnerLarge} /> Loading your notes...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading your notes…"
+            subtitle="We’re gathering your reflections and Scripture references."
+          />
         ) : filteredNotes.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyCopy}>No notes yet. Start by capturing a thought from today&apos;s reading.</p>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={90}
+                height={90}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>Your study journal is ready</h3>
+            <p className={styles.emptyCopy}>
+              Capture a reflection or prayer to begin building a notes archive that surfaces alongside your studies.
+            </p>
           </div>
         ) : (
           filteredNotes.map((note, index) => (
@@ -830,37 +852,36 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         )}
       </div>
 
-      <Dialog open={editingNote !== null} onOpenChange={(open) => (!open ? setEditingNote(null) : undefined)}>
-        <DialogContent className={styles.editDialogContent}>
-          <DialogHeader className={styles.dialogHeader}>
-            <DialogTitle>Edit Note</DialogTitle>
-            <DialogDescription className={styles.dialogDescription}>
+      <Modal
+        open={editingNote !== null}
+        onOpenChange={(open) => (!open ? setEditingNote(null) : undefined)}
+      >
+        <ModalContent size="md">
+          <ModalHeader className={styles.dialogHeader}>
+            <ModalTitle>Edit Note</ModalTitle>
+            <ModalDescription className={styles.dialogDescription}>
               Refine your reflection and keep it aligned with what you&apos;re learning.
-            </DialogDescription>
-          </DialogHeader>
-          <div className={styles.formStack}>
+            </ModalDescription>
+          </ModalHeader>
+          <ModalBody tight>
             <Textarea
               value={editBody}
               onChange={(event) => setEditBody(event.target.value)}
               className={`${styles.textarea} ${styles.editTextarea}`}
             />
             {editError ? <p className={styles.errorMessage}>{editError}</p> : null}
-            <div className={styles.editActions}>
-              <Button variant="ghost" onClick={() => setEditingNote(null)}>
-                Cancel
-              </Button>
-              <Button
-                className={styles.editButtonPrimary}
-                onClick={handleUpdateNote}
-                disabled={isSavingEdit}
-              >
-                {isSavingEdit ? <Loader2 className={styles.spinner} /> : null}
-                Save changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </ModalBody>
+          <ModalFooter className={styles.editActions} direction="row">
+            <Button variant="ghost" onClick={() => setEditingNote(null)}>
+              Cancel
+            </Button>
+            <Button className={styles.editButtonPrimary} onClick={handleUpdateNote} disabled={isSavingEdit}>
+              {isSavingEdit ? <Loader2 className={styles.spinner} /> : null}
+              Save changes
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

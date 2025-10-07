@@ -22,10 +22,17 @@ import {
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "./ui/modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   getChapterContent,
 } from "@/lib/api/bible";
@@ -481,9 +488,11 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
       <div className={styles.readerContent}>
         {isBusy ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.loadingIcon} /> Loading Scripture...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading Scripture…"
+            subtitle="We’re fetching this passage and syncing your highlights."
+          />
         ) : chapterError ? (
           <div className={clsx(styles.statusCard, styles.statusCardError)}>
             {chapterError}
@@ -605,14 +614,14 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
         </Card>
       </div>
 
-      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent className={styles.noteDialogContent}>
-          <DialogHeader>
-            <DialogTitle>
+      <Modal open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+        <ModalContent size="sm" className={styles.noteDialogContent}>
+          <ModalHeader>
+            <ModalTitle>
               {selectedBook ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}` : "New Note"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className={styles.dialogBody}>
+            </ModalTitle>
+          </ModalHeader>
+          <ModalBody tight className={styles.dialogBody}>
             <Textarea
               value={noteBody}
               onChange={(event) => setNoteBody(event.target.value)}
@@ -633,9 +642,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
                 Save Note
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
