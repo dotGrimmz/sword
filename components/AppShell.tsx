@@ -13,6 +13,7 @@ import {
   screenRoutes,
   type ScreenKey,
 } from "@/components/app-navigation";
+import styles from "./AppShell.module.css";
 
 type AppShellProps = {
   children: ReactNode;
@@ -31,16 +32,25 @@ export function AppShell({ children }: AppShellProps) {
     }
   };
 
+  const bottomNavHeight = "104px";
+
   return (
     <ThemeProvider>
       <TranslationProvider>
-        <div className="mx-auto flex min-h-dvh w-full max-w-5xl justify-center bg-muted/30 px-4 py-6 sm:px-6">
-          <div className="relative flex h-full min-h-[720px] w-full max-w-xl flex-1 flex-col overflow-hidden rounded-3xl border border-border/40 bg-background shadow-xl">
-            <div className="flex-1 overflow-hidden">{children}</div>
-            <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+        <div
+          className={styles.container}
+          style={{ ["--bottom-nav-height" as const]: bottomNavHeight }}
+        >
+          <div className={styles.surface}>
+            <div className={styles.surfaceInner}>
+              <div className={styles.frame}>
+                <div className={styles.content}>{children}</div>
+              </div>
+            </div>
           </div>
+          <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+          <Toaster position="top-center" />
         </div>
-        <Toaster position="top-center" />
       </TranslationProvider>
     </ThemeProvider>
   );

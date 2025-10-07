@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -15,16 +10,19 @@ import {
   Clock,
   Heart,
   Lightbulb,
-  Loader2,
+  FileText,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Progress } from "./ui/progress";
 import {
-  buildReferenceLabel,
-  getPassage,
-} from "@/lib/api/bible";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Progress } from "./ui/progress";
+import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserMemoryVerses } from "@/lib/api/memory";
 import { getUserNotes } from "@/lib/api/notes";
@@ -35,6 +33,8 @@ import {
   MEMORY_UPDATED_EVENT,
   NOTES_UPDATED_EVENT,
 } from "@/lib/events";
+import styles from "./HomeScreen.module.css";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -82,10 +82,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [onNavigate]
   );
 
-  const {
-    books,
-    translationCode,
-  } = useTranslationContext();
+  const { books, translationCode } = useTranslationContext();
 
   const [isLoading, setIsLoading] = useState(true);
   const [notesCount, setNotesCount] = useState(0);
@@ -118,14 +115,16 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         return;
       }
 
-      const candidate = highlight ?? (memory
-        ? {
-            bookId: memory.bookId,
-            chapter: memory.chapter ?? 1,
-            verseStart: memory.verseStart ?? 1,
-            verseEnd: memory.verseEnd ?? memory.verseStart ?? 1,
-          }
-        : null);
+      const candidate =
+        highlight ??
+        (memory
+          ? {
+              bookId: memory.bookId,
+              chapter: memory.chapter ?? 1,
+              verseStart: memory.verseStart ?? 1,
+              verseEnd: memory.verseEnd ?? memory.verseStart ?? 1,
+            }
+          : null);
 
       if (!candidate || !candidate.bookId) {
         setTodaysVerse(null);
@@ -198,25 +197,36 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         const book = note.bookId ? bookIndex.get(note.bookId) : null;
         return {
           id: note.id,
-          reference: buildReferenceLabel(book ?? undefined, note.chapter, note.verseStart, note.verseEnd),
+          reference: buildReferenceLabel(
+            book ?? undefined,
+            note.chapter,
+            note.verseStart,
+            note.verseEnd
+          ),
           excerpt: getExcerpt(note.body, 140),
           updatedLabel: formatDate(note.updatedAt ?? note.createdAt),
         };
       });
       setRecentNotes(previews);
 
-      const highlightCandidate = highlights.length > 0 ? {
-        bookId: highlights[0]!.bookId,
-        chapter: highlights[0]!.chapter,
-        verseStart: highlights[0]!.verseStart,
-        verseEnd: highlights[0]!.verseEnd,
-      } : null;
+      const highlightCandidate =
+        highlights.length > 0
+          ? {
+              bookId: highlights[0]!.bookId,
+              chapter: highlights[0]!.chapter,
+              verseStart: highlights[0]!.verseStart,
+              verseEnd: highlights[0]!.verseEnd,
+            }
+          : null;
 
       const memoryCandidate = memory.length > 0 ? memory[0]! : null;
 
       await determineVerseSnapshot(highlightCandidate, memoryCandidate);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load dashboard data";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load dashboard data";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -252,7 +262,9 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         icon: BookOpen,
         label: "Open Reader",
         screen: "reader",
-        subtitle: translationCode ? `${translationCode.toUpperCase()} active` : "Choose a translation",
+        subtitle: translationCode
+          ? `${translationCode.toUpperCase()} active`
+          : "Choose a translation",
       },
       {
         icon: Heart,
@@ -280,29 +292,38 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     const total = notesCount + highlightsCount + memoryCount;
     if (total === 0) {
       return [
-        { label: "Notes captured", value: 0 },
+        { label: "Notes captured", value: 50 },
         { label: "Highlights", value: 0 },
         { label: "Memory verses", value: 0 },
       ];
     }
     return [
-      { label: "Notes captured", value: Math.round((notesCount / total) * 100) },
-      { label: "Highlights", value: Math.round((highlightsCount / total) * 100) },
-      { label: "Memory verses", value: Math.round((memoryCount / total) * 100) },
+      {
+        label: "Notes captured",
+        value: Math.round((notesCount / total) * 100),
+      },
+      {
+        label: "Highlights",
+        value: Math.round((highlightsCount / total) * 100),
+      },
+      {
+        label: "Memory verses",
+        value: Math.round((memoryCount / total) * 100),
+      },
     ];
   }, [notesCount, highlightsCount, memoryCount]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-secondary/10 p-4 pb-20">
+    <div className={styles.page}>
       {isLoading ? (
-        <div className="flex h-40 items-center justify-center text-muted-foreground">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading dashboard...
-        </div>
+        <LoadingScreen subtitle="We&apos;re gathering your notes, highlights, and memory verses." />
       ) : (
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl text-primary">Welcome back</h1>
-            <p className="text-muted-foreground">Stay rooted in Scripture today</p>
+        <div className={styles.stack}>
+          <div className={styles.welcomeBlock}>
+            <h1 className={styles.welcomeTitle}>Welcome back</h1>
+            <p className={styles.welcomeSubtitle}>
+              Stay rooted in Scripture today
+            </p>
           </div>
 
           {todaysVerse ? (
@@ -311,26 +332,30 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <Card className="border-accent/40 bg-gradient-to-r from-card to-secondary/20">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-accent" />
-                    <CardTitle className="text-sm text-accent">Verse of the day</CardTitle>
+              <Card className={styles.verseCard}>
+                <CardHeader className={styles.verseHeader}>
+                  <div className={styles.verseHeaderInner}>
+                    <Calendar className={styles.verseIcon} aria-hidden="true" />
+                    <CardTitle className={styles.verseTitle}>
+                      Verse of the day
+                    </CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <blockquote className="scripture-text text-base leading-relaxed text-foreground mb-3 italic">
+                <CardContent className={styles.verseContent}>
+                  <blockquote className={styles.verseQuote}>
                     “{todaysVerse.text}”
                   </blockquote>
-                  <cite className="text-sm text-primary">— {todaysVerse.reference}</cite>
+                  <cite className={styles.verseReference}>
+                    — {todaysVerse.reference}
+                  </cite>
                 </CardContent>
               </Card>
             </motion.div>
           ) : null}
 
-          <div className="space-y-3">
-            <h2 className="text-lg text-foreground">Continue your journey</h2>
-            <div className="grid grid-cols-2 gap-3">
+          <div className={styles.quickSection}>
+            <h2 className={styles.sectionTitle}>Continue your journey</h2>
+            <div className={styles.quickGrid}>
               {quickActions.map((action, index) => (
                 <motion.div
                   key={action.screen}
@@ -339,14 +364,23 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className="cursor-pointer border-border/40 bg-card/80 hover:shadow-md transition shadow-sm"
+                    className={styles.quickCard}
                     onClick={() => handleNavigate(action.screen)}
                   >
-                    <CardContent className="flex flex-col gap-2 p-4">
-                      <action.icon className="h-6 w-6 text-primary" />
-                      <div>
-                        <CardTitle className="text-sm">{action.label}</CardTitle>
-                        <CardDescription className="text-xs">{action.subtitle}</CardDescription>
+                    <CardContent className={styles.quickCardContent}>
+                      <action.icon
+                        className={styles.quickIcon}
+                        aria-hidden="true"
+                      />
+                      <div className={styles.quickCopy}>
+                        <CardTitle className={styles.quickCardTitle}>
+                          {action.label}
+                        </CardTitle>
+                        <CardDescription
+                          className={styles.quickCardDescription}
+                        >
+                          {action.subtitle}
+                        </CardDescription>
                       </div>
                     </CardContent>
                   </Card>
@@ -360,51 +394,63 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card className="border-border/40 bg-card/80">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
+            <Card className={styles.statsCard}>
+              <CardHeader className={styles.statsHeader}>
+                <CardTitle className={styles.statsTitle}>
+                  <Clock className={styles.statsIcon} aria-hidden="true" />
                   Rhythm overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className={styles.statsContent}>
                 {progressData.map((item) => (
-                  <div key={item.label} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-foreground">{item.label}</span>
-                      <span className="text-muted-foreground">{item.value}%</span>
+                  <div key={item.label} className={styles.progressRow}>
+                    <div className={styles.progressMeta}>
+                      <span className={styles.progressLabel}>{item.label}</span>
+                      <span className={styles.progressValue}>
+                        {item.value}%
+                      </span>
                     </div>
-                    <Progress value={item.value} className="h-2" />
+                    <Progress
+                      value={item.value}
+                      className={styles.progressBar}
+                    />
                   </div>
                 ))}
               </CardContent>
             </Card>
           </motion.div>
 
-          {recentNotes.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
-            >
-              <Card className="border-border/40 bg-card/80">
-                <CardHeader>
-                  <CardTitle className="text-base">Recent reflections</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {recentNotes.map((note) => (
-                    <div key={note.id} className="text-sm">
-                      <p className="text-muted-foreground text-xs">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.25 }}
+          >
+            <Card className={styles.notesCard}>
+              <CardHeader className={styles.notesHeader}>
+                <CardTitle className={styles.notesTitle}>
+                  Recent reflections
+                </CardTitle>
+              </CardHeader>
+              <CardContent className={styles.notesContent}>
+                {recentNotes.length > 0 ? (
+                  recentNotes.map((note) => (
+                    <div key={note.id} className={styles.noteItem}>
+                      <p className={styles.noteMeta}>
                         {note.reference ?? "Unspecified reference"}
                         {note.updatedLabel ? ` • ${note.updatedLabel}` : ""}
                       </p>
-                      <p className="scripture-text text-foreground">{note.excerpt}</p>
+                      <p className={styles.noteExcerpt}>{note.excerpt}</p>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : null}
+                  ))
+                ) : (
+                  <div className={styles.notePlaceholder}>
+                    <FileText className={styles.notePlaceholderIcon} aria-hidden="true" />
+                    <span>No reflections yet — capture a thought from today&apos;s study.</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       )}
     </div>

@@ -3,6 +3,8 @@
 import { Button } from "./ui/button";
 import { Home, BookOpen, Heart, Brain, FileText, Settings } from "lucide-react";
 import { motion } from "motion/react";
+import { cn } from "./ui/utils";
+import styles from "./BottomNavigation.module.css";
 
 interface BottomNavigationProps {
   currentScreen: string;
@@ -20,37 +22,35 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
   ];
 
   return (
-    <div className="w-full border-t border-border/50 bg-card/95 backdrop-blur-md safe-area-bottom">
-      <div className="flex items-center justify-around px-2 py-2">
-        {navItems.map((item) => {
-          const isActive = currentScreen === item.id;
-          return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              size="sm"
-              onClick={() => onNavigate(item.id)}
-              className={`flex-1 flex flex-col items-center justify-center h-14 relative ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
-            >
-              <div className="relative">
-                <item.icon className={`w-5 h-5 mb-1 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                {isActive && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute -top-1 -left-1 -right-1 -bottom-1 bg-accent/20 rounded-lg"
-                    initial={false}
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </div>
-              <span className={`text-xs ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                {item.label}
-              </span>
-            </Button>
-          );
-        })}
+    <div className={styles.container}>
+      <div className={styles.shell}>
+        <div className={styles.menu}>
+          {navItems.map((item) => {
+            const isActive = currentScreen === item.id;
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate(item.id)}
+                className={cn(styles.navButton, isActive && styles.navButtonActive)}
+              >
+                <div className={styles.iconWrapper}>
+                  <item.icon className={styles.navIcon} aria-hidden="true" />
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className={styles.activeIndicator}
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </div>
+                <span className={styles.navLabel}>{item.label}</span>
+              </Button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
