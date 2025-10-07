@@ -16,12 +16,21 @@ import {
   Plus,
   Target,
   Trash2,
+  Sparkles,
+  BookOpen,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
@@ -36,6 +45,7 @@ import {
   MEMORY_UPDATED_EVENT,
   dispatchMemoryUpdated,
 } from "@/lib/events";
+import styles from "./MemoryScreen.module.css";
 
 interface MemoryScreenProps {
   onNavigate?: (screen: string) => void;
@@ -354,29 +364,90 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const busy = isLoading || isLoadingTranslations || isLoadingBooks;
 
   return (
-    <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-secondary/10">
-      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 p-4 space-y-4">
-        <div className="flex items-center justify-between">
+    <div className={styles.screen}>
+      <div className={styles.header}>
+        <div className={styles.headerBar}>
           <div>
-            <h1 className="text-xl text-primary">Memory Verses</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className={styles.headerTitle}>Memory Verses</h1>
+            <p className={styles.headerMeta}>
               {memoryVerses.length} saved • {needsReviewCount} ready for review
             </p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-primary hover:bg-primary/90" disabled={books.length === 0}>
-                <Plus className="mr-1 h-4 w-4" /> Add Verse
+              <Button
+                size="sm"
+                className={styles.addButton}
+                disabled={books.length === 0}
+              >
+                <Plus className={styles.addButtonIcon} /> Add Verse
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[92vw] max-w-lg">
-              <DialogHeader>
+            <DialogContent className={styles.dialogContent}>
+              <DialogHeader className={styles.dialogHeader}>
                 <DialogTitle>Add Memory Verse</DialogTitle>
+                <DialogDescription className={styles.dialogDescription}>
+                  Capture a passage and we&apos;ll schedule it into your review rhythm automatically.
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <span className="text-xs font-medium text-muted-foreground">Book</span>
+
+              <motion.div
+                className={styles.dialogHero}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <span className={styles.dialogHeroIcon}>
+                  <Sparkles aria-hidden="true" />
+                </span>
+                <div>
+                  <p className={styles.dialogHeroTitle}>Build your verse library</p>
+                  <p className={styles.dialogHeroSubtitle}>
+                    Keep passages close at hand and let spaced repetition do the heavy lifting.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className={styles.dialogMetaRow}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
+              >
+                <div className={styles.dialogMetaTile}>
+                  <Brain className={styles.dialogMetaIcon} aria-hidden="true" />
+                  <div>
+                    <p className={styles.dialogMetaLabel}>In rotation</p>
+                    <p className={styles.dialogMetaValue}>{memoryVerses.length} verses</p>
+                  </div>
+                </div>
+                <div className={styles.dialogMetaTile}>
+                  <Calendar className={styles.dialogMetaIcon} aria-hidden="true" />
+                  <div>
+                    <p className={styles.dialogMetaLabel}>Ready today</p>
+                    <p className={styles.dialogMetaValue}>{needsReviewCount} for review</p>
+                  </div>
+                </div>
+                <div className={styles.dialogMetaTile}>
+                  <BookOpen className={styles.dialogMetaIcon} aria-hidden="true" />
+                  <div>
+                    <p className={styles.dialogMetaLabel}>Translation</p>
+                    <p className={styles.dialogMetaValue}>{translationCode?.toUpperCase() ?? "Choose one"}</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className={styles.dialogDivider} />
+
+              <div className={styles.formStack}>
+                <motion.div
+                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
+                >
+                  <div className={styles.fieldGroup}>
+                    <span className={styles.fieldLabel}>Book</span>
                     <Select
                       value={createBookId ?? undefined}
                       onValueChange={(value) => {
@@ -386,20 +457,25 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                         setCreateVerseEnd("1");
                       }}
                     >
-                      <SelectTrigger className="bg-input-background border-border/50">
+                      <SelectTrigger className={styles.selectTrigger}>
                         <SelectValue placeholder="Select book" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-72">
+                      <SelectContent className={styles.selectContent}>
                         {books.map((book) => (
-                          <SelectItem key={book.id} value={book.id}>
+                          <SelectItem key={book.id} value={book.id} className={styles.selectItem}>
                             {book.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className={styles.dialogHint}>
+                      {books.length > 0
+                        ? `${books.length} books available in ${translationCode?.toUpperCase() ?? "your library"}`
+                        : "Books will appear once a translation is loaded."}
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <span className="text-xs font-medium text-muted-foreground">Chapter</span>
+                  <div className={styles.fieldGroup}>
+                    <span className={styles.fieldLabel}>Chapter</span>
                     <Select
                       value={createChapter}
                       onValueChange={(value) => {
@@ -408,84 +484,125 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                         setCreateVerseEnd("1");
                       }}
                     >
-                      <SelectTrigger className="bg-input-background border-border/50">
+                      <SelectTrigger className={styles.selectTrigger}>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="max-h-72">
+                      <SelectContent className={styles.selectContent}>
                         {Array.from({ length: chapterCount }, (_, index) => index + 1).map((chapterNumber) => (
-                          <SelectItem key={chapterNumber} value={`${chapterNumber}`}>
+                          <SelectItem
+                            key={chapterNumber}
+                            value={`${chapterNumber}`}
+                            className={styles.selectItem}
+                          >
                             {chapterNumber}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className={styles.dialogHint}>
+                      {selectedBook
+                        ? `${selectedBook.chapters} chapters total`
+                        : "Pick a book to see chapter options."}
+                    </p>
                   </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <span className="text-xs font-medium text-muted-foreground">Verse start</span>
+                </motion.div>
+                <motion.div
+                  className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
+                >
+                  <div className={styles.fieldGroup}>
+                    <span className={styles.fieldLabel}>Verse start</span>
                     <Input
                       type="number"
                       min={1}
                       value={createVerseStart}
                       onChange={(event) => setCreateVerseStart(event.target.value)}
-                      className="bg-input-background border-border/50"
+                      className={styles.input}
                     />
+                    <p className={styles.dialogHint}>We&apos;ll fetch the passage text automatically.</p>
                   </div>
-                  <div className="space-y-2">
-                    <span className="text-xs font-medium text-muted-foreground">Verse end</span>
+                  <div className={styles.fieldGroup}>
+                    <span className={styles.fieldLabel}>Verse end</span>
                     <Input
                       type="number"
                       min={createVerseStart}
                       value={createVerseEnd}
                       onChange={(event) => setCreateVerseEnd(event.target.value)}
-                      className="bg-input-background border-border/50"
+                      className={styles.input}
                     />
+                    <p className={styles.dialogHint}>Use the same number to memorise a single verse.</p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-xs font-medium text-muted-foreground">Label (optional)</span>
+                </motion.div>
+                <motion.div
+                  className={styles.fieldGroup}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
+                >
+                  <span className={styles.fieldLabel}>Label (optional)</span>
                   <Input
                     value={createLabel}
                     onChange={(event) => setCreateLabel(event.target.value)}
                     placeholder="Hope, Strength, Promise..."
-                    className="bg-input-background border-border/50"
+                    className={styles.input}
                   />
-                </div>
-                {createError ? <p className="text-sm text-destructive">{createError}</p> : null}
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90"
-                  onClick={handleCreate}
-                  disabled={isSavingCreate}
+                  <p className={styles.dialogHint}>Add a short tag to group related verses.</p>
+                </motion.div>
+                {createError ? (
+                  <motion.p
+                    className={styles.errorMessage}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    {createError}
+                  </motion.p>
+                ) : null}
+                <motion.div
+                  className={styles.saveButtonWrap}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut", delay: 0.2 }}
                 >
-                  {isSavingCreate ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Save Memory Verse
-                </Button>
+                  <Button
+                    className={styles.saveButton}
+                    onClick={handleCreate}
+                    disabled={isSavingCreate}
+                  >
+                    {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
+                    Save Memory Verse
+                  </Button>
+                  <p className={styles.dialogTip}>
+                    Tip: revisit saved verses from the Memory screen to keep your streak alive.
+                  </p>
+                </motion.div>
               </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="border-border/40 bg-card/70 p-3 text-center">
-            <div className="flex justify-center text-primary">
-              <Brain className="h-4 w-4" />
+        <div className={styles.statsGrid}>
+          <Card className={styles.statCard}>
+            <div className={styles.statIcon}>
+              <Brain />
             </div>
-            <div className="text-lg font-semibold text-foreground">{memoryVerses.length}</div>
+            <div className={styles.statValue}>{memoryVerses.length}</div>
             <CardDescription>Total verses memorised</CardDescription>
           </Card>
-          <Card className="border-border/40 bg-card/70 p-3 text-center">
-            <div className="flex justify-center text-accent">
-              <Target className="h-4 w-4" />
+          <Card className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconAccent}`}>
+              <Target />
             </div>
-            <div className="text-lg font-semibold text-foreground">{averageInterval} days</div>
+            <div className={styles.statValue}>{averageInterval} days</div>
             <CardDescription>Average review interval</CardDescription>
           </Card>
-          <Card className="border-border/40 bg-card/70 p-3 text-center">
-            <div className="flex justify-center text-orange-500">
-              <Calendar className="h-4 w-4" />
+          <Card className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconWarning}`}>
+              <Calendar />
             </div>
-            <div className="text-lg font-semibold text-foreground">{needsReviewCount}</div>
+            <div className={styles.statValue}>{needsReviewCount}</div>
             <CardDescription>Ready for review</CardDescription>
           </Card>
         </div>
@@ -494,18 +611,18 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
           placeholder="Search memorised verses..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          className="bg-input-background border-border/50"
+          className={styles.searchInput}
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 pb-20 space-y-4">
+      <div className={styles.listArea}>
         {busy ? (
-          <div className="flex h-32 items-center justify-center text-muted-foreground">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading memory verses...
+          <div className={styles.loadingState}>
+            <Loader2 className={styles.spinnerLarge} /> Loading memory verses...
           </div>
         ) : filteredVerses.length === 0 ? (
-          <div className="mx-auto mt-12 max-w-md text-center text-muted-foreground">
-            <p className="text-sm">No memory verses yet. Add your first verse to begin a review rhythm.</p>
+          <div className={styles.emptyState}>
+            <p className={styles.emptyCopy}>No memory verses yet. Add your first verse to begin a review rhythm.</p>
           </div>
         ) : (
           filteredVerses.map((verse, index) => (
@@ -515,13 +632,13 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.03 }}
             >
-              <Card className="border-border/40 bg-card/80 hover:shadow-md transition-all duration-200">
-                <CardHeader className="flex flex-row items-start justify-between gap-2">
+              <Card className={styles.verseCard}>
+                <CardHeader className={styles.verseHeader}>
                   <div>
-                    <CardTitle className="text-base text-primary">
+                    <CardTitle className={styles.verseTitle}>
                       {verse.referenceLabel ?? "Verse"}
                     </CardTitle>
-                    <CardDescription className="text-xs">
+                    <CardDescription className={styles.verseSubtitle}>
                       {verse.bookName}
                       {verse.raw.label ? ` • ${verse.raw.label}` : ""}
                     </CardDescription>
@@ -529,17 +646,17 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className={styles.deleteButton}
                     onClick={() => handleDelete(verse.raw)}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className={styles.deleteIcon} />
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm text-foreground leading-relaxed">
-                  <blockquote className="scripture-text italic text-muted-foreground">
+                <CardContent className={styles.verseContent}>
+                  <blockquote className={`${styles.verseQuote} scripture-text`}>
                     “{verse.verseText || "Verse text not available yet."}”
                   </blockquote>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <div className={styles.metaRow}>
                     <span>
                       Next review: {verse.nextReviewLabel ?? "Scheduled"}
                     </span>
