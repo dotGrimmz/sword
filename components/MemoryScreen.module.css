@@ -286,20 +286,11 @@
   color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
 }
 
-.spinner,
-.spinnerLarge {
+.spinner {
   margin-right: 8px;
   animation: memoryScreenSpinner 1s linear infinite;
-}
-
-.spinner {
   width: 16px;
   height: 16px;
-}
-
-.spinnerLarge {
-  width: 20px;
-  height: 20px;
 }
 
 .statsGrid {
@@ -363,14 +354,6 @@
   overflow-y: auto;
   padding: 16px;
   padding-bottom: 80px;
-}
-
-.loadingState {
-  display: flex;
-  height: 128px;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted-foreground);
 }
 
 .emptyState {

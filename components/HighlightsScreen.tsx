@@ -26,7 +26,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Loader } from "./ui/loader";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   createUserHighlight,
   deleteUserHighlight,
@@ -501,9 +501,11 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
       <div className={styles.contentArea}>
         {busy ? (
-          <div className={styles.loadingState}>
-            <Loader label="Loading highlights..." />
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading highlights…"
+            subtitle="We’re fetching your saved passages and colour filters."
+          />
         ) : filteredHighlights.length === 0 ? (
           <div className={styles.emptyState}>No highlights match your filters yet.</div>
         ) : (

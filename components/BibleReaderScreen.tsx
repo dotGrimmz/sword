@@ -26,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   getChapterContent,
 } from "@/lib/api/bible";
@@ -481,9 +482,11 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
       <div className={styles.readerContent}>
         {isBusy ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.loadingIcon} /> Loading Scripture...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading Scripture…"
+            subtitle="We’re fetching this passage and syncing your highlights."
+          />
         ) : chapterError ? (
           <div className={clsx(styles.statusCard, styles.statusCardError)}>
             {chapterError}

@@ -1,17 +1,34 @@
 .container {
   width: 100%;
-  min-height: calc(100vh - var(--bottom-nav-height, 112px));
-  padding: 48px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+}
+
+.containerPage {
+  min-height: calc(100vh - var(--bottom-nav-height, 112px));
+  padding: clamp(36px, 6vh, 48px) clamp(20px, 6vw, 32px);
   background: linear-gradient(
     180deg,
     hsla(var(--background), 1) 0%,
     hsla(var(--secondary), 0.18) 35%,
     hsla(var(--background), 1) 100%
   );
-  box-sizing: border-box;
+}
+
+.containerSection {
+  width: 100%;
+  max-width: 640px;
+  margin: clamp(12px, 4vh, 28px) auto;
+  padding: clamp(24px, 5vw, 36px);
+  min-height: clamp(220px, 45vh, 380px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--background) 92%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 28%, transparent) 100%
+  );
+  border-radius: clamp(20px, 4vw, 28px);
 }
 
 .shell {
@@ -20,13 +37,21 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  padding: 32px 36px;
-  border-radius: 28px;
+  padding: clamp(28px, 4vw, 36px);
+  border-radius: clamp(20px, 4vw, 28px);
   background: hsla(var(--card), 0.92);
   border: 1px solid hsla(var(--border), 0.2);
   box-shadow: 0 30px 60px rgba(15, 23, 42, 0.16);
   backdrop-filter: blur(14px);
   text-align: center;
+  width: min(100%, 360px);
+}
+
+.shellSection {
+  width: 100%;
+  max-width: 360px;
+  padding: clamp(24px, 4vw, 32px);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.14);
 }
 
 .glow {
@@ -97,12 +122,19 @@
 }
 
 @media (max-width: 640px) {
-  .container {
+  .containerPage {
     padding: 32px 20px;
+  }
+
+  .containerSection {
+    margin: 12px auto;
+    padding: 24px 16px;
+    min-height: clamp(220px, 55vh, 340px);
+    border-radius: 24px;
   }
 
   .shell {
     width: min(100%, 320px);
-    padding: 28px;
+    padding: clamp(24px, 5vw, 28px);
   }
 }

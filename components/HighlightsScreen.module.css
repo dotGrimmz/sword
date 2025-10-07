@@ -95,6 +95,8 @@
 
 .searchWrapper {
   position: relative;
+  width: 100%;
+  max-width: 480px;
 }
 
 .searchIcon {
@@ -165,14 +167,6 @@
   flex: 1 0 auto;
   min-height: 0;
   padding-bottom: 5rem;
-}
-
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 8rem;
-  color: var(--muted-foreground);
 }
 
 .emptyState {

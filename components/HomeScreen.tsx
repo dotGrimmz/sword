@@ -292,7 +292,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     const total = notesCount + highlightsCount + memoryCount;
     if (total === 0) {
       return [
-        { label: "Notes captured", value: 50 },
+        { label: "Notes captured", value: 0 },
         { label: "Highlights", value: 0 },
         { label: "Memory verses", value: 0 },
       ];
@@ -316,7 +316,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   return (
     <div className={styles.page}>
       {isLoading ? (
-        <LoadingScreen subtitle="We&apos;re gathering your notes, highlights, and memory verses." />
+        <LoadingScreen subtitle="We're gathering your notes, highlights, and memory verses." />
       ) : (
         <div className={styles.stack}>
           <div className={styles.welcomeBlock}>
@@ -444,8 +444,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                   ))
                 ) : (
                   <div className={styles.notePlaceholder}>
-                    <FileText className={styles.notePlaceholderIcon} aria-hidden="true" />
-                    <span>No reflections yet — capture a thought from today&apos;s study.</span>
+                    <FileText
+                      className={styles.notePlaceholderIcon}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      No reflections yet — capture a thought from today&apos;s
+                      study.
+                    </span>
                   </div>
                 )}
               </CardContent>

@@ -35,6 +35,7 @@ import {
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Textarea } from "./ui/textarea";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import {
   createUserNote,
@@ -761,9 +762,11 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
       <div className={styles.listArea}>
         {showLoadingState ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.spinnerLarge} /> Loading your notes...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading your notes…"
+            subtitle="We’re gathering your reflections and Scripture references."
+          />
         ) : filteredNotes.length === 0 ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyCopy}>No notes yet. Start by capturing a thought from today&apos;s reading.</p>

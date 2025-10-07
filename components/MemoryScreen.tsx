@@ -34,6 +34,7 @@ import {
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import {
   createUserMemoryVerse,
   deleteUserMemoryVerse,
@@ -617,9 +618,11 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
       <div className={styles.listArea}>
         {busy ? (
-          <div className={styles.loadingState}>
-            <Loader2 className={styles.spinnerLarge} /> Loading memory verses...
-          </div>
+          <LoadingScreen
+            variant="section"
+            title="Loading memory verses…"
+            subtitle="We’re syncing your memorised passages and review schedule."
+          />
         ) : filteredVerses.length === 0 ? (
           <div className={styles.emptyState}>
             <p className={styles.emptyCopy}>No memory verses yet. Add your first verse to begin a review rhythm.</p>

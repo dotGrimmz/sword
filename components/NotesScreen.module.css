@@ -147,29 +147,11 @@
   padding: 20px clamp(20px, 4vw, 32px) 90px;
 }
 
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 132px;
-  color: var(--muted-foreground);
-}
-
-.spinner,
-.spinnerLarge {
+.spinner {
   animation: notesScreenSpinner 1s linear infinite;
   color: var(--muted-foreground);
-}
-
-.spinner {
   width: 16px;
   height: 16px;
-}
-
-.spinnerLarge {
-  width: 20px;
-  height: 20px;
 }
 
 .emptyState {
