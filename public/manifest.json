@@ -1,0 +1,21 @@
+{
+  "name": "SWORD Bible Study",
+  "short_name": "SWORD",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Offline-first Scripture, apologetics, and notes companion.",
+  "icons": [
+    {
+      "src": "/sword_logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/sword_logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
