@@ -174,10 +174,20 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
               </p>
               <p className={styles.appInfoVersion}>Version 1.0.0</p>
               <div className={styles.appInfoLinks}>
-                <Button variant="ghost" size="sm" className={styles.appInfoLink}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={styles.appInfoLink}
+                  onClick={() => router.push("/privacy")}
+                >
                   Privacy Policy
                 </Button>
-                <Button variant="ghost" size="sm" className={styles.appInfoLink}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={styles.appInfoLink}
+                  onClick={() => router.push("/terms")}
+                >
                   Terms of Service
                 </Button>
               </div>
