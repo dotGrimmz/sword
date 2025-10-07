@@ -259,19 +259,6 @@
   color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
 }
 
-.dialogContent {
-  width: min(92vw, 34rem);
-  max-width: 34rem;
-  padding: 26px clamp(22px, 4vw, 32px) 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  background: var(--surface-gradient);
-  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
-  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.2);
-  border-radius: 22px;
-}
-
 .dialogHeader {
   display: flex;
   flex-direction: column;
@@ -473,23 +460,6 @@
   font-size: 0.75rem;
   text-align: center;
   color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
-}
-
-.editDialogContent {
-  width: min(92vw, 34rem);
-  max-width: 34rem;
-  padding: 24px clamp(22px, 4vw, 30px) 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  background: linear-gradient(
-    165deg,
-    color-mix(in oklab, var(--card) 92%, transparent) 0%,
-    color-mix(in oklab, var(--secondary) 22%, transparent) 100%
-  );
-  border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
-  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.2);
-  border-radius: 20px;
 }
 
 .editTextarea {
