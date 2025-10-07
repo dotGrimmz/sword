@@ -51,11 +51,11 @@
 }
 
 .icon {
-  width: 42px;
-  height: 42px;
-  color: hsl(var(--primary));
-  animation: bladePulse 1.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px hsla(var(--primary), 0.35));
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  animation: logoPulse 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px hsla(var(--primary), 0.28));
 }
 
 .title {
@@ -72,14 +72,14 @@
   margin: 0;
 }
 
-@keyframes bladePulse {
+@keyframes logoPulse {
   0%,
   100% {
-    transform: rotate(-7deg) scale(1);
+    transform: scale(0.94);
     opacity: 0.9;
   }
   50% {
-    transform: rotate(-2deg) scale(1.1);
+    transform: scale(1.05);
     opacity: 1;
   }
 }

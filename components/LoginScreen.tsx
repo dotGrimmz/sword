@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Loader2, Mail, Lock, User, Shield, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, Lock, User } from "lucide-react";
 
 import { cn } from "@/components/ui/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -156,7 +156,14 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
       <div className={styles.card}>
         <header className={styles.header}>
           <div className={styles.logoBadge}>
-            <Shield className={styles.logoIcon} aria-hidden="true" />
+            <Image
+              src="/sword_logo.png"
+              alt="SWORD logo"
+              width={48}
+              height={48}
+              priority
+              className={styles.logoImage}
+            />
           </div>
           <div>
             <h1 className={styles.heading}>SWORD</h1>
@@ -168,9 +175,15 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
           <div className={styles.inner}>
             <div className={styles.formCard}>
               <div className={styles.formHeader}>
-                <div className={styles.formIconCircle}>
-                  <ShieldCheck className={styles.formHeaderIcon} aria-hidden="true" />
-                </div>
+              <div className={styles.formIconCircle}>
+                <Image
+                  src="/sword_logo.png"
+                  alt="SWORD logo"
+                  width={40}
+                  height={40}
+                  className={styles.formHeaderImage}
+                />
+              </div>
                 <div>
                   <h2 className={styles.formTitle}>Welcome to SWORD</h2>
                   <p className={styles.formSubtitle}>
