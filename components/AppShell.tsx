@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode, type CSSProperties } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { BottomNavigation } from "@/components/BottomNavigation";
@@ -39,7 +39,7 @@ export function AppShell({ children }: AppShellProps) {
       <TranslationProvider>
         <div
           className={styles.container}
-          style={{ ["--bottom-nav-height" as const]: bottomNavHeight }}
+          style={{ "--bottom-nav-height": bottomNavHeight } as CSSProperties}
         >
           <div className={styles.surface}>
             <div className={styles.surfaceInner}>
