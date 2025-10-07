@@ -4,10 +4,10 @@ import { cookies } from "next/headers";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const createClient = async () => {
+export const createClient = async (accessToken?: string) => {
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl!, supabaseKey!, {
+  const client = createServerClient(supabaseUrl!, supabaseKey!, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -24,5 +24,16 @@ export const createClient = async () => {
         }
       },
     },
+    ...(accessToken
+      ? {
+          global: {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          },
+        }
+      : {}),
   });
+
+  return client;
 };

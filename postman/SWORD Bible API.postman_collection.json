@@ -9,7 +9,12 @@
       "name": "Get All Translations",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
         "url": {
           "raw": "{{baseUrl}}/api/bible/translations",
           "host": [
@@ -100,12 +105,607 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "Get Passage (Romans 8:28-31)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/passage?book=Romans&start=8:28&end=8:31&translation=WEB",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "passage"
+          ],
+          "query": [
+            {
+              "key": "book",
+              "value": "Romans"
+            },
+            {
+              "key": "start",
+              "value": "8:28"
+            },
+            {
+              "key": "end",
+              "value": "8:31"
+            },
+            {
+              "key": "translation",
+              "value": "WEB"
+            }
+          ]
+        },
+        "description": "Fetches Romans 8:28-31 using the specified translation."
+      },
+      "response": []
+    },
+    {
+      "name": "Search (faith)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/bible/search?q=faith&translation=WEB&limit=25",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "bible",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "faith"
+            },
+            {
+              "key": "translation",
+              "value": "WEB"
+            },
+            {
+              "key": "limit",
+              "value": "25"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Email Sign In",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.access_token) {",
+              "  pm.collectionVariables.set('authAccessToken', json.access_token);",
+              "  pm.collectionVariables.set('authRefreshToken', json.refresh_token || '');",
+              "  pm.collectionVariables.set('authTokenType', json.token_type || 'bearer');",
+              "}",
+              "if (json.user && json.user.id) {",
+              "  pm.collectionVariables.set('authUserId', json.user.id);",
+              "}",
+              "pm.collectionVariables.set('noteId', pm.collectionVariables.get('noteId') || '');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{supabaseAnonKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{supabaseUrl}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{supabaseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Notes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Note",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"translationId\": \"WEB\",\n  \"bookId\": null,\n  \"chapter\": 1,\n  \"verseStart\": 1,\n  \"verseEnd\": 3,\n  \"body\": \"In the beginning...\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Note",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"body\": \"Updated note text\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Note",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/notes/{{noteId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "notes",
+            "{{noteId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Bookmarks",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ]
+        },
+        "description": "Fetch all bookmarks for the authenticated user. Response entries include id, bookId, chapter, verse, label, createdAt."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Bookmark",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": \"{{bookmarkBookId}}\",\n  \"chapter\": 1,\n  \"verse\": 1,\n  \"label\": \"Favorite verse\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ]
+        },
+        "description": "Create or update a bookmark for the specified book and chapter. Response does not include updatedAt."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.id) {",
+              "  pm.collectionVariables.set('bookmarkId', json.id);",
+              "}",
+              "if (json && json.bookId) {",
+              "  pm.collectionVariables.set('bookmarkBookId', json.bookId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Bookmark",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/bookmarks?id={{bookmarkId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "bookmarks"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{bookmarkId}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Memory Verses",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/memory",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "memory"
+          ]
+        },
+        "description": "Fetch all memory verses for the authenticated user."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Memory Verse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": \"{{memoryBookId}}\",\n  \"chapter\": 1,\n  \"verseStart\": 1,\n  \"verseEnd\": 3,\n  \"label\": \"Memory verse\",\n  \"tags\": [\"encouragement\", \"faith\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/memory",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "memory"
+          ]
+        },
+        "description": "Create a memory verse spanning the specified passage."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.id) {",
+              "  pm.collectionVariables.set('memoryVerseId', json.id);",
+              "}",
+              "if (json && json.bookId) {",
+              "  pm.collectionVariables.set('memoryBookId', json.bookId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Memory Verse",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/memory?id={{memoryVerseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "memory"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{memoryVerseId}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Highlights",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Highlight",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": null,\n  \"chapter\": 1,\n  \"verseStart\": 1,\n  \"verseEnd\": 5,\n  \"color\": \"#fde68a\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Highlight",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authAccessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/user/highlights?id={{highlightId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "user",
+            "highlights"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{highlightId}}"
+            }
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "noteId",
+      "value": ""
+    },
+    {
+      "key": "supabaseUrl",
+      "value": "https://zuurfduimfwclfpptyyz.supabase.co"
+    },
+    {
+      "key": "supabaseAnonKey",
+      "value": "{{NEXT_PUBLIC_SUPABASE_ANON_KEY}}"
+    },
+    {
+      "key": "authAccessToken",
+      "value": ""
+    },
+    {
+      "key": "authRefreshToken",
+      "value": ""
+    },
+    {
+      "key": "authTokenType",
+      "value": "bearer"
+    },
+    {
+      "key": "authUserId",
+      "value": ""
+    },
+    {
+      "key": "userEmail",
+      "value": ""
+    },
+    {
+      "key": "userPassword",
+      "value": ""
+    },
+    {
+      "key": "highlightId",
+      "value": ""
+    },
+    {
+      "key": "bookmarkId",
+      "value": ""
+    },
+    {
+      "key": "bookmarkBookId",
+      "value": ""
+    },
+    {
+      "key": "memoryVerseId",
+      "value": ""
+    },
+    {
+      "key": "memoryBookId",
+      "value": ""
     }
   ]
 }

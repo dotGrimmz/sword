@@ -1,0 +1,301 @@
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    var(--background),
+    color-mix(in oklab, var(--secondary) 12%, transparent)
+  );
+}
+
+.header {
+  padding: 22px clamp(22px, 4vw, 32px) 24px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--card) 88%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 28%, transparent) 100%
+  );
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.headerIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.headerSubtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px clamp(22px, 4vw, 36px) 100px;
+  overflow-y: auto;
+}
+
+.sectionCard {
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--card) 90%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 18%, transparent) 100%
+  );
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  padding: .5rem;
+}
+
+.sectionHeader {
+  padding-bottom: 14px;
+}
+
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.sectionIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+}
+
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionDescription {
+  margin: 0;
+  font-size: 0.85rem;
+  color: color-mix(in oklab, var(--muted-foreground) 92%, transparent);
+}
+
+.themeOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.themeOptionCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 2px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.themeOptionCard:hover {
+  transform: translateY(-2px);
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+}
+
+.themeOptionCardSelected {
+  border-color: color-mix(in oklab, var(--primary) 65%, transparent);
+  background: color-mix(in oklab, var(--primary) 15%, var(--card) 85%);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+}
+
+.themePreview {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.themePreviewOcean {
+  background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+}
+
+.themePreviewSunset {
+  background: linear-gradient(135deg, #f97316, #ec4899);
+}
+
+.themePreviewForest {
+  background: linear-gradient(135deg, #10b981, #047857);
+}
+
+.themePreviewPurple {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+}
+
+.themePreviewCherry {
+  background: linear-gradient(135deg, #f472b6, #ec4899);
+}
+
+.themeOptionCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.themeOptionName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.themeOptionDescription {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
+}
+
+.accountCard {
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--card) 90%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 22%, transparent) 100%
+  );
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.16);
+  padding: .5rem;
+}
+
+.accountButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  transition: transform 0.2s ease;
+}
+
+.accountButton:hover {
+  transform: translateX(2px);
+}
+
+.accountButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.accountButtonDanger {
+  color: var(--destructive);
+}
+
+.appInfoCard {
+  border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--card) 92%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 20%, transparent) 100%
+  );
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+}
+
+.appInfoContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+}
+
+.appInfoIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--primary) 16%, transparent);
+  color: var(--primary);
+}
+
+.appInfoTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.appInfoSubtitle,
+.appInfoVersion {
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+}
+
+.appInfoLinks {
+  display: inline-flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.appInfoLink {
+  font-size: 0.75rem;
+  padding: 0;
+  color: color-mix(in oklab, var(--foreground) 95%, transparent);
+}
+
+@keyframes shimmerPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.heroPulse {
+  animation: shimmerPulse 4s ease-in-out infinite;
+}
+
+@media (max-width: 720px) {
+  .headerRow {
+    align-items: flex-start;
+  }
+
+  .content {
+    padding-bottom: 90px;
+  }
+
+  .themeOptions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

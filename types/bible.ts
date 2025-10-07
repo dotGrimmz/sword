@@ -24,6 +24,36 @@ export type BibleVerse = {
   text: string;
 };
 
+export type BiblePassageVerse = {
+  chapter: number;
+  verse: number;
+  text: string;
+};
+
+export type BiblePassageResponse = {
+  translation: {
+    code: string;
+    name: string;
+  };
+  book: {
+    id: string;
+    name: string;
+    abbreviation: string | null;
+    chapters: number;
+  };
+  range: {
+    start: {
+      chapter: number;
+      verse: number;
+    };
+    end: {
+      chapter: number;
+      verse: number;
+    };
+  };
+  verses: BiblePassageVerse[];
+};
+
 export type BibleBooksResponse = {
   translation: {
     code: string;
@@ -52,4 +82,23 @@ export type ChapterRouteParams = {
     book: string;
     chapter: string;
   }>;
+};
+
+export type BibleSearchResult = {
+  bookId: string;
+  bookName: string;
+  bookAbbreviation: string | null;
+  chapter: number;
+  verse: number;
+  text: string;
+};
+
+export type BibleSearchResponse = {
+  query: string;
+  translation: {
+    code: string;
+    name: string;
+  };
+  totalMatches: number;
+  results: BibleSearchResult[];
 };

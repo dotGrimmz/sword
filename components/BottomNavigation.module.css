@@ -1,0 +1,86 @@
+.container {
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px calc(env(safe-area-inset-bottom) + 20px);
+  z-index: 50;
+}
+
+.shell {
+  pointer-events: auto;
+  width: min(100%, 36rem);
+  border-radius: 24px;
+  border: 1px solid hsla(var(--border), 0.4);
+  background: hsla(var(--card), 0.95);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 8px;
+  gap: 8px;
+}
+
+.navButton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  gap: 4px;
+  position: relative;
+  color: hsla(var(--muted-foreground), 1);
+  font-size: 12px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.navButtonActive {
+  color: hsl(var(--primary));
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.navIcon {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.navLabel {
+  font-size: 11px;
+}
+
+.activeIndicator {
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  background: hsla(var(--accent), 0.24);
+}
+
+@media (max-width: 520px) {
+  .shell {
+    border-radius: 20px;
+  }
+
+  .navButton {
+    height: 52px;
+    font-size: 11px;
+  }
+}
