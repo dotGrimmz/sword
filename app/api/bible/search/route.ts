@@ -123,7 +123,7 @@ export async function GET(request: Request) {
       {
         name: book.name,
         abbreviation: book.abbreviation,
-        order: book.order,
+        order: book.order_index,
       },
     ])
   );
