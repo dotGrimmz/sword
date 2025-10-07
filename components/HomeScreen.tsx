@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -10,7 +11,6 @@ import {
   Clock,
   Heart,
   Lightbulb,
-  FileText,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
@@ -444,14 +444,21 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                   ))
                 ) : (
                   <div className={styles.notePlaceholder}>
-                    <FileText
-                      className={styles.notePlaceholderIcon}
-                      aria-hidden="true"
-                    />
-                    <span>
-                      No reflections yet — capture a thought from today&apos;s
-                      study.
-                    </span>
+                    <div className={styles.notePlaceholderBadge}>
+                      <Image
+                        src="/sword_logo.png"
+                        alt="Sword logo"
+                        width={86}
+                        height={86}
+                        className={styles.notePlaceholderImage}
+                      />
+                    </div>
+                    <h3 className={styles.notePlaceholderTitle}>
+                      Your next reflection starts here
+                    </h3>
+                    <p className={styles.notePlaceholderCopy}>
+                      Capture a takeaway, prayer, or question and watch this space fill with your study journey.
+                    </p>
                   </div>
                 )}
               </CardContent>

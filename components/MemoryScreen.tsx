@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -636,7 +637,19 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
           />
         ) : filteredVerses.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyCopy}>No memory verses yet. Add your first verse to begin a review rhythm.</p>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={84}
+                height={84}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>Build your first memory verse</h3>
+            <p className={styles.emptyCopy}>
+              Add a passage to start your spaced repetition rhythm and watch this list fill up.
+            </p>
           </div>
         ) : (
           filteredVerses.map((verse, index) => (

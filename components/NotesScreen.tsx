@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -775,7 +776,19 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
           />
         ) : filteredNotes.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyCopy}>No notes yet. Start by capturing a thought from today&apos;s reading.</p>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={90}
+                height={90}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>Your study journal is ready</h3>
+            <p className={styles.emptyCopy}>
+              Capture a reflection or prayer to begin building a notes archive that surfaces alongside your studies.
+            </p>
           </div>
         ) : (
           filteredNotes.map((note, index) => (

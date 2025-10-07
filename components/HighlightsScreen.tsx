@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -507,7 +508,21 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             subtitle="We’re fetching your saved passages and colour filters."
           />
         ) : filteredHighlights.length === 0 ? (
-          <div className={styles.emptyState}>No highlights match your filters yet.</div>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyBadge}>
+              <Image
+                src="/sword_logo.png"
+                alt="Sword logo"
+                width={88}
+                height={88}
+                className={styles.emptyBadgeImage}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>No highlights match your filters</h3>
+            <p className={styles.emptyCopy}>
+              Try adjusting your search or colour filter—or capture a new highlight to see it here.
+            </p>
+          </div>
         ) : (
           <Tabs value={tabValue} onValueChange={setTabValue} className={styles.tabs}>
             <TabsList data-active={tabValue} className={styles.tabsList}>
