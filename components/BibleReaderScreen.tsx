@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -42,6 +43,7 @@ import {
 import type { BibleBookSummary, BibleVerse } from "@/types/bible";
 import type { UserBookmark, UserHighlight } from "@/types/user";
 import { dispatchHighlightsUpdated, dispatchNotesUpdated } from "@/lib/events";
+import styles from "./BibleReaderScreen.module.css";
 
 interface BibleReaderScreenProps {
   onNavigate?: (screen: string) => void;
@@ -395,18 +397,20 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     : "Select translation";
 
   return (
-    <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-secondary/10">
-      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 p-4 space-y-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
+    <div className={styles.readerPage}>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarRow}>
+          <div className={styles.selectorGroup}>
             <Select
               value={translationCode ?? undefined}
               onValueChange={(value) => selectTranslation(value)}
             >
-              <SelectTrigger className="w-44 bg-input-background border-border/50">
+              <SelectTrigger
+                className={clsx(styles.selectTriggerBase, styles.translationSelect)}
+              >
                 <SelectValue placeholder="Translation" />
               </SelectTrigger>
-              <SelectContent className="max-h-72">
+              <SelectContent className={styles.selectContent}>
                 {translations.map((translation) => (
                   <SelectItem key={translation.code} value={translation.code}>
                     {translation.name}
@@ -423,10 +427,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               }}
               disabled={books.length === 0}
             >
-              <SelectTrigger className="w-40 bg-input-background border-border/50">
+              <SelectTrigger className={clsx(styles.selectTriggerBase, styles.bookSelect)}>
                 <SelectValue placeholder="Book" />
               </SelectTrigger>
-              <SelectContent className="max-h-72">
+              <SelectContent className={styles.selectContent}>
                 {books.map((book) => (
                   <SelectItem key={book.id} value={book.id}>
                     {book.name}
@@ -440,10 +444,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               onValueChange={(value) => setChapter(Number.parseInt(value, 10))}
               disabled={!selectedBook}
             >
-              <SelectTrigger className="w-24 bg-input-background border-border/50">
+              <SelectTrigger className={clsx(styles.selectTriggerBase, styles.chapterSelect)}>
                 <SelectValue placeholder="Chapter" />
               </SelectTrigger>
-              <SelectContent className="max-h-72">
+              <SelectContent className={styles.selectContent}>
                 {selectedBook
                   ? Array.from({ length: selectedBook.chapters }, (_, index) => index + 1).map(
                       (chapterNumber) => (
@@ -457,35 +461,35 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 self-end lg:self-auto">
+          <div className={styles.navControls}>
             <Button variant="ghost" size="sm" onClick={goToPrevious} disabled={!selectedBook}>
-              <ChevronLeft className="mr-1 h-4 w-4" /> Previous
+              <ChevronLeft className={clsx(styles.navIcon, styles.navIconLeft)} /> Previous
             </Button>
             <Button variant="ghost" size="sm" onClick={goToNext} disabled={!selectedBook}>
-              Next <ChevronRight className="ml-1 h-4 w-4" />
+              Next <ChevronRight className={clsx(styles.navIcon, styles.navIconRight)} />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => handleNavigate("settings")}>
-              <Settings className="h-4 w-4" />
+              <Settings className={styles.navIcon} />
             </Button>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className={styles.translationMeta}>
           {translationLabel}
           {selectedBook ? ` • ${selectedBook.name} ${chapter}` : ""}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
+      <div className={styles.readerContent}>
         {isBusy ? (
-          <div className="flex h-32 items-center justify-center text-muted-foreground">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading Scripture...
+          <div className={styles.loadingState}>
+            <Loader2 className={styles.loadingIcon} /> Loading Scripture...
           </div>
         ) : chapterError ? (
-          <div className="mx-auto max-w-md rounded-lg border border-border/40 bg-card/80 p-6 text-center text-sm text-destructive">
+          <div className={clsx(styles.statusCard, styles.statusCardError)}>
             {chapterError}
           </div>
         ) : verses.length === 0 ? (
-          <div className="mx-auto max-w-md rounded-lg border border-border/40 bg-card/80 p-6 text-center text-sm text-muted-foreground">
+          <div className={clsx(styles.statusCard, styles.statusCardMuted)}>
             No verses available for this selection yet.
           </div>
         ) : (
@@ -493,7 +497,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="space-y-4"
+            className={styles.verseList}
           >
             {verses.map((verse, index) => {
               const isHighlighted = highlightsByVerse.has(verse.verse);
@@ -505,63 +509,68 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, delay: index * 0.02 }}
-                  className={`group relative rounded-lg border border-transparent p-4 transition-colors duration-200 ${
-                    isHighlighted ? "border-accent bg-accent/20" : "hover:bg-card/60"
-                  }`}
+                  className={clsx(styles.verseCard, {
+                    [styles.verseCardHighlighted]: isHighlighted,
+                    [styles.verseCardHoverable]: !isHighlighted,
+                  })}
                 >
-                  <div className="flex gap-3">
-                    <span className="scripture-text min-w-[2rem] text-sm font-medium text-primary">
+                  <div className={styles.verseContent}>
+                    <span className={clsx("scripture-text", styles.verseNumber)}>
                       {verse.verse}
                     </span>
-                    <p className="scripture-text flex-1 text-base leading-relaxed text-foreground">
+                    <p className={clsx("scripture-text", styles.verseText)}>
                       {verse.text}
                     </p>
                   </div>
 
                   <div
-                    className={`absolute right-2 top-2 flex items-center gap-1 rounded-full bg-card/80 px-1.5 py-1 text-muted-foreground shadow transition-opacity ${
-                      isHighlighted ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                    }`}
+                    className={clsx(styles.verseActions, {
+                      [styles.verseActionsVisible]: isHighlighted,
+                    })}
                   >
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-6 w-6"
+                      className={styles.actionButton}
                       onClick={() => handleToggleHighlight(verse.verse)}
                       disabled={highlightingVerse === verse.verse}
                     >
                       {highlightingVerse === verse.verse ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className={styles.actionSpinner} />
                       ) : (
                         <Heart
-                          className={`h-3.5 w-3.5 ${
-                            isHighlighted ? "fill-accent text-accent" : "text-muted-foreground"
-                          }`}
+                          className={clsx(styles.verseActionIcon, {
+                            [styles.verseActionIconHighlighted]: isHighlighted,
+                            [styles.verseActionIconMuted]: !isHighlighted,
+                          })}
                         />
                       )}
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-6 w-6"
+                      className={styles.actionButton}
                       onClick={() => openNoteDialog(verse.verse)}
                     >
-                      <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                      <MessageSquare
+                        className={clsx(styles.verseActionIcon, styles.verseActionIconMuted)}
+                      />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-6 w-6"
+                      className={styles.actionButton}
                       onClick={() => handleToggleBookmark(verse.verse)}
                       disabled={bookmarkingVerse === verse.verse}
                     >
                       {bookmarkingVerse === verse.verse ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className={styles.actionSpinner} />
                       ) : (
                         <Bookmark
-                          className={`h-3.5 w-3.5 ${
-                            isBookmarked ? "fill-primary text-primary" : "text-muted-foreground"
-                          }`}
+                          className={clsx(styles.verseActionIcon, {
+                            [styles.bookmarkIconActive]: isBookmarked,
+                            [styles.verseActionIconMuted]: !isBookmarked,
+                          })}
                         />
                       )}
                     </Button>
@@ -572,13 +581,13 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
           </motion.div>
         )}
 
-        <Separator className="my-8" />
+        <Separator className={styles.sectionSeparator} />
 
-        <Card className="border-border/50 bg-card/70">
+        <Card className={styles.sessionCard}>
           <CardHeader>
-            <CardTitle className="text-base text-primary">Session overview</CardTitle>
+            <CardTitle className={styles.sessionTitle}>Session overview</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <CardContent className={styles.sessionDetails}>
             <p>
               {translationLabel}
               {selectedBook ? ` • ${selectedBook.name}` : ""}
@@ -597,30 +606,30 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       </div>
 
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent className="w-[92vw] max-w-lg">
+        <DialogContent className={styles.noteDialogContent}>
           <DialogHeader>
             <DialogTitle>
               {selectedBook ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}` : "New Note"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className={styles.dialogBody}>
             <Textarea
               value={noteBody}
               onChange={(event) => setNoteBody(event.target.value)}
               placeholder="Capture your observation, prayer, or insight..."
-              className="min-h-[160px] bg-input-background border-border/50"
+              className={styles.noteTextarea}
             />
-            {noteError ? <p className="text-sm text-destructive">{noteError}</p> : null}
-            <div className="flex items-center justify-end gap-2">
+            {noteError ? <p className={styles.noteError}>{noteError}</p> : null}
+            <div className={styles.dialogActions}>
               <Button variant="ghost" onClick={() => setNoteDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
-                className="bg-primary hover:bg-primary/90"
+                className={styles.saveButton}
                 onClick={handleSaveNote}
                 disabled={isSavingNote}
               >
-                {isSavingNote ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isSavingNote ? <Loader2 className={styles.saveButtonSpinner} /> : null}
                 Save Note
               </Button>
             </div>

@@ -1,0 +1,183 @@
+@keyframes dialogOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogOverlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialogContentScaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dialogContentScaleOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(0.96);
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation-duration: 200ms;
+  animation-fill-mode: forwards;
+}
+
+.overlay[data-state="open"] {
+  animation-name: dialogOverlayFadeIn;
+  animation-timing-function: ease-out;
+}
+
+.overlay[data-state="closed"] {
+  animation-name: dialogOverlayFadeOut;
+  animation-timing-function: ease-in;
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
+  display: grid;
+  width: 100%;
+  max-width: calc(100% - 2rem);
+  gap: 1rem;
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background-color: var(--card);
+  color: var(--card-foreground, inherit);
+  padding: 1.5rem;
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.16),
+    0 8px 14px rgba(15, 23, 42, 0.1);
+  animation-duration: 200ms;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease;
+}
+
+.content[data-state="open"] {
+  animation-name: dialogContentScaleIn;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content[data-state="closed"] {
+  animation-name: dialogContentScaleOut;
+  animation-timing-function: ease-in;
+}
+
+@media (min-width: 640px) {
+  .content {
+    max-width: 32rem;
+  }
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 160ms ease;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  opacity: 1;
+}
+
+.closeButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ring),
+    0 0 0 4px var(--background, #fff);
+}
+
+.closeButton[data-state="open"] {
+  background-color: var(--accent);
+  color: var(--muted-foreground);
+}
+
+.closeButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.closeButton svg {
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .header {
+    text-align: left;
+  }
+}
+
+.footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
