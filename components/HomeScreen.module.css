@@ -3,11 +3,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    hsla(var(--background), 1) 0%,
-    hsla(var(--secondary), 0.12) 100%
-  );
+  background: var(--canvas-gradient);
   padding: 16px clamp(16px, 4vw, 28px) 80px;
   box-sizing: border-box;
 }
@@ -43,7 +39,7 @@
 
 .verseCard {
   border: 1px solid hsla(var(--accent), 0.35);
-  background: linear-gradient(120deg, hsla(var(--card), 1) 0%, hsla(var(--secondary), 0.22) 100%);
+  background: var(--surface-gradient);
   box-shadow: 0 20px 32px rgba(14, 165, 233, 0.12);
   flex-shrink: 0;
 }
@@ -113,14 +109,14 @@
 .quickCard {
   cursor: pointer;
   border: 1px solid hsla(var(--border), 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  background-color: hsla(var(--background), 0.72);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  background: var(--surface-gradient-soft);
 }
 
 .quickCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
-  background-color: hsla(var(--card), 0.92);
+  background: var(--surface-gradient);
 }
 
 .quickCardContent {
@@ -156,7 +152,7 @@
 .statsCard,
 .notesCard {
   border: 1px solid hsla(var(--border), 0.45);
-  background: hsla(var(--card), 0.9);
+  background: var(--surface-gradient);
 }
 
 .statsCard {

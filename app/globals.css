@@ -47,6 +47,7 @@
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: rgba(15, 23, 42, 0.1);
   --sidebar-ring: rgba(14, 165, 233, 0.3);
+
 }
 
 [data-theme="sunset"] {
@@ -195,6 +196,34 @@
   --sidebar-accent-foreground: #831843;
   --sidebar-border: rgba(131, 24, 67, 0.1);
   --sidebar-ring: rgba(244, 114, 182, 0.3);
+}
+
+:root,
+[data-theme="ocean"],
+[data-theme="sunset"],
+[data-theme="forest"],
+[data-theme="purple"],
+[data-theme="cherry"] {
+  --canvas-gradient: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--background) 88%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 28%, transparent) 100%
+  );
+  --surface-gradient: linear-gradient(
+    140deg,
+    color-mix(in oklab, var(--card) 92%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 24%, transparent) 100%
+  );
+  --surface-gradient-soft: linear-gradient(
+    140deg,
+    color-mix(in oklab, var(--card) 96%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 14%, transparent) 100%
+  );
+  --surface-glass-gradient: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--card) 86%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 26%, transparent) 100%
+  );
 }
 
 .dark {
