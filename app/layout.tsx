@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SWORD Bible Study",
   description: "A focused environment for studying Scripture, notes, highlights, and memory verses.",
+  icons: {
+    icon: "/sword_logo.png",
+    shortcut: "/sword_logo.png",
+    apple: "/sword_logo.png",
+  },
 };
 
 export default function RootLayout({

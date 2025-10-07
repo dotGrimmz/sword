@@ -47,9 +47,10 @@
   box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.6);
 }
 
-.logoIcon {
-  width: 32px;
-  height: 32px;
+.logoImage {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .heading {
@@ -109,13 +110,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0ea5e9;
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(12, 74, 110, 0.28));
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.4);
 }
 
-.formHeaderIcon {
-  width: 28px;
-  height: 28px;
+.formHeaderImage {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .formTitle {

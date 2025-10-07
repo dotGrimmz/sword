@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -165,9 +166,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         >
           <Card className={styles.appInfoCard}>
             <CardContent className={styles.appInfoContent}>
-              <span className={styles.appInfoIcon} aria-hidden="true">
-                <Shield />
-              </span>
+              <div className={styles.appInfoIcon} aria-hidden="true">
+                <Image
+                  src="/sword_logo.png"
+                  alt="SWORD logo"
+                  width={44}
+                  height={44}
+                  className={styles.appInfoLogo}
+                  priority
+                />
+              </div>
               <h3 className={styles.appInfoTitle}>SWORD</h3>
               <p className={styles.appInfoSubtitle}>
                 Scripture • Wisdom • Order • Reflection • Devotion
