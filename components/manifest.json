@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "packs": {
+    "notes": {
+      "list": "1.0.0"
+    },
+    "highlights": {
+      "list": "1.0.0"
+    },
+    "memory": {
+      "list": "1.0.0"
+    },
+    "bookmarks": {
+      "list": "1.0.0"
+    },
+    "bible_translations": {
+      "list": "1.0.0"
+    },
+    "bible_books": {}
+  }
+}

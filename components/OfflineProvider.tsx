@@ -11,8 +11,15 @@ import {
 } from "react";
 import localforage from "localforage";
 
+import {
+  fetchPackManifest,
+  reconcilePackManifest,
+} from "@/lib/offline/versioning";
 import { OFFLINE_DB_NAME, isOfflineStorageSupported } from "@/lib/offlineStore";
-import { fetchPackManifest, reconcilePackManifest } from "@/lib/offline/versioning";
+import {
+  fetchPackManifest,
+  reconcilePackManifest,
+} from "@/lib/offline/versioning";
 import { flushQueueWhenOnline } from "@/lib/syncQueue";
 
 interface OfflineContextValue {
@@ -22,7 +29,9 @@ interface OfflineContextValue {
   flushQueue: typeof flushQueueWhenOnline;
 }
 
-const OfflineContext = createContext<OfflineContextValue | undefined>(undefined);
+const OfflineContext = createContext<OfflineContextValue | undefined>(
+  undefined
+);
 
 /**
  * Provides connectivity status and flushes the offline sync queue whenever the
@@ -43,13 +52,17 @@ export const OfflineProvider = ({ children }: PropsWithChildren) => {
     const result = await reconcilePackManifest(manifest);
     if (result.cacheVersionChanged) {
       console.info(
-        `[offline] Cache version updated to ${result.manifestVersion ?? "unknown"}`,
+        `[offline] Cache version updated to ${
+          result.manifestVersion ?? "unknown"
+        }`
       );
     }
     if (result.needsDownload.length > 0) {
       console.info(
         "[offline] Packs pending download:",
-        result.needsDownload.map((entry) => `${entry.namespace}/${entry.id}@${entry.expectedVersion}`),
+        result.needsDownload.map(
+          (entry) => `${entry.namespace}/${entry.id}@${entry.expectedVersion}`
+        )
       );
     }
   }, []);
@@ -61,7 +74,9 @@ export const OfflineProvider = ({ children }: PropsWithChildren) => {
     setIsSupported(supported);
 
     if (!supported) {
-      console.warn("[offline] Offline storage not supported in this environment");
+      console.warn(
+        "[offline] Offline storage not supported in this environment"
+      );
       setIsReady(true);
       return;
     }
@@ -109,10 +124,12 @@ export const OfflineProvider = ({ children }: PropsWithChildren) => {
       isSupported,
       flushQueue,
     }),
-    [flushQueue, isOnline, isReady, isSupported],
+    [flushQueue, isOnline, isReady, isSupported]
   );
 
-  return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;
+  return (
+    <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>
+  );
 };
 
 /**

@@ -1,0 +1,42 @@
+components/BibleReaderScreen.tsx(46,38): error TS2307: Cannot find module '@/lib/hooks/useOfflineHighlights' or its corresponding type declarations.
+components/BibleReaderScreen.tsx(90,7): error TS2304: Cannot find name 'useOfflineBookmarks'.
+components/BibleReaderScreen.tsx(170,8): error TS7006: Parameter 'highlight' implicitly has an 'any' type.
+components/BibleReaderScreen.tsx(193,10): error TS7006: Parameter 'bookmark' implicitly has an 'any' type.
+components/HighlightsScreen.tsx(39,38): error TS2307: Cannot find module '@/lib/hooks/useOfflineHighlights' or its corresponding type declarations.
+components/HighlightsScreen.tsx(261,28): error TS7006: Parameter 'highlight' implicitly has an 'any' type.
+components/HomeScreen.tsx(33,38): error TS2307: Cannot find module '@/lib/hooks/useOfflineHighlights' or its corresponding type declarations.
+components/HomeScreen.tsx(34,34): error TS2307: Cannot find module '@/lib/hooks/useOfflineMemory' or its corresponding type declarations.
+components/HomeScreen.tsx(35,33): error TS2307: Cannot find module '@/lib/hooks/useOfflineNotes' or its corresponding type declarations.
+components/HomeScreen.tsx(109,33): error TS7006: Parameter 'verse' implicitly has an 'any' type.
+components/HomeScreen.tsx(418,36): error TS7006: Parameter 'note' implicitly has an 'any' type.
+components/NotesScreen.tsx(53,33): error TS2307: Cannot find module '@/lib/hooks/useOfflineNotes' or its corresponding type declarations.
+components/NotesScreen.tsx(245,23): error TS7006: Parameter 'note' implicitly has an 'any' type.
+components/NotesScreen.tsx(320,55): error TS7006: Parameter 'current' implicitly has an 'any' type.
+components/NotesScreen.tsx(320,64): error TS7006: Parameter 'candidate' implicitly has an 'any' type.
+components/OfflineProvider.tsx(15,3): error TS2300: Duplicate identifier 'fetchPackManifest'.
+components/OfflineProvider.tsx(16,3): error TS2300: Duplicate identifier 'reconcilePackManifest'.
+components/OfflineProvider.tsx(20,3): error TS2300: Duplicate identifier 'fetchPackManifest'.
+components/OfflineProvider.tsx(21,3): error TS2300: Duplicate identifier 'reconcilePackManifest'.
+components/useOfflineBookmarks.ts(9,8): error TS2724: '"@/lib/syncQueue"' has no exported member named 'QueuedAction'. Did you mean 'enqueueAction'?
+components/useOfflineBookmarks.ts(15,8): error TS2307: Cannot find module '../api/bookmarks' or its corresponding type declarations.
+components/useOfflineBookmarks.ts(16,33): error TS2307: Cannot find module './useOfflineStore' or its corresponding type declarations.
+components/useOfflineBookmarks.ts(39,25): error TS7006: Parameter 'p' implicitly has an 'any' type.
+components/useOfflineBookmarks.ts(88,12): error TS7006: Parameter 'b' implicitly has an 'any' type.
+components/useOfflineHighlights.ts(9,8): error TS2724: '"@/lib/syncQueue"' has no exported member named 'QueuedAction'. Did you mean 'enqueueAction'?
+components/useOfflineHighlights.ts(11,55): error TS2307: Cannot find module '../api/highlights' or its corresponding type declarations.
+components/useOfflineHighlights.ts(12,33): error TS2307: Cannot find module './useOfflineStore' or its corresponding type declarations.
+components/useOfflineHighlights.ts(35,26): error TS7006: Parameter 'p' implicitly has an 'any' type.
+components/useOfflineHighlights.ts(70,55): error TS7006: Parameter 'h' implicitly has an 'any' type.
+lib/offlineStore.ts(1,28): error TS2305: Module '"localforage"' has no exported member 'LocalForage'.
+lib/offlineStore.ts(168,46): error TS7006: Parameter 'value' implicitly has an 'any' type.
+lib/offlineStore.ts(168,53): error TS7006: Parameter 'key' implicitly has an 'any' type.
+lib/offlineStore.ts(189,24): error TS7006: Parameter '_value' implicitly has an 'any' type.
+lib/offlineStore.ts(189,32): error TS7006: Parameter 'key' implicitly has an 'any' type.
+lib/syncQueue.ts(49,45): error TS7006: Parameter 'value' implicitly has an 'any' type.
+lib/syncQueue.ts(49,52): error TS7006: Parameter 'key' implicitly has an 'any' type.
+lib/syncQueue.ts(173,24): error TS7006: Parameter '_value' implicitly has an 'any' type.
+lib/syncQueue.ts(173,32): error TS7006: Parameter 'key' implicitly has an 'any' type.
+next.config.ts(2,25): error TS7016: Could not find a declaration file for module 'next-pwa'. '/home/rakeem/Repos/sword/node_modules/next-pwa/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/next-pwa` if it exists or add a new declaration (.d.ts) file containing `declare module 'next-pwa';`
+next.config.ts(3,28): error TS7016: Could not find a declaration file for module 'next-pwa/cache'. '/home/rakeem/Repos/sword/node_modules/next-pwa/cache.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/next-pwa` if it exists or add a new declaration (.d.ts) file containing `declare module 'next-pwa/cache';`

@@ -23,9 +23,6 @@ import {
 } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
-import { getUserHighlights } from "@/lib/api/highlights";
-import { getUserMemoryVerses } from "@/lib/api/memory";
-import { getUserNotes } from "@/lib/api/notes";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserMemoryVerse, UserNote } from "@/types/user";
 import {
@@ -33,6 +30,9 @@ import {
   MEMORY_UPDATED_EVENT,
   NOTES_UPDATED_EVENT,
 } from "@/lib/events";
+import { useOfflineHighlights } from "@/lib/hooks/useOfflineHighlights";
+import { useOfflineMemory } from "@/lib/hooks/useOfflineMemory";
+import { useOfflineNotes } from "@/lib/hooks/useOfflineNotes";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -84,13 +84,13 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
 
   const { books, translationCode } = useTranslationContext();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [notesCount, setNotesCount] = useState(0);
-  const [highlightsCount, setHighlightsCount] = useState(0);
-  const [memoryCount, setMemoryCount] = useState(0);
-  const [needsReviewCount, setNeedsReviewCount] = useState(0);
-  const [recentNotes, setRecentNotes] = useState<NotePreview[]>([]);
+  const { notes, isLoading: isLoadingNotes } = useOfflineNotes();
+  const { highlights, isLoading: isLoadingHighlights } = useOfflineHighlights();
+  const { memoryVerses, isLoading: isLoadingMemory } = useOfflineMemory();
+
   const [todaysVerse, setTodaysVerse] = useState<VerseSnapshot | null>(null);
+
+  const isLoading = isLoadingNotes || isLoadingHighlights || isLoadingMemory;
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -99,6 +99,41 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     }
     return index;
   }, [books]);
+
+  const notesCount = notes.length;
+  const highlightsCount = highlights.length;
+  const memoryCount = memoryVerses.length;
+
+  const needsReviewCount = useMemo(() => {
+    const today = new Date();
+    return memoryVerses.filter((verse) => {
+      if (!verse.nextReviewDate) {
+        return false;
+      }
+      const nextReview = new Date(verse.nextReviewDate);
+      if (Number.isNaN(nextReview.getTime())) {
+        return false;
+      }
+      return nextReview <= today;
+    }).length;
+  }, [memoryVerses]);
+
+  const recentNotes = useMemo(() => {
+    return notes.slice(0, 3).map<NotePreview>((note: UserNote) => {
+      const book = note.bookId ? bookIndex.get(note.bookId) : null;
+      return {
+        id: note.id,
+        reference: buildReferenceLabel(
+          book ?? undefined,
+          note.chapter,
+          note.verseStart,
+          note.verseEnd
+        ),
+        excerpt: getExcerpt(note.body, 140),
+        updatedLabel: formatDate(note.updatedAt ?? note.createdAt),
+      };
+    });
+  }, [notes, bookIndex]);
 
   const determineVerseSnapshot = useCallback(
     async (
@@ -167,83 +202,30 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [translationCode, bookIndex]
   );
 
-  const loadHomeData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [notes, highlights, memory] = await Promise.all([
-        getUserNotes(10),
-        getUserHighlights(),
-        getUserMemoryVerses(),
-      ]);
-
-      setNotesCount(notes.length);
-      setHighlightsCount(highlights.length);
-      setMemoryCount(memory.length);
-
-      const today = new Date();
-      const reviewCount = memory.filter((verse) => {
-        if (!verse.nextReviewDate) {
-          return false;
-        }
-        const nextReview = new Date(verse.nextReviewDate);
-        if (Number.isNaN(nextReview.getTime())) {
-          return false;
-        }
-        return nextReview <= today;
-      }).length;
-      setNeedsReviewCount(reviewCount);
-
-      const previews = notes.slice(0, 3).map<NotePreview>((note: UserNote) => {
-        const book = note.bookId ? bookIndex.get(note.bookId) : null;
-        return {
-          id: note.id,
-          reference: buildReferenceLabel(
-            book ?? undefined,
-            note.chapter,
-            note.verseStart,
-            note.verseEnd
-          ),
-          excerpt: getExcerpt(note.body, 140),
-          updatedLabel: formatDate(note.updatedAt ?? note.createdAt),
-        };
-      });
-      setRecentNotes(previews);
-
-      const highlightCandidate =
-        highlights.length > 0
-          ? {
-              bookId: highlights[0]!.bookId,
-              chapter: highlights[0]!.chapter,
-              verseStart: highlights[0]!.verseStart,
-              verseEnd: highlights[0]!.verseEnd,
-            }
-          : null;
-
-      const memoryCandidate = memory.length > 0 ? memory[0]! : null;
-
-      await determineVerseSnapshot(highlightCandidate, memoryCandidate);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to load dashboard data";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bookIndex, determineVerseSnapshot]);
-
   useEffect(() => {
-    void loadHomeData();
-  }, [loadHomeData]);
+    const highlightCandidate =
+      highlights.length > 0
+        ? {
+            bookId: highlights[0]!.bookId,
+            chapter: highlights[0]!.chapter,
+            verseStart: highlights[0]!.verseStart,
+            verseEnd: highlights[0]!.verseEnd,
+          }
+        : null;
+
+    const memoryCandidate = memoryVerses.length > 0 ? memoryVerses[0]! : null;
+
+    void determineVerseSnapshot(highlightCandidate, memoryCandidate);
+  }, [highlights, memoryVerses, determineVerseSnapshot]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
+    // This can be removed once all hooks manage their own data refreshes internally
     const handler: EventListener = () => {
-      void loadHomeData();
+      window.location.reload();
     };
 
     window.addEventListener(NOTES_UPDATED_EVENT, handler);
@@ -254,7 +236,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
       window.removeEventListener(MEMORY_UPDATED_EVENT, handler);
     };
-  }, [loadHomeData]);
+  }, []);
 
   const quickActions = useMemo(
     () => [
@@ -457,7 +439,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                       Your next reflection starts here
                     </h3>
                     <p className={styles.notePlaceholderCopy}>
-                      Capture a takeaway, prayer, or question and watch this space fill with your study journey.
+                      Capture a takeaway, prayer, or question and watch this
+                      space fill with your study journey.
                     </p>
                   </div>
                 )}

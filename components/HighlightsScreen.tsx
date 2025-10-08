@@ -1,13 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -23,16 +17,18 @@ import {
 
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import {
-  createUserHighlight,
-  deleteUserHighlight,
-  getUserHighlights,
-} from "@/lib/api/highlights";
+import { createUserHighlight } from "@/lib/api/highlights";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserHighlight } from "@/types/user";
@@ -40,6 +36,7 @@ import {
   HIGHLIGHTS_UPDATED_EVENT,
   dispatchHighlightsUpdated,
 } from "@/lib/events";
+import { useOfflineHighlights } from "@/components/useOfflineHighlights";
 import styles from "./HighlightsScreen.module.css";
 
 interface HighlightsScreenProps {
@@ -55,7 +52,13 @@ type HighlightViewModel = {
   dateLabel: string | null;
 };
 
-const availableFilterColors = ["blue", "yellow", "green", "pink", "purple"] as const;
+const availableFilterColors = [
+  "blue",
+  "yellow",
+  "green",
+  "pink",
+  "purple",
+] as const;
 
 const cardColorClasses: Record<string, string> = {
   blue: styles.highlightCardBlue,
@@ -67,7 +70,10 @@ const cardColorClasses: Record<string, string> = {
 
 const fallbackCardColorClass = styles.highlightCardFallback;
 
-const colorSwatchClasses: Record<(typeof availableFilterColors)[number], string> = {
+const colorSwatchClasses: Record<
+  (typeof availableFilterColors)[number],
+  string
+> = {
   blue: styles.colorSwatchBlue,
   yellow: styles.colorSwatchYellow,
   green: styles.colorSwatchGreen,
@@ -75,7 +81,10 @@ const colorSwatchClasses: Record<(typeof availableFilterColors)[number], string>
   purple: styles.colorSwatchPurple,
 };
 
-const colorOptionClasses: Record<(typeof availableFilterColors)[number], string> = {
+const colorOptionClasses: Record<
+  (typeof availableFilterColors)[number],
+  string
+> = {
   blue: styles.colorOptionBlue,
   yellow: styles.colorOptionYellow,
   green: styles.colorOptionGreen,
@@ -106,7 +115,7 @@ const pad = (value: string | null | undefined) => (value ? value.trim() : "");
 
 const formatHighlightsPlaintext = (
   items: HighlightViewModel[],
-  translationCode: string | null | undefined,
+  translationCode: string | null | undefined
 ) => {
   const now = new Date();
   const header = [
@@ -143,23 +152,25 @@ const formatHighlightsPlaintext = (
     return lines.join("\n");
   });
 
-  return [header, divider, sections.join(`\n\n${divider}\n\n`)].filter(Boolean).join("\n\n");
+  return [header, divider, sections.join(`\n\n${divider}\n\n`)]
+    .filter(Boolean)
+    .join("\n\n");
 };
 
 export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   void onNavigate;
 
-  const {
-    books,
-    translationCode,
-    isLoadingBooks,
-    isLoadingTranslations,
-  } = useTranslationContext();
+  const { books, translationCode, isLoadingBooks, isLoadingTranslations } =
+    useTranslationContext();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState<string>("all");
-  const [highlights, setHighlights] = useState<UserHighlight[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    highlights,
+    isLoading: isLoadingHighlights,
+    deleteHighlight,
+    updateHighlight,
+  } = useOfflineHighlights();
   const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
   const [tabValue, setTabValue] = useState("timeline");
 
@@ -178,24 +189,6 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     return index;
   }, [books]);
 
-  const loadHighlights = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getUserHighlights();
-      setHighlights(data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load highlights";
-      toast.error(message);
-      setHighlights([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadHighlights();
-  }, [loadHighlights]);
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -207,14 +200,16 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
         return;
       }
 
-      void loadHighlights();
+      // The hook will eventually handle this, but for now we can reload
+      // to ensure data is fresh across screens.
+      window.location.reload();
     };
 
     window.addEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
     return () => {
       window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
     };
-  }, [loadHighlights]);
+  }, []);
 
   useEffect(() => {
     if (!translationCode) {
@@ -263,7 +258,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   }, [highlights, translationCode, bookIndex]);
 
   const derivedHighlights = useMemo<HighlightViewModel[]>(() => {
-    return highlights.map((highlight) => {
+    return highlights.map((highlight: any) => {
       const book = highlight.bookId ? bookIndex.get(highlight.bookId) : null;
       const referenceLabel = buildReferenceLabel(
         book ?? undefined,
@@ -299,8 +294,10 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
       return (
         highlight.bookName.toLowerCase().includes(query) ||
-        (highlight.verseText && highlight.verseText.toLowerCase().includes(query)) ||
-        (highlight.referenceLabel && highlight.referenceLabel.toLowerCase().includes(query))
+        (highlight.verseText &&
+          highlight.verseText.toLowerCase().includes(query)) ||
+        (highlight.referenceLabel &&
+          highlight.referenceLabel.toLowerCase().includes(query))
       );
     });
   }, [derivedHighlights, searchQuery, selectedColor]);
@@ -320,42 +317,27 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   }, [filteredHighlights]);
 
   const handleDeleteHighlight = async (highlight: UserHighlight) => {
-    const previous = highlights;
-    setHighlights((prev) => prev.filter((item) => item.id !== highlight.id));
-
     try {
-      await deleteUserHighlight(highlight.id);
+      await deleteHighlight(highlight.id);
       toast.success("Highlight removed");
-      dispatchHighlightsUpdated({ source: "highlights-screen" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to remove highlight";
+      const message =
+        error instanceof Error ? error.message : "Unable to remove highlight";
       toast.error(message);
-      setHighlights(previous);
     }
   };
 
-  const handleReapplyColor = async (highlight: UserHighlight, color: string) => {
-    // simple reapply via recreate highlight with new color
-    const previous = highlights;
-    setHighlights((prev) =>
-      prev.map((item) => (item.id === highlight.id ? { ...item, color } : item))
-    );
-
+  const handleReapplyColor = async (
+    highlight: UserHighlight,
+    color: string
+  ) => {
     try {
-      await deleteUserHighlight(highlight.id);
-      const recreated = await createUserHighlight({
-        bookId: highlight.bookId,
-        chapter: highlight.chapter,
-        verseStart: highlight.verseStart,
-        verseEnd: highlight.verseEnd,
-        color,
-      });
-      setHighlights((prev) => [recreated, ...prev.filter((item) => item.id !== highlight.id)]);
-      dispatchHighlightsUpdated({ source: "highlights-screen" });
+      await updateHighlight(highlight.id, { color });
+      toast.success("Highlight color updated");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to update highlight";
+      const message =
+        error instanceof Error ? error.message : "Unable to update highlight";
       toast.error(message);
-      setHighlights(previous);
     }
   };
 
@@ -366,7 +348,10 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     }
 
     try {
-      const exportText = formatHighlightsPlaintext(derivedHighlights, translationCode);
+      const exportText = formatHighlightsPlaintext(
+        derivedHighlights,
+        translationCode
+      );
       const blob = new Blob([exportText], {
         type: "text/plain;charset=utf-8",
       });
@@ -381,13 +366,15 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
       URL.revokeObjectURL(url);
       toast.success("Highlights exported as text");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to export highlights";
+      const message =
+        error instanceof Error ? error.message : "Unable to export highlights";
       toast.error(message);
     }
   }, [derivedHighlights, translationCode]);
 
   const renderHighlightCard = (highlight: HighlightViewModel) => {
-    const colorClass = cardColorClasses[highlight.color] ?? fallbackCardColorClass;
+    const colorClass =
+      cardColorClasses[highlight.color] ?? fallbackCardColorClass;
     return (
       <Card
         key={highlight.raw.id}
@@ -405,7 +392,9 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
                   <Calendar className={styles.metaIcon} />
                   {highlight.dateLabel ?? "Recently"}
                 </span>
-                <span className={styles.highlightCardMetaItem}>{highlight.bookName}</span>
+                <span className={styles.highlightCardMetaItem}>
+                  {highlight.bookName}
+                </span>
               </CardDescription>
             </div>
             <div>
@@ -426,7 +415,9 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
           </blockquote>
           <div className={styles.cardMetaFooter}>
             <Heart className={styles.cardMetaIcon} />
-            <span className={styles.colorLabel}>{highlight.color.toUpperCase()}</span>
+            <span className={styles.colorLabel}>
+              {highlight.color.toUpperCase()}
+            </span>
             <div className={styles.colorOptions}>
               {availableFilterColors.map((color) => (
                 <button
@@ -435,7 +426,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
                   className={clsx(
                     styles.colorOption,
                     colorOptionClasses[color],
-                    color === highlight.color && styles.colorOptionActive,
+                    color === highlight.color && styles.colorOptionActive
                   )}
                   onClick={() => handleReapplyColor(highlight.raw, color)}
                   title={`Set color to ${color}`}
@@ -448,7 +439,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     );
   };
 
-  const busy = isLoading || isLoadingTranslations || isLoadingBooks;
+  const busy = isLoadingHighlights || isLoadingTranslations || isLoadingBooks;
 
   return (
     <div className={styles.highlightsPage}>
@@ -457,7 +448,8 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
           <div className={styles.headerCopy}>
             <h1 className={styles.headerTitle}>My Highlights</h1>
             <p className={styles.headerSubtitle}>
-              {filteredHighlights.length} shown • {highlights.length} total saved
+              {filteredHighlights.length} shown • {highlights.length} total
+              saved
             </p>
           </div>
           <Button variant="ghost" size="sm" onClick={handleExportHighlights}>
@@ -493,7 +485,9 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
               onClick={() => setSelectedColor(color)}
               className={styles.filterButton}
             >
-              <span className={clsx(styles.colorSwatch, colorSwatchClasses[color])} />
+              <span
+                className={clsx(styles.colorSwatch, colorSwatchClasses[color])}
+              />
               {color.charAt(0).toUpperCase() + color.slice(1)}
             </Button>
           ))}
@@ -518,13 +512,20 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
                 className={styles.emptyBadgeImage}
               />
             </div>
-            <h3 className={styles.emptyTitle}>No highlights match your filters</h3>
+            <h3 className={styles.emptyTitle}>
+              No highlights match your filters
+            </h3>
             <p className={styles.emptyCopy}>
-              Try adjusting your search or colour filter—or capture a new highlight to see it here.
+              Try adjusting your search or colour filter—or capture a new
+              highlight to see it here.
             </p>
           </div>
         ) : (
-          <Tabs value={tabValue} onValueChange={setTabValue} className={styles.tabs}>
+          <Tabs
+            value={tabValue}
+            onValueChange={setTabValue}
+            className={styles.tabs}
+          >
             <TabsList data-active={tabValue} className={styles.tabsList}>
               <span className={styles.tabHighlight} aria-hidden="true" />
               <TabsTrigger value="timeline">Timeline</TabsTrigger>

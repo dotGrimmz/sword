@@ -1,0 +1,532 @@
+
+> sword@0.1.0 build
+> next build --turbopack
+
+   ▲ Next.js 15.5.4 (Turbopack)
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbopack
+
+ ✓ Finished writing to disk in 79ms
+
+> Build error occurred
+Error: Turbopack build failed with 30 errors:
+./components/OfflineProvider.tsx:20:3
+Ecmascript file had an error
+[0m [90m 18 |[39m [36mimport[39m { [33mOFFLINE_DB_NAME[39m[33m,[39m isOfflineStorageSupported } [36mfrom[39m [32m"@/lib/offlineStore"[39m[33m;[39m
+ [90m 19 |[39m [36mimport[39m {
+[31m[1m>[22m[39m[90m 20 |[39m   fetchPackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m[0m
+
+the name `fetchPackManifest` is defined multiple times
+
+
+./components/OfflineProvider.tsx:20:3
+Ecmascript file had an error
+[0m [90m 18 |[39m [36mimport[39m { [33mOFFLINE_DB_NAME[39m[33m,[39m isOfflineStorageSupported } [36mfrom[39m [32m"@/lib/offlineStore"[39m[33m;[39m
+ [90m 19 |[39m [36mimport[39m {
+[31m[1m>[22m[39m[90m 20 |[39m   fetchPackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m[0m
+
+the name `fetchPackManifest` is defined multiple times
+
+
+./components/OfflineProvider.tsx:20:3
+Ecmascript file had an error
+[0m [90m 18 |[39m [36mimport[39m { [33mOFFLINE_DB_NAME[39m[33m,[39m isOfflineStorageSupported } [36mfrom[39m [32m"@/lib/offlineStore"[39m[33m;[39m
+ [90m 19 |[39m [36mimport[39m {
+[31m[1m>[22m[39m[90m 20 |[39m   fetchPackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m[0m
+
+the name `fetchPackManifest` is defined multiple times
+
+
+./components/OfflineProvider.tsx:21:3
+Ecmascript file had an error
+[0m [90m 19 |[39m [36mimport[39m {
+ [90m 20 |[39m   fetchPackManifest[33m,[39m
+[31m[1m>[22m[39m[90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m
+ [90m 24 |[39m[0m
+
+the name `reconcilePackManifest` is defined multiple times
+
+
+./components/OfflineProvider.tsx:21:3
+Ecmascript file had an error
+[0m [90m 19 |[39m [36mimport[39m {
+ [90m 20 |[39m   fetchPackManifest[33m,[39m
+[31m[1m>[22m[39m[90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m
+ [90m 24 |[39m[0m
+
+the name `reconcilePackManifest` is defined multiple times
+
+
+./components/OfflineProvider.tsx:21:3
+Ecmascript file had an error
+[0m [90m 19 |[39m [36mimport[39m {
+ [90m 20 |[39m   fetchPackManifest[33m,[39m
+[31m[1m>[22m[39m[90m 21 |[39m   reconcilePackManifest[33m,[39m
+ [90m    |[39m   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 22 |[39m } [36mfrom[39m [32m"@/lib/offline/versioning"[39m[33m;[39m
+ [90m 23 |[39m [36mimport[39m { flushQueueWhenOnline } [36mfrom[39m [32m"@/lib/syncQueue"[39m[33m;[39m
+ [90m 24 |[39m[0m
+
+the name `reconcilePackManifest` is defined multiple times
+
+
+./components/BibleReaderScreen.tsx:46:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 44 |[39m [36mimport[39m type { [33mBibleBookSummary[39m[33m,[39m [33mBibleVerse[39m } [36mfrom[39m [32m"@/types/bible"[39m[33m;[39m
+ [90m 45 |[39m [36mimport[39m type { [33mUserBookmark[39m[33m,[39m [33mUserHighlight[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 46 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 47 |[39m [36mimport[39m { dispatchHighlightsUpdated[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 48 |[39m [36mimport[39m styles [36mfrom[39m [32m"./BibleReaderScreen.module.css"[39m[33m;[39m
+ [90m 49 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/BibleReaderScreen.tsx:46:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 44 |[39m [36mimport[39m type { [33mBibleBookSummary[39m[33m,[39m [33mBibleVerse[39m } [36mfrom[39m [32m"@/types/bible"[39m[33m;[39m
+ [90m 45 |[39m [36mimport[39m type { [33mUserBookmark[39m[33m,[39m [33mUserHighlight[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 46 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 47 |[39m [36mimport[39m { dispatchHighlightsUpdated[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 48 |[39m [36mimport[39m styles [36mfrom[39m [32m"./BibleReaderScreen.module.css"[39m[33m;[39m
+ [90m 49 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/BibleReaderScreen.tsx:46:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 44 |[39m [36mimport[39m type { [33mBibleBookSummary[39m[33m,[39m [33mBibleVerse[39m } [36mfrom[39m [32m"@/types/bible"[39m[33m;[39m
+ [90m 45 |[39m [36mimport[39m type { [33mUserBookmark[39m[33m,[39m [33mUserHighlight[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 46 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 47 |[39m [36mimport[39m { dispatchHighlightsUpdated[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 48 |[39m [36mimport[39m styles [36mfrom[39m [32m"./BibleReaderScreen.module.css"[39m[33m;[39m
+ [90m 49 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/BibleReaderScreen.tsx:46:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 44 |[39m [36mimport[39m type { [33mBibleBookSummary[39m[33m,[39m [33mBibleVerse[39m } [36mfrom[39m [32m"@/types/bible"[39m[33m;[39m
+ [90m 45 |[39m [36mimport[39m type { [33mUserBookmark[39m[33m,[39m [33mUserHighlight[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 46 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 47 |[39m [36mimport[39m { dispatchHighlightsUpdated[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 48 |[39m [36mimport[39m styles [36mfrom[39m [32m"./BibleReaderScreen.module.css"[39m[33m;[39m
+ [90m 49 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HighlightsScreen.tsx:39:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 37 |[39m   dispatchHighlightsUpdated[33m,[39m
+ [90m 38 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 39 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 40 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HighlightsScreen.module.css"[39m[33m;[39m
+ [90m 41 |[39m
+ [90m 42 |[39m [36minterface[39m [33mHighlightsScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HighlightsScreen.tsx:39:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 37 |[39m   dispatchHighlightsUpdated[33m,[39m
+ [90m 38 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 39 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 40 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HighlightsScreen.module.css"[39m[33m;[39m
+ [90m 41 |[39m
+ [90m 42 |[39m [36minterface[39m [33mHighlightsScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HighlightsScreen.tsx:39:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 37 |[39m   dispatchHighlightsUpdated[33m,[39m
+ [90m 38 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 39 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 40 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HighlightsScreen.module.css"[39m[33m;[39m
+ [90m 41 |[39m
+ [90m 42 |[39m [36minterface[39m [33mHighlightsScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HighlightsScreen.tsx:39:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 37 |[39m   dispatchHighlightsUpdated[33m,[39m
+ [90m 38 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 39 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 40 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HighlightsScreen.module.css"[39m[33m;[39m
+ [90m 41 |[39m
+ [90m 42 |[39m [36minterface[39m [33mHighlightsScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:33:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 31 |[39m   [33mNOTES_UPDATED_EVENT[39m[33m,[39m
+ [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:33:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 31 |[39m   [33mNOTES_UPDATED_EVENT[39m[33m,[39m
+ [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:33:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 31 |[39m   [33mNOTES_UPDATED_EVENT[39m[33m,[39m
+ [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:33:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineHighlights'
+[0m [90m 31 |[39m   [33mNOTES_UPDATED_EVENT[39m[33m,[39m
+ [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineHighlights' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:34:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineMemory'
+[0m [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineMemory' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:34:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineMemory'
+[0m [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineMemory' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:34:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineMemory'
+[0m [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineMemory' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:34:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineMemory'
+[0m [90m 32 |[39m } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+ [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineMemory' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:35:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m
+ [90m 38 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:35:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m
+ [90m 38 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:35:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m
+ [90m 38 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/HomeScreen.tsx:35:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 33 |[39m [36mimport[39m { useOfflineHighlights } [36mfrom[39m [32m"@/lib/hooks/useOfflineHighlights"[39m[33m;[39m
+ [90m 34 |[39m [36mimport[39m { useOfflineMemory } [36mfrom[39m [32m"@/lib/hooks/useOfflineMemory"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 35 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 36 |[39m [36mimport[39m styles [36mfrom[39m [32m"./HomeScreen.module.css"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { [33mLoadingScreen[39m } [36mfrom[39m [32m"@/components/LoadingScreen"[39m[33m;[39m
+ [90m 38 |[39m[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/NotesScreen.tsx:53:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 51 |[39m [36mimport[39m type { [33mUserNote[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+ [90m 52 |[39m [36mimport[39m { [33mNOTES_UPDATED_EVENT[39m[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 53 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 54 |[39m [36mimport[39m styles [36mfrom[39m [32m"./NotesScreen.module.css"[39m[33m;[39m
+ [90m 55 |[39m
+ [90m 56 |[39m [36minterface[39m [33mNotesScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/NotesScreen.tsx:53:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 51 |[39m [36mimport[39m type { [33mUserNote[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+ [90m 52 |[39m [36mimport[39m { [33mNOTES_UPDATED_EVENT[39m[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 53 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 54 |[39m [36mimport[39m styles [36mfrom[39m [32m"./NotesScreen.module.css"[39m[33m;[39m
+ [90m 55 |[39m
+ [90m 56 |[39m [36minterface[39m [33mNotesScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/NotesScreen.tsx:53:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 51 |[39m [36mimport[39m type { [33mUserNote[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+ [90m 52 |[39m [36mimport[39m { [33mNOTES_UPDATED_EVENT[39m[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 53 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 54 |[39m [36mimport[39m styles [36mfrom[39m [32m"./NotesScreen.module.css"[39m[33m;[39m
+ [90m 55 |[39m
+ [90m 56 |[39m [36minterface[39m [33mNotesScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./components/NotesScreen.tsx:53:1
+Module not found: Can't resolve '@/lib/hooks/useOfflineNotes'
+[0m [90m 51 |[39m [36mimport[39m type { [33mUserNote[39m } [36mfrom[39m [32m"@/types/user"[39m[33m;[39m
+ [90m 52 |[39m [36mimport[39m { [33mNOTES_UPDATED_EVENT[39m[33m,[39m dispatchNotesUpdated } [36mfrom[39m [32m"@/lib/events"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 53 |[39m [36mimport[39m { useOfflineNotes } [36mfrom[39m [32m"@/lib/hooks/useOfflineNotes"[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 54 |[39m [36mimport[39m styles [36mfrom[39m [32m"./NotesScreen.module.css"[39m[33m;[39m
+ [90m 55 |[39m
+ [90m 56 |[39m [36minterface[39m [33mNotesScreenProps[39m {[0m
+
+Import map: aliased to relative './lib/hooks/useOfflineNotes' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./components/OfflineProvider.tsx:20:3)
+    at <unknown> (./components/OfflineProvider.tsx:20:3)
+    at <unknown> (./components/OfflineProvider.tsx:20:3)
+    at <unknown> (./components/OfflineProvider.tsx:21:3)
+    at <unknown> (./components/OfflineProvider.tsx:21:3)
+    at <unknown> (./components/OfflineProvider.tsx:21:3)
+    at <unknown> (./components/BibleReaderScreen.tsx:46:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/BibleReaderScreen.tsx:46:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/BibleReaderScreen.tsx:46:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/BibleReaderScreen.tsx:46:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HighlightsScreen.tsx:39:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HighlightsScreen.tsx:39:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HighlightsScreen.tsx:39:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HighlightsScreen.tsx:39:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:33:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:33:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:33:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:33:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:34:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:34:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:34:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:34:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:35:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:35:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:35:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/HomeScreen.tsx:35:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/NotesScreen.tsx:53:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/NotesScreen.tsx:53:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/NotesScreen.tsx:53:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./components/NotesScreen.tsx:53:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

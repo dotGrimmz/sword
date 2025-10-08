@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getQueueStore } from "@/lib/offlineStore";
 import { createClient } from "@/lib/supabase/client";
 
-export type SyncOperation = "insert" | "update" | "delete";
+export type SyncOperation = "insert" | "update" | "delete" | "upsert";
 
 export interface SyncQueuePayload {
   table: string;
@@ -22,6 +22,28 @@ export interface SyncQueueItem extends SyncQueuePayload {
 
 export interface FlushQueueOptions {
   client?: SupabaseClient;
+}
+
+// lib/syncQueue.ts
+export type QueuedOperation = "insert" | "update" | "delete" | "upsert";
+
+/**
+ * Represents a single queued mutation (for offline actions).
+ * Each QueuedAction is persisted to IndexedDB and replayed
+ * when the app returns online.
+ */
+export interface QueuedAction<T = any> {
+  id: string;
+
+  table: string;
+
+  op: QueuedOperation;
+
+  match?: Record<string, any>;
+
+  payload: T;
+
+  createdAt?: number;
 }
 
 const queueKey = (id: string) => `sword_queue_${id}`;
@@ -46,7 +68,7 @@ export const listQueuedActions = async (): Promise<SyncQueueItem[]> => {
 
   const items: SyncQueueItem[] = [];
 
-  await store.iterate<SyncQueueItem, void>((value, key) => {
+  await store.iterate<SyncQueueItem, void>((value: any, key: any) => {
     if (key.startsWith("sword_queue_") && value) {
       items.push(value);
     }
@@ -59,7 +81,7 @@ export const listQueuedActions = async (): Promise<SyncQueueItem[]> => {
  * Queue a mutation for later sync. Returns the queued item or null when offline storage is unavailable.
  */
 export const enqueueAction = async (
-  action: SyncQueuePayload & { id?: string },
+  action: SyncQueuePayload & { id?: string }
 ): Promise<SyncQueueItem | null> => {
   const store = getQueueStoreOrNull();
   if (!store) return null;
@@ -81,11 +103,16 @@ export const enqueueAction = async (
   };
 
   await store.setItem(queueKey(item.id), item);
-  console.info(`[offline-sync] Enqueued ${item.op} for ${item.table} (${item.id})`);
+  console.info(
+    `[offline-sync] Enqueued ${item.op} for ${item.table} (${item.id})`
+  );
   return item;
 };
 
-const runSupabaseAction = async (client: SupabaseClient, item: SyncQueueItem) => {
+const runSupabaseAction = async (
+  client: SupabaseClient,
+  item: SyncQueueItem
+) => {
   switch (item.op) {
     case "insert": {
       const { error } = await client.from(item.table).insert(item.payload);
@@ -117,7 +144,7 @@ const runSupabaseAction = async (client: SupabaseClient, item: SyncQueueItem) =>
  * Attempt to deliver all pending actions when the app is online.
  */
 export const flushQueueWhenOnline = async (
-  options: FlushQueueOptions = {},
+  options: FlushQueueOptions = {}
 ): Promise<{ flushed: number; remaining: number }> => {
   if (typeof window !== "undefined" && !navigator.onLine) {
     console.info("[offline-sync] Skipping flush: offline");
@@ -141,7 +168,7 @@ export const flushQueueWhenOnline = async (
       await store.removeItem(queueKey(item.id));
       flushed += 1;
       console.info(
-        `[offline-sync] Flushed ${item.op} on ${item.table} (${item.id})`,
+        `[offline-sync] Flushed ${item.op} on ${item.table} (${item.id})`
       );
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
@@ -153,7 +180,7 @@ export const flushQueueWhenOnline = async (
       };
       await store.setItem(queueKey(updated.id), updated);
       console.warn(
-        `[offline-sync] Failed to flush ${item.table} (${item.id}): ${lastError}`,
+        `[offline-sync] Failed to flush ${item.table} (${item.id}): ${lastError}`
       );
     }
   }
@@ -170,7 +197,7 @@ export const clearQueue = async (): Promise<void> => {
   const store = getQueueStoreOrNull();
   if (!store) return;
 
-  await store.iterate((_value, key) => {
+  await store.iterate((_value: any, key: any) => {
     if (key.startsWith("sword_queue_")) {
       void store.removeItem(key);
     }

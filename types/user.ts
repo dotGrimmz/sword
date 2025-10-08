@@ -48,18 +48,55 @@ export type UserMemoryVerse = {
   label: string | null;
   tags: string[] | null;
 };
-
-export type UserBookmark = {
+export interface UserBookmark {
+  /** Unique local or server ID */
   id: string;
-  bookId: string | null;
-  chapter: number | null;
-  verse: number | null;
-  label: string | null;
-  createdAt: string | null;
-};
+
+  /** Book number or code (e.g., "GEN", "MAT") */
+  bookId: string | number;
+
+  /** Chapter number */
+  chapter: number;
+
+  /** The logged-in user's ID (from Supabase) */
+  user_id?: string;
+
+  /** Optional user note */
+  note?: string;
+
+  /** Optional highlight or label color */
+  color?: string;
+
+  /** Timestamp when bookmark was created (server-generated preferred) */
+  createdAt?: string;
+
+  /** Timestamp when bookmark was last updated */
+  updatedAt?: string;
+}
 
 export type NoteRouteParams = {
   params: Promise<{
     id: string;
   }>;
 };
+
+export interface UpsertUserBookmarkPayload {
+  /** Optional: present when updating existing bookmark */
+  id?: string;
+
+  /** ID of the user creating/updating this bookmark */
+  user_id: string;
+
+  /** Reference to the verse or passage */
+  verse_ref: string;
+
+  /** Optional personal note or title */
+  note?: string;
+
+  /** Optional highlight color or metadata */
+  color?: string;
+
+  /** Timestamps (server-generated preferred) */
+  created_at?: string;
+  updated_at?: string;
+}
