@@ -651,7 +651,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       <span className={styles.fieldLabel}>Book</span>
                       <Select
                         value={createBookId ?? undefined}
-                        onValueChange={(value) => {
+                        onValueChange={(value: any) => {
                           setCreateBookId(value);
                           setCreateChapter("1");
                           setCreateVerseStart("1");
@@ -661,9 +661,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                         <SelectTrigger className={styles.selectTrigger}>
                           <SelectValue placeholder="Select book" />
                         </SelectTrigger>
-                        <SelectContent
-                          className={`${styles.selectContent} z-[9999]`}
-                        >
+                        <SelectContent className={`${styles.selectContent}`}>
                           {books.map((book) => (
                             <SelectItem
                               key={book.id}
