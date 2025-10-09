@@ -98,6 +98,8 @@
 
 .selectContent {
   max-height: 18rem;
+  z-index: 9999;
+  cursor: pointer;
 }
 
 .navControls {
@@ -105,6 +107,12 @@
   align-items: center;
   gap: 0.5rem;
   align-self: flex-end;
+}
+
+.selectItem {
+  position: relative;
+  padding-left: 2rem;
+  padding-right: 1rem;
 }
 
 @media (min-width: 1024px) {

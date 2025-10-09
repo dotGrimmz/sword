@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -29,13 +24,17 @@ import {
   ModalHeader,
   ModalTitle,
 } from "./ui/modal";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import {
-  getChapterContent,
-} from "@/lib/api/bible";
+import { getChapterContent } from "@/lib/api/bible";
 import {
   createUserHighlight,
   deleteUserHighlight,
@@ -87,7 +86,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const [isLoadingHighlights, setIsLoadingHighlights] = useState(false);
   const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
 
-  const [highlightingVerse, setHighlightingVerse] = useState<number | null>(null);
+  const [highlightingVerse, setHighlightingVerse] = useState<number | null>(
+    null
+  );
   const [bookmarkingVerse, setBookmarkingVerse] = useState<number | null>(null);
 
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
@@ -97,7 +98,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const [noteError, setNoteError] = useState<string | null>(null);
 
   const translationsByCode = useMemo(() => {
-    const index = new Map<string, typeof translations[number]>();
+    const index = new Map<string, (typeof translations)[number]>();
     for (const translation of translations) {
       index.set(translation.code, translation);
     }
@@ -112,7 +113,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     return index;
   }, [books]);
 
-  const selectedBook = selectedBookId ? bookIndex.get(selectedBookId) ?? null : null;
+  const selectedBook = selectedBookId
+    ? bookIndex.get(selectedBookId) ?? null
+    : null;
 
   useEffect(() => {
     if (books.length === 0) {
@@ -137,10 +140,15 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       setChapterError(null);
 
       try {
-        const response = await getChapterContent(translationCode, selectedBook.name, chapter);
+        const response = await getChapterContent(
+          translationCode,
+          selectedBook.name,
+          chapter
+        );
         setVerses(response.verses);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to load chapter";
+        const message =
+          error instanceof Error ? error.message : "Failed to load chapter";
         setChapterError(message);
         setVerses([]);
       } finally {
@@ -158,7 +166,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
         const data = await getUserHighlights();
         setHighlights(data);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to load highlights";
+        const message =
+          error instanceof Error ? error.message : "Failed to load highlights";
         toast.error(message);
         setHighlights([]);
       } finally {
@@ -176,7 +185,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
         const data = await getUserBookmarks();
         setBookmarks(data);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to load bookmarks";
+        const message =
+          error instanceof Error ? error.message : "Failed to load bookmarks";
         toast.error(message);
         setBookmarks([]);
       } finally {
@@ -193,8 +203,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     }
     return highlights.filter(
       (highlight) =>
-        highlight.bookId === selectedBookId &&
-        highlight.chapter === chapter
+        highlight.bookId === selectedBookId && highlight.chapter === chapter
     );
   }, [highlights, selectedBookId, chapter]);
 
@@ -233,13 +242,16 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
     if (existingHighlight) {
       const previous = highlights;
-      setHighlights((prev) => prev.filter((item) => item.id !== existingHighlight.id));
+      setHighlights((prev) =>
+        prev.filter((item) => item.id !== existingHighlight.id)
+      );
       try {
         await deleteUserHighlight(existingHighlight.id);
         toast.success("Highlight removed");
         dispatchHighlightsUpdated({ source: "reader" });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unable to remove highlight";
+        const message =
+          error instanceof Error ? error.message : "Unable to remove highlight";
         toast.error(message);
         setHighlights(previous);
       } finally {
@@ -260,7 +272,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       toast.success("Verse highlighted");
       dispatchHighlightsUpdated({ source: "reader" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to highlight verse";
+      const message =
+        error instanceof Error ? error.message : "Unable to highlight verse";
       toast.error(message);
     } finally {
       setHighlightingVerse(null);
@@ -277,12 +290,15 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
     if (currentBookmark && currentBookmark.verse === verseNumber) {
       const previous = bookmarks;
-      setBookmarks((prev) => prev.filter((item) => item.id !== currentBookmark.id));
+      setBookmarks((prev) =>
+        prev.filter((item) => item.id !== currentBookmark.id)
+      );
       try {
         await deleteUserBookmark(currentBookmark.id);
         toast.success("Bookmark removed");
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unable to remove bookmark";
+        const message =
+          error instanceof Error ? error.message : "Unable to remove bookmark";
         toast.error(message);
         setBookmarks(previous);
       } finally {
@@ -307,7 +323,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
       toast.success("Bookmark saved");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save bookmark";
+      const message =
+        error instanceof Error ? error.message : "Unable to save bookmark";
       toast.error(message);
     } finally {
       setBookmarkingVerse(null);
@@ -349,7 +366,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       setNoteDialogOpen(false);
       dispatchNotesUpdated({ source: "reader" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save note";
+      const message =
+        error instanceof Error ? error.message : "Unable to save note";
       toast.error(message);
     } finally {
       setIsSavingNote(false);
@@ -413,7 +431,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               onValueChange={(value) => selectTranslation(value)}
             >
               <SelectTrigger
-                className={clsx(styles.selectTriggerBase, styles.translationSelect)}
+                className={clsx(
+                  styles.selectTriggerBase,
+                  styles.translationSelect
+                )}
               >
                 <SelectValue placeholder="Translation" />
               </SelectTrigger>
@@ -434,12 +455,18 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               }}
               disabled={books.length === 0}
             >
-              <SelectTrigger className={clsx(styles.selectTriggerBase, styles.bookSelect)}>
+              <SelectTrigger
+                className={clsx(styles.selectTriggerBase, styles.bookSelect)}
+              >
                 <SelectValue placeholder="Book" />
               </SelectTrigger>
               <SelectContent className={styles.selectContent}>
                 {books.map((book) => (
-                  <SelectItem key={book.id} value={book.id}>
+                  <SelectItem
+                    // className={styles.selectItem}
+                    key={book.id}
+                    value={book.id}
+                  >
                     {book.name}
                   </SelectItem>
                 ))}
@@ -451,31 +478,57 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               onValueChange={(value) => setChapter(Number.parseInt(value, 10))}
               disabled={!selectedBook}
             >
-              <SelectTrigger className={clsx(styles.selectTriggerBase, styles.chapterSelect)}>
+              <SelectTrigger
+                className={clsx(styles.selectTriggerBase, styles.chapterSelect)}
+              >
                 <SelectValue placeholder="Chapter" />
               </SelectTrigger>
               <SelectContent className={styles.selectContent}>
                 {selectedBook
-                  ? Array.from({ length: selectedBook.chapters }, (_, index) => index + 1).map(
-                      (chapterNumber) => (
-                        <SelectItem key={chapterNumber} value={`${chapterNumber}`}>
-                          {chapterNumber}
-                        </SelectItem>
-                      )
-                    )
+                  ? Array.from(
+                      { length: selectedBook.chapters },
+                      (_, index) => index + 1
+                    ).map((chapterNumber) => (
+                      <SelectItem
+                        key={chapterNumber}
+                        value={`${chapterNumber}`}
+                      >
+                        {chapterNumber}
+                      </SelectItem>
+                    ))
                   : null}
               </SelectContent>
             </Select>
           </div>
 
           <div className={styles.navControls}>
-            <Button variant="ghost" size="sm" onClick={goToPrevious} disabled={!selectedBook}>
-              <ChevronLeft className={clsx(styles.navIcon, styles.navIconLeft)} /> Previous
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToPrevious}
+              disabled={!selectedBook}
+            >
+              <ChevronLeft
+                className={clsx(styles.navIcon, styles.navIconLeft)}
+              />{" "}
+              Previous
             </Button>
-            <Button variant="ghost" size="sm" onClick={goToNext} disabled={!selectedBook}>
-              Next <ChevronRight className={clsx(styles.navIcon, styles.navIconRight)} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToNext}
+              disabled={!selectedBook}
+            >
+              Next{" "}
+              <ChevronRight
+                className={clsx(styles.navIcon, styles.navIconRight)}
+              />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleNavigate("settings")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigate("settings")}
+            >
               <Settings className={styles.navIcon} />
             </Button>
           </div>
@@ -524,7 +577,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
                   })}
                 >
                   <div className={styles.verseContent}>
-                    <span className={clsx("scripture-text", styles.verseNumber)}>
+                    <span
+                      className={clsx("scripture-text", styles.verseNumber)}
+                    >
                       {verse.verse}
                     </span>
                     <p className={clsx("scripture-text", styles.verseText)}>
@@ -562,7 +617,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
                       onClick={() => openNoteDialog(verse.verse)}
                     >
                       <MessageSquare
-                        className={clsx(styles.verseActionIcon, styles.verseActionIconMuted)}
+                        className={clsx(
+                          styles.verseActionIcon,
+                          styles.verseActionIconMuted
+                        )}
                       />
                     </Button>
                     <Button
@@ -594,7 +652,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
         <Card className={styles.sessionCard}>
           <CardHeader>
-            <CardTitle className={styles.sessionTitle}>Session overview</CardTitle>
+            <CardTitle className={styles.sessionTitle}>
+              Session overview
+            </CardTitle>
           </CardHeader>
           <CardContent className={styles.sessionDetails}>
             <p>
@@ -604,8 +664,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             </p>
             <p>
               {highlightsForChapter.length} highlight
-              {highlightsForChapter.length === 1 ? "" : "s"} in this chapter •
-              {" "}
+              {highlightsForChapter.length === 1 ? "" : "s"} in this chapter •{" "}
               {currentBookmark?.verse
                 ? `Bookmarked verse ${currentBookmark.verse}`
                 : "No bookmark yet"}
@@ -618,7 +677,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
         <ModalContent size="sm" className={styles.noteDialogContent}>
           <ModalHeader>
             <ModalTitle>
-              {selectedBook ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}` : "New Note"}
+              {selectedBook
+                ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}`
+                : "New Note"}
             </ModalTitle>
           </ModalHeader>
           <ModalBody tight className={styles.dialogBody}>
@@ -638,7 +699,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
                 onClick={handleSaveNote}
                 disabled={isSavingNote}
               >
-                {isSavingNote ? <Loader2 className={styles.saveButtonSpinner} /> : null}
+                {isSavingNote ? (
+                  <Loader2 className={styles.saveButtonSpinner} />
+                ) : null}
                 Save Note
               </Button>
             </div>
