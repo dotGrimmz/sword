@@ -1,7 +1,33 @@
 import type { NextConfig } from "next";
+import withPWAInit from "next-pwa";
+import runtimeCaching from "next-pwa/cache";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching: [
+    ...runtimeCaching,
+    {
+      urlPattern: /^https:\/\/.*supabase\.co\/storage\/v1\/object\/public\//i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "supabase-storage",
+        cacheableResponse: {
+          statuses: [0, 200],
+        },
+        expiration: {
+          maxEntries: 64,
+          maxAgeSeconds: 60 * 60 * 24 * 7,
+        },
+      },
+    },
+  ],
+});
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

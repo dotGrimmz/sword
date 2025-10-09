@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "packs": {
+    "bible": {
+      "default": "1.0.0"
+    },
+    "apologetics": {
+      "starter": "1.0.0"
+    },
+    "notes": {}
+  }
+}
