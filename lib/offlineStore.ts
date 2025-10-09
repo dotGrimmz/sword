@@ -1,4 +1,4 @@
-import localforage, { type LocalForage } from "localforage";
+import localforage from "localforage";
 
 /**
  * Shared IndexedDB-backed offline cache for feature packs across the SWORD app.
@@ -21,13 +21,23 @@ export interface OfflinePack<T = unknown> {
 
 export const CACHE_VERSION_KEY = "sword_cache_version";
 
-const storeRegistry: Partial<Record<typeof PACK_STORE_NAME | typeof META_STORE_NAME | typeof QUEUE_STORE_NAME, LocalForage>> = {};
+const storeRegistry: Partial<
+  Record<
+    typeof PACK_STORE_NAME | typeof META_STORE_NAME | typeof QUEUE_STORE_NAME,
+    LocalForage
+  >
+> = {};
 
 const namespaceListeners = new Map<OfflineStorageNamespace, Set<() => void>>();
 
 const isBrowser = () => typeof window !== "undefined";
 
-function getStore(storeName: typeof PACK_STORE_NAME | typeof META_STORE_NAME | typeof QUEUE_STORE_NAME) {
+function getStore(
+  storeName:
+    | typeof PACK_STORE_NAME
+    | typeof META_STORE_NAME
+    | typeof QUEUE_STORE_NAME
+) {
   if (!isBrowser()) {
     return null;
   }
@@ -62,9 +72,10 @@ const notifyNamespace = (namespace: OfflineStorageNamespace) => {
  */
 export const subscribeToNamespace = (
   namespace: OfflineStorageNamespace,
-  listener: NamespaceListener,
+  listener: NamespaceListener
 ) => {
-  const listeners = namespaceListeners.get(namespace) ?? new Set<NamespaceListener>();
+  const listeners =
+    namespaceListeners.get(namespace) ?? new Set<NamespaceListener>();
   listeners.add(listener);
   namespaceListeners.set(namespace, listeners);
 
@@ -105,7 +116,7 @@ export const savePack = async <T>(
   namespace: OfflineStorageNamespace,
   id: string,
   data: T,
-  version: string,
+  version: string
 ): Promise<OfflinePack<T> | null> => {
   const store = getPackStore();
   if (!store) return null;
@@ -129,7 +140,7 @@ export const savePack = async <T>(
  */
 export const loadPack = async <T>(
   namespace: OfflineStorageNamespace,
-  id: string,
+  id: string
 ): Promise<OfflinePack<T> | null> => {
   const store = getPackStore();
   if (!store) return null;
@@ -143,7 +154,7 @@ export const loadPack = async <T>(
  */
 export const deletePack = async (
   namespace: OfflineStorageNamespace,
-  id: string,
+  id: string
 ): Promise<void> => {
   const store = getPackStore();
   if (!store) return;
@@ -157,7 +168,7 @@ export const deletePack = async (
  * Retrieve all packs for the provided namespace.
  */
 export const getAllPacks = async <T>(
-  namespace: OfflineStorageNamespace,
+  namespace: OfflineStorageNamespace
 ): Promise<Array<OfflinePack<T>>> => {
   const store = getPackStore();
   if (!store) return [];
@@ -178,7 +189,7 @@ export const getAllPacks = async <T>(
  * Drop every pack stored under the namespace.
  */
 export const clearNamespace = async (
-  namespace: OfflineStorageNamespace,
+  namespace: OfflineStorageNamespace
 ): Promise<void> => {
   const store = getPackStore();
   if (!store) return;

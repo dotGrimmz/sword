@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import withPWAInit from "next-pwa";
-import runtimeCaching from "next-pwa/cache";
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -8,7 +7,6 @@ const withPWA = withPWAInit({
   register: true,
   skipWaiting: true,
   runtimeCaching: [
-    ...runtimeCaching,
     {
       urlPattern: /^https:\/\/.*supabase\.co\/storage\/v1\/object\/public\//i,
       handler: "CacheFirst",
@@ -30,4 +28,4 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
