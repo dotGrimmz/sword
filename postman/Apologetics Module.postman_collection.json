@@ -227,7 +227,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"Empty tomb attested by multiple sources.\",\n  \"type\": \"historical\"\n}"
+              "raw": "{\n  \"summary\": \"Empty tomb attested by multiple sources.\",\n  \"kind\": \"historical\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/topics/{{topicId}}/evidence",
@@ -297,7 +297,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"Disciples fabricated the story to gain influence.\"\n}"
+              "raw": "{\n  \"objection\": \"Disciples fabricated the story to gain influence.\",\n  \"rebuttal\": \"The disciples gained persecution and death, not power; eyewitness consistency and early testimony undermine this claim.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/topics/{{topicId}}/counters",
@@ -403,7 +403,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Foundations of Faith\",\n  \"description\": \"Introductory apologetics pathway.\"\n}"
+              "raw": "{\n  \"title\": \"Reliability of Scripture\",\n  \"subtitle\": \"How we know the Bible we have is trustworthy\",\n  \"primary_work\": \"Evidence That Demands a Verdict\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/paths",
@@ -470,7 +470,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"description\": \"Updated pathway description.\"\n}"
+              "raw": "{\n  \"subtitle\": \" we know the Bible we have is trustworthy\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/paths/{{pathId}}",
@@ -607,7 +607,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"N. T. Wright - The Resurrection of the Son of God\",\n  \"url\": \"https://example.com/resources/wright-resurrection\"\n}"
+              "raw": "{\n  \"id\": \"wright-resurrection\",\n  \"type\": \"ModernApologist\",\n  \"author\": \"N. T. Wright\",\n  \"work\": \"The Resurrection of the Son of God\",\n  \"year_or_era\": \"2003\",\n  \"location\": \"Chapter 2, Pages 35–60\",\n  \"url\": \"https://example.com/resources/wright-resurrection\",\n  \"notes\": \"Wright presents a detailed historical case for the bodily resurrection, analyzing Jewish and Greco-Roman concepts of life after death.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/sources",
