@@ -13,14 +13,23 @@ import {
   screenRoutes,
   type ScreenKey,
 } from "@/components/app-navigation";
+import {
+  ProfileProvider,
+  type UserRole,
+} from "@/components/ProfileContext";
 import styles from "./AppShell.module.css";
 
 type AppShellProps = {
   children: ReactNode;
   initialTheme?: Theme | null;
+  initialRole?: UserRole | null;
 };
 
-export function AppShell({ children, initialTheme }: AppShellProps) {
+export function AppShell({
+  children,
+  initialTheme,
+  initialRole,
+}: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -37,22 +46,24 @@ export function AppShell({ children, initialTheme }: AppShellProps) {
 
   return (
     <ThemeProvider initialTheme={initialTheme}>
-      <TranslationProvider>
-        <div
-          className={styles.container}
-          style={{ "--bottom-nav-height": bottomNavHeight } as CSSProperties}
-        >
-          <div className={styles.surface}>
-            <div className={styles.surfaceInner}>
-              <div className={styles.frame}>
-                <div className={styles.content}>{children}</div>
+      <ProfileProvider initialRole={initialRole}>
+        <TranslationProvider>
+          <div
+            className={styles.container}
+            style={{ "--bottom-nav-height": bottomNavHeight } as CSSProperties}
+          >
+            <div className={styles.surface}>
+              <div className={styles.surfaceInner}>
+                <div className={styles.frame}>
+                  <div className={styles.content}>{children}</div>
+                </div>
               </div>
             </div>
+            <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+            <Toaster position="top-center" />
           </div>
-          <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
-          <Toaster position="top-center" />
-        </div>
-      </TranslationProvider>
+        </TranslationProvider>
+      </ProfileProvider>
     </ThemeProvider>
   );
 }

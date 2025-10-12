@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type {
   Path,
   PathTopicLink,
+  Source,
   Topic,
   TopicSourceLink,
 } from "@/types/apologetics";
@@ -86,6 +87,10 @@ export async function fetchTopic(id: string): Promise<Topic> {
 
 export async function fetchPaths(): Promise<Path[]> {
   return fetchJson<Path[]>("/api/paths");
+}
+
+export async function fetchSources(): Promise<Source[]> {
+  return fetchJson<Source[]>("/api/sources");
 }
 
 export async function fetchPath(id: string): Promise<Path> {

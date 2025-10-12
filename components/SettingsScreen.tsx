@@ -10,6 +10,7 @@ import { User, Palette, Shield, LogOut, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme, themeOptions, type Theme } from "./ThemeContext";
 import { createClient } from "@/lib/supabase/client";
+import { useProfile, type UserRole } from "@/components/ProfileContext";
 import { clearCachedAccessToken } from "@/lib/api/session";
 import styles from "./SettingsScreen.module.css";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -23,6 +24,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { setRole } = useProfile();
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const supabase = useMemo(() => createClient(), []);
@@ -43,7 +45,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       if (user) {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("theme")
+          .select("theme, role")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -52,13 +54,17 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         } else if (profile?.theme) {
           setTheme(profile.theme as Theme);
         }
+
+        if (profile?.role) {
+          setRole(profile.role as UserRole);
+        }
       }
 
       setIsLoadingProfile(false);
     };
 
     void loadProfile();
-  }, [supabase, setTheme]);
+  }, [supabase, setTheme, setRole]);
 
   const themePreviewClassMap: Record<Theme, string> = {
     ocean: styles.themePreviewOcean,

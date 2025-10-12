@@ -18,6 +18,7 @@ import {
   Heart,
   Lightbulb,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +45,7 @@ import {
 } from "@/lib/events";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { useProfile } from "@/components/ProfileContext";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -273,11 +275,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     screen?: string;
     href?: string;
     renderIcon?: () => ReactNode;
-    detail: string;
+    detail?: string;
   };
 
-  const quickActions = useMemo<QuickAction[]>(
-    () => [
+  const { role } = useProfile();
+  const isAdmin = role === "admin";
+
+  const quickActions = useMemo<QuickAction[]>(() => {
+    const actions: QuickAction[] = [
       {
         icon: BookOpen,
         label: "Open Reader",
@@ -320,20 +325,31 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         ),
         label: "Apologetics",
         href: "/apologetics",
-        subtitle: "2 Corinthians 10:5 ",
-        detail:
-          "We demolish arguments and every pretension that sets itself up against the knowledge of God, and we take captive every thought to make it obedient to Christ.",
+        subtitle: "Engage tough questions with confidence.",
+        detail: "Explore evidence, counters, and curated sources.",
       },
-      {
-        icon: Settings,
-        label: "Settings",
-        screen: "settings",
-        subtitle: "Manage your account and theme.",
-        detail: "Update preferences, appearance, and profile info.",
-      },
-    ],
-    [translationCode, highlightsCount, notesCount, needsReviewCount]
-  );
+    ];
+
+    if (isAdmin) {
+      actions.splice(actions.length, 0, {
+        icon: ShieldCheck,
+        label: "Admin Console",
+        href: "/admin",
+        subtitle: "Manage Apologetics content.",
+        detail: "Publish, edit, and organize topics, paths, and sources.",
+      });
+    }
+
+    actions.push({
+      icon: Settings,
+      label: "Settings",
+      screen: "settings",
+      subtitle: "Manage your account and theme.",
+      detail: "Update preferences, appearance, and profile info.",
+    });
+
+    return actions;
+  }, [translationCode, highlightsCount, notesCount, needsReviewCount, isAdmin]);
 
   const progressData = useMemo(() => {
     const total = notesCount + highlightsCount + memoryCount;
@@ -452,7 +468,11 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                         >
                           {action.subtitle}
                         </CardDescription>
-                        <p className={styles.quickFootnote}>{action.detail}</p>
+                        {action.detail ? (
+                          <p className={styles.quickFootnote}>
+                            {action.detail}
+                          </p>
+                        ) : null}
                       </div>
                     </CardContent>
                   </Card>
