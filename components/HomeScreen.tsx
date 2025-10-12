@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -11,7 +17,10 @@ import {
   Clock,
   Heart,
   Lightbulb,
+  Settings,
+  ShieldCheck,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useTranslationContext } from "./TranslationContext";
 import {
@@ -22,6 +31,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Progress } from "./ui/progress";
+import { cn } from "./ui/utils";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserMemoryVerses } from "@/lib/api/memory";
@@ -35,6 +45,7 @@ import {
 } from "@/lib/events";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { useProfile } from "@/components/ProfileContext";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -75,6 +86,7 @@ const getExcerpt = (body: string, limit = 120) => {
 };
 
 export function HomeScreen({ onNavigate }: HomeScreenProps) {
+  const router = useRouter();
   const handleNavigate = useCallback(
     (screen: string) => {
       onNavigate?.(screen);
@@ -256,8 +268,21 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     };
   }, [loadHomeData]);
 
-  const quickActions = useMemo(
-    () => [
+  type QuickAction = {
+    icon?: typeof BookOpen;
+    label: string;
+    subtitle: string;
+    screen?: string;
+    href?: string;
+    renderIcon?: () => ReactNode;
+    detail?: string;
+  };
+
+  const { role } = useProfile();
+  const isAdmin = role === "admin";
+
+  const quickActions = useMemo<QuickAction[]>(() => {
+    const actions: QuickAction[] = [
       {
         icon: BookOpen,
         label: "Open Reader",
@@ -265,28 +290,66 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         subtitle: translationCode
           ? `${translationCode.toUpperCase()} active`
           : "Choose a translation",
+        detail: "Return to the passage you were studying.",
       },
       {
         icon: Heart,
         label: "My Highlights",
         screen: "highlights",
         subtitle: `${highlightsCount} saved`,
+        detail: "Review and reflect on verses you marked.",
       },
       {
         icon: Lightbulb,
         label: "Study Notes",
         screen: "notes",
         subtitle: `${notesCount} reflections`,
+        detail: "Capture insights and prayers in one place.",
       },
       {
         icon: Brain,
         label: "Memory Verses",
         screen: "memory",
         subtitle: `${needsReviewCount} need review`,
+        detail: "Strengthen recall with gentle spaced reviews.",
       },
-    ],
-    [translationCode, highlightsCount, notesCount, needsReviewCount]
-  );
+      {
+        renderIcon: () => (
+          <Image
+            src="/sword_logo.png"
+            alt="SWORD logo"
+            width={36}
+            height={36}
+            className={styles.quickLogo}
+          />
+        ),
+        label: "Apologetics",
+        href: "/apologetics",
+        subtitle: "Engage tough questions with confidence.",
+        detail: "Explore evidence, counters, and curated sources.",
+      },
+    ];
+
+    if (isAdmin) {
+      actions.splice(actions.length, 0, {
+        icon: ShieldCheck,
+        label: "Admin Console",
+        href: "/admin",
+        subtitle: "Manage Apologetics content.",
+        detail: "Publish, edit, and organize topics, paths, and sources.",
+      });
+    }
+
+    actions.push({
+      icon: Settings,
+      label: "Settings",
+      screen: "settings",
+      subtitle: "Manage your account and theme.",
+      detail: "Update preferences, appearance, and profile info.",
+    });
+
+    return actions;
+  }, [translationCode, highlightsCount, notesCount, needsReviewCount, isAdmin]);
 
   const progressData = useMemo(() => {
     const total = notesCount + highlightsCount + memoryCount;
@@ -358,20 +421,44 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             <div className={styles.quickGrid}>
               {quickActions.map((action, index) => (
                 <motion.div
-                  key={action.screen}
+                  key={action.label}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className={styles.quickCard}
-                    onClick={() => handleNavigate(action.screen)}
+                    className={cn(
+                      styles.quickCard,
+                      action.href === "/apologetics" &&
+                        styles.quickCardApologetics
+                    )}
+                    onClick={() => {
+                      if (action.href) {
+                        router.push(action.href);
+                        return;
+                      }
+                      if (action.screen) {
+                        handleNavigate(action.screen);
+                      }
+                    }}
                   >
-                    <CardContent className={styles.quickCardContent}>
-                      <action.icon
-                        className={styles.quickIcon}
-                        aria-hidden="true"
-                      />
+                    <CardContent
+                      className={cn(
+                        styles.quickCardContent,
+                        action.href === "/apologetics" &&
+                          styles.quickCardContentCentered
+                      )}
+                    >
+                      {action.renderIcon ? (
+                        <div className={styles.quickIconWrapper}>
+                          {action.renderIcon()}
+                        </div>
+                      ) : action.icon ? (
+                        <action.icon
+                          className={styles.quickIcon}
+                          aria-hidden="true"
+                        />
+                      ) : null}
                       <div className={styles.quickCopy}>
                         <CardTitle className={styles.quickCardTitle}>
                           {action.label}
@@ -381,6 +468,11 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                         >
                           {action.subtitle}
                         </CardDescription>
+                        {action.detail ? (
+                          <p className={styles.quickFootnote}>
+                            {action.detail}
+                          </p>
+                        ) : null}
                       </div>
                     </CardContent>
                   </Card>
@@ -457,7 +549,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                       Your next reflection starts here
                     </h3>
                     <p className={styles.notePlaceholderCopy}>
-                      Capture a takeaway, prayer, or question and watch this space fill with your study journey.
+                      Capture a takeaway, prayer, or question and watch this
+                      space fill with your study journey.
                     </p>
                   </div>
                 )}

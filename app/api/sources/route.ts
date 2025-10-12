@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+
+import { createClient } from "@/lib/supabase/server";
+
+const errorStatusFromCode = (code?: string) =>
+  code === "PGRST116" ? 404 : 500;
+
+export async function GET() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("sources").select("*");
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: errorStatusFromCode(error.code) }
+    );
+  }
+
+  return NextResponse.json(data ?? []);
+}
+
+export async function POST(request: Request) {
+  let payload: Record<string, unknown>;
+
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("sources")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: errorStatusFromCode(error.code) }
+    );
+  }
+
+  return NextResponse.json(data, { status: 201 });
+}

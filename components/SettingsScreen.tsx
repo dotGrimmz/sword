@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -10,8 +10,10 @@ import { User, Palette, Shield, LogOut, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme, themeOptions, type Theme } from "./ThemeContext";
 import { createClient } from "@/lib/supabase/client";
+import { useProfile, type UserRole } from "@/components/ProfileContext";
 import { clearCachedAccessToken } from "@/lib/api/session";
 import styles from "./SettingsScreen.module.css";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -22,6 +24,47 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { setRole } = useProfile();
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      setIsLoadingProfile(true);
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        toast.error(error.message);
+        setAuthUser(null);
+        setIsLoadingProfile(false);
+        return;
+      }
+      const user = data.user ?? null;
+      setAuthUser(user);
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("theme, role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error(profileError);
+        } else if (profile?.theme) {
+          setTheme(profile.theme as Theme);
+        }
+
+        if (profile?.role) {
+          setRole(profile.role as UserRole);
+        }
+      }
+
+      setIsLoadingProfile(false);
+    };
+
+    void loadProfile();
+  }, [supabase, setTheme, setRole]);
 
   const themePreviewClassMap: Record<Theme, string> = {
     ocean: styles.themePreviewOcean,
@@ -36,6 +79,56 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     return current?.name ?? "Ocean Depths";
   }, [theme]);
 
+  const displayName =
+    (authUser?.user_metadata?.full_name as string | undefined) ??
+    (authUser?.user_metadata?.name as string | undefined) ??
+    authUser?.email ??
+    "Your profile";
+  const avatarUrl =
+    (authUser?.user_metadata?.avatar_url as string | undefined) ??
+    (authUser?.user_metadata?.picture as string | undefined) ??
+    null;
+  const email = authUser?.email ?? "No email on file";
+
+  const formatDateLabel = (value?: string | null) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  };
+
+  const memberSince = formatDateLabel(authUser?.created_at);
+  const lastSignIn = formatDateLabel(authUser?.last_sign_in_at);
+
+  const handleThemeChange = async (nextTheme: Theme) => {
+    if (nextTheme === theme) {
+      return;
+    }
+
+    const previousTheme = theme;
+    setTheme(nextTheme);
+
+    if (!authUser) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ theme: nextTheme })
+      .eq("id", authUser.id);
+
+    if (error) {
+      setTheme(previousTheme);
+      toast.error(error.message ?? "Unable to update theme");
+      return;
+    }
+
+    toast.success("Theme updated");
+  };
+
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
@@ -45,12 +138,27 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <span className={`${styles.headerIcon} ${styles.heroPulse}`}>
-            <User aria-hidden="true" />
-          </span>
+          <div className={`${styles.avatarWrap} ${styles.heroPulse}`}>
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={`${displayName} avatar`}
+                width={56}
+                height={56}
+                className={styles.avatarImage}
+                unoptimized
+              />
+            ) : (
+              <div className={styles.avatarFallback}>
+                <User aria-hidden="true" />
+              </div>
+            )}
+          </div>
           <div className={styles.headerText}>
             <h1 className={styles.headerTitle}>Settings</h1>
-            <p className={styles.headerSubtitle}>Current palette: {themeName}</p>
+            <p className={styles.headerSubtitle}>
+              {isLoadingProfile ? "Loading profile…" : `Signed in as ${email}`}
+            </p>
           </div>
         </motion.div>
       </div>
@@ -59,7 +167,57 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.32, delay: 0.05 }}
+          transition={{ duration: 0.32, delay: 0.02 }}
+        >
+          <Card className={styles.profileCard}>
+            <CardHeader className={styles.sectionHeader}>
+              <CardTitle className={styles.sectionTitle}>
+                <User className={styles.sectionIcon} aria-hidden="true" />
+                <span>Profile</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={styles.sectionContent}>
+              <p className={styles.sectionDescription}>
+                Review the information attached to your account.
+              </p>
+              <ul className={styles.profileMetaList}>
+                <li className={styles.profileMetaItem}>
+                  <span className={styles.metaLabel}>Name</span>
+                  <span className={styles.metaValue}>
+                    {isLoadingProfile ? "…" : displayName}
+                  </span>
+                </li>
+                <li className={styles.profileMetaItem}>
+                  <span className={styles.metaLabel}>Email</span>
+                  <span className={styles.metaValue}>
+                    {isLoadingProfile ? "…" : email}
+                  </span>
+                </li>
+                <li className={styles.profileMetaItem}>
+                  <span className={styles.metaLabel}>Member Since</span>
+                  <span className={styles.metaValue}>
+                    {isLoadingProfile ? "…" : memberSince}
+                  </span>
+                </li>
+                <li className={styles.profileMetaItem}>
+                  <span className={styles.metaLabel}>Last Sign In</span>
+                  <span className={styles.metaValue}>
+                    {isLoadingProfile ? "…" : lastSignIn}
+                  </span>
+                </li>
+                <li className={styles.profileMetaItem}>
+                  <span className={styles.metaLabel}>Current Palette</span>
+                  <span className={styles.metaValue}>{themeName}</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: 0.15 }}
         >
           <Card className={styles.sectionCard}>
             <CardHeader className={styles.sectionHeader}>
@@ -79,7 +237,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                     className={`${styles.themeOptionCard} ${
                       theme === themeOption.value ? styles.themeOptionCardSelected : ""
                     }`}
-                    onClick={() => setTheme(themeOption.value)}
+                    onClick={() => {
+                      void handleThemeChange(themeOption.value);
+                    }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -124,8 +284,6 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                   }
 
                   setIsSigningOut(true);
-                  const supabase = createClient();
-
                   try {
                     const { error } = await supabase.auth.signOut();
 

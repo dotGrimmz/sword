@@ -28,22 +28,24 @@ export function useTheme() {
 
 interface ThemeProviderProps {
   children: ReactNode;
+  initialTheme?: Theme | null;
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>("ocean");
+export function ThemeProvider({ children, initialTheme }: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(initialTheme ?? "ocean");
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const saved = window.localStorage.getItem("sword-theme") as Theme | null;
-    const initialTheme = saved ?? "ocean";
+    const stored = window.localStorage.getItem("sword-theme") as Theme | null;
+    const nextTheme = initialTheme ?? stored ?? "ocean";
 
-    setTheme(initialTheme);
-    document.documentElement.setAttribute("data-theme", initialTheme);
-  }, []);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    window.localStorage.setItem("sword-theme", nextTheme);
+    setTheme(nextTheme);
+  }, [initialTheme]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
