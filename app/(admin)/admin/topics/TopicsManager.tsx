@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/components/ui/utils";
 
+import styles from "../AdminManager.module.css";
+
 type AdminTopic = {
   id: string;
   title: string;
@@ -239,80 +241,76 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/50 p-6 shadow-xl shadow-slate-950/40">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-slate-100">
-              Published Topics
-            </h2>
-            <p className="text-sm text-slate-400">
+      <div className={styles.managerContainer}>
+        <div className={styles.managerHeader}>
+          <div className={styles.managerHeading}>
+            <h2 className={styles.managerTitle}>Published Topics</h2>
+            <p className={styles.managerMeta}>
               {topics.length} topic{topics.length === 1 ? "" : "s"} in the
               catalog.
             </p>
           </div>
-          <Button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2"
-          >
-            <PlusIcon className="size-4" aria-hidden="true" />
-            New Topic
-          </Button>
+          <div className={styles.actions}>
+            <Button onClick={openCreate} className={styles.addButton}>
+              <PlusIcon size={16} aria-hidden="true" />
+              New Topic
+            </Button>
+          </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-800/60">
-          <table className="min-w-full divide-y divide-slate-800/60 text-sm text-slate-300">
-            <thead className="bg-slate-900/60 text-xs uppercase tracking-wide text-slate-400">
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead className={styles.tableHead}>
               <tr>
-                <th className="px-4 py-3 text-left">Title</th>
-                <th className="px-4 py-3 text-left">Difficulty</th>
-                <th className="px-4 py-3 text-left">Est. Minutes</th>
-                <th className="px-4 py-3 text-left">Tags</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className={styles.tableHeadCell}>Title</th>
+                <th className={styles.tableHeadCell}>Difficulty</th>
+                <th className={styles.tableHeadCell}>Est. Minutes</th>
+                <th className={styles.tableHeadCell}>Tags</th>
+                <th className={cn(styles.tableHeadCell, styles.alignRight)}>
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody>
               {sortedTopics.map((topic) => (
-                <tr
-                  key={topic.id}
-                  className="hover:bg-slate-900/50 transition"
-                >
-                  <td className="px-4 py-3 font-medium text-slate-100">
-                    <div className="space-y-1">
+                <tr key={topic.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>
+                    <div>
                       <p>{topic.title || "Untitled Topic"}</p>
                       {topic.summary ? (
-                        <p className="text-xs text-slate-400 line-clamp-2">
-                          {topic.summary}
-                        </p>
+                        <p className={styles.summary}>{topic.summary}</p>
                       ) : null}
                     </div>
                   </td>
-                  <td className="px-4 py-3 capitalize">
+                  <td className={styles.tableCell}>
                     {topic.difficulty || "—"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className={styles.tableCell}>
                     {topic.est_minutes ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-400">
-                    {topic.tags.length ? topic.tags.join(", ") : "—"}
+                  <td className={styles.tableCell}>
+                    <span className={styles.tagList}>
+                      {topic.tags.length ? topic.tags.join(", ") : "—"}
+                    </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className={styles.tableCell}>
+                    <div className={styles.buttonGroup}>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openEdit(topic)}
-                        className="inline-flex items-center gap-1"
+                        className={styles.iconButton}
                       >
-                        <Pencil className="size-4" aria-hidden="true" />
+                        <Pencil size={16} aria-hidden="true" />
                         Edit
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(topic)}
-                        className="inline-flex items-center gap-1 text-red-400 hover:text-red-300"
+                        className={cn(styles.iconButton, styles.danger)}
                       >
-                        <Trash2 className="size-4" aria-hidden="true" />
+                        <Trash2 size={16} aria-hidden="true" />
                         Delete
                       </Button>
                     </div>
@@ -321,10 +319,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
               ))}
               {sortedTopics.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-10 text-center text-sm text-slate-500"
-                  >
+                  <td colSpan={5} className={styles.emptyState}>
                     No topics yet. Create one to get started.
                   </td>
                 </tr>
@@ -335,23 +330,19 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
       </div>
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <ModalContent size="lg" className="bg-slate-950/95">
-          <ModalHeader className="space-y-1">
-            <ModalTitle className="text-lg text-slate-100">
+        <ModalContent size="lg" className={styles.modalContent}>
+          <ModalHeader className={styles.modalHeader}>
+            <ModalTitle className={styles.modalTitle}>
               {editingTopicId ? "Edit Topic" : "Create Topic"}
             </ModalTitle>
-            <p className="text-sm text-slate-400">
+            <p className={styles.managerMeta}>
               Provide an objection, claim, and summary to equip learners.
             </p>
           </ModalHeader>
-          <ModalBody>
-            <form
-              id="topic-form"
-              className="flex flex-col gap-4"
-              onSubmit={handleSubmit}
-            >
-              <div className="flex flex-col gap-2">
-                <label htmlFor="title" className="text-sm text-slate-300">
+          <ModalBody className={styles.modalBody}>
+            <form id="topic-form" className={styles.form} onSubmit={handleSubmit}>
+              <div className={styles.field}>
+                <label htmlFor="title" className={styles.label}>
                   Title
                 </label>
                 <Input
@@ -361,11 +352,12 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   onChange={handleInputChange}
                   placeholder="The resurrection is historically reliable"
                   required
+                  className={styles.input}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="objection" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="objection" className={styles.label}>
                   Objection
                 </label>
                 <Textarea
@@ -373,13 +365,13 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   name="objection"
                   value={formState.objection}
                   onChange={handleInputChange}
-                  rows={3}
                   placeholder="Skeptics argue the resurrection was a myth created later."
+                  className={styles.textarea}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="claim" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="claim" className={styles.label}>
                   Claim
                 </label>
                 <Textarea
@@ -387,13 +379,13 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   name="claim"
                   value={formState.claim}
                   onChange={handleInputChange}
-                  rows={3}
                   placeholder="Early eyewitness testimony and empty-tomb evidence support the resurrection."
+                  className={styles.textarea}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="summary" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="summary" className={styles.label}>
                   Summary
                 </label>
                 <Textarea
@@ -401,19 +393,19 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   name="summary"
                   value={formState.summary}
                   onChange={handleInputChange}
-                  rows={3}
                   placeholder="Summarize the takeaway in a few sentences."
+                  className={styles.textarea}
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm text-slate-300">Difficulty</label>
+              <div className={styles.fieldRow}>
+                <div className={styles.field}>
+                  <span className={styles.label}>Difficulty</span>
                   <Select
                     value={formState.difficulty}
                     onValueChange={handleDifficultyChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={styles.selectTrigger}>
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
                     <SelectContent>
@@ -425,8 +417,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="est_minutes" className="text-sm text-slate-300">
+                <div className={styles.field}>
+                  <label htmlFor="est_minutes" className={styles.label}>
                     Estimated Minutes
                   </label>
                   <Input
@@ -437,12 +429,13 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                     value={formState.est_minutes}
                     onChange={handleInputChange}
                     placeholder="e.g. 12"
+                    className={styles.input}
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="tags" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="tags" className={styles.label}>
                   Tags (comma separated)
                 </label>
                 <Input
@@ -451,15 +444,16 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   value={formState.tags}
                   onChange={handleInputChange}
                   placeholder="resurrection, history, evidence"
+                  className={styles.input}
                 />
               </div>
             </form>
           </ModalBody>
-          <ModalFooter className="gap-3 sm:flex-row sm:justify-end">
+          <ModalFooter className={styles.modalFooter}>
             <Button
               variant="ghost"
               onClick={resetModal}
-              className="sm:w-auto"
+              className={styles.modalButton}
               type="button"
             >
               Cancel
@@ -469,8 +463,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
               type="submit"
               disabled={isSaving}
               className={cn(
-                "sm:w-auto",
-                isSaving ? "cursor-progress opacity-80" : "",
+                styles.modalButton,
+                isSaving ? styles.busy : undefined,
               )}
             >
               {isSaving

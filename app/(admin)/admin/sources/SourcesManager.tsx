@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/components/ui/utils";
 
+import styles from "../AdminManager.module.css";
+
 type AdminSource = {
   id: string;
   type: string;
@@ -219,100 +221,94 @@ export default function SourcesManager({
 
   return (
     <>
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/50 p-6 shadow-xl shadow-slate-950/40">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-slate-100">
-              Reference Library
-            </h2>
-            <p className="text-sm text-slate-400">
+      <div className={styles.managerContainer}>
+        <div className={styles.managerHeader}>
+          <div className={styles.managerHeading}>
+            <h2 className={styles.managerTitle}>Reference Library</h2>
+            <p className={styles.managerMeta}>
               {sources.length} source{sources.length === 1 ? "" : "s"} curated
               for apologetics content.
             </p>
           </div>
-          <Button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2"
-          >
-            <PlusIcon className="size-4" aria-hidden="true" />
-            New Source
-          </Button>
+          <div className={styles.actions}>
+            <Button onClick={openCreate} className={styles.addButton}>
+              <PlusIcon size={16} aria-hidden="true" />
+              New Source
+            </Button>
+          </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-800/60">
-          <table className="min-w-full divide-y divide-slate-800/60 text-sm text-slate-300">
-            <thead className="bg-slate-900/60 text-xs uppercase tracking-wide text-slate-400">
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead className={styles.tableHead}>
               <tr>
-                <th className="px-4 py-3 text-left">Work</th>
-                <th className="px-4 py-3 text-left">Author</th>
-                <th className="px-4 py-3 text-left">Type</th>
-                <th className="px-4 py-3 text-left">Year / Era</th>
-                <th className="px-4 py-3 text-left">Location</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className={styles.tableHeadCell}>Work</th>
+                <th className={styles.tableHeadCell}>Author</th>
+                <th className={styles.tableHeadCell}>Type</th>
+                <th className={styles.tableHeadCell}>Year / Era</th>
+                <th className={styles.tableHeadCell}>Location</th>
+                <th className={cn(styles.tableHeadCell, styles.alignRight)}>
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody>
               {sortedSources.map((source) => (
-                <tr
-                  key={source.id}
-                  className="hover:bg-slate-900/50 transition"
-                >
-                  <td className="px-4 py-3 font-medium text-slate-100">
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2">
+                <tr key={source.id} className={styles.tableRow}>
+                  <td className={styles.tableCell}>
+                    <div>
+                      <p className={styles.sourceWork}>
                         <BookOpenCheck
-                          className="size-4 text-primary"
+                          className={styles.sourceIcon}
                           aria-hidden="true"
                         />
                         {source.work || "Untitled work"}
                       </p>
                       {source.notes ? (
-                        <p className="text-xs text-slate-400 line-clamp-2">
-                          {source.notes}
-                        </p>
+                        <p className={styles.summary}>{source.notes}</p>
                       ) : null}
                       {source.url ? (
                         <a
                           href={source.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-primary underline decoration-dotted decoration-primary/50 hover:text-primary/80"
+                          className={styles.sourceLink}
                         >
                           {source.url}
                         </a>
                       ) : null}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className={styles.tableCell}>
                     {source.author || "—"}
                   </td>
-                  <td className="px-4 py-3 capitalize">
+                  <td className={styles.tableCell}>
                     {source.type || "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className={styles.tableCell}>
                     {source.year_or_era || "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className={styles.tableCell}>
                     {source.location || "—"}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className={styles.tableCell}>
+                    <div className={styles.buttonGroup}>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => openEdit(source)}
-                        className="inline-flex items-center gap-1"
+                        className={styles.iconButton}
                       >
-                        <Pencil className="size-4" aria-hidden="true" />
+                        <Pencil size={16} aria-hidden="true" />
                         Edit
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(source)}
-                        className="inline-flex items-center gap-1 text-red-400 hover:text-red-300"
+                        className={cn(styles.iconButton, styles.danger)}
                       >
-                        <Trash2 className="size-4" aria-hidden="true" />
+                        <Trash2 size={16} aria-hidden="true" />
                         Delete
                       </Button>
                     </div>
@@ -321,10 +317,7 @@ export default function SourcesManager({
               ))}
               {sortedSources.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-10 text-center text-sm text-slate-500"
-                  >
+                  <td colSpan={6} className={styles.emptyState}>
                     No sources have been added yet.
                   </td>
                 </tr>
@@ -335,24 +328,24 @@ export default function SourcesManager({
       </div>
 
       <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <ModalContent size="lg" className="bg-slate-950/95">
-          <ModalHeader className="space-y-1">
-            <ModalTitle className="text-lg text-slate-100">
+        <ModalContent size="lg" className={styles.modalContent}>
+          <ModalHeader className={styles.modalHeader}>
+            <ModalTitle className={styles.modalTitle}>
               {editingSourceId ? "Edit Source" : "Create Source"}
             </ModalTitle>
-            <p className="text-sm text-slate-400">
+            <p className={styles.managerMeta}>
               Provide bibliographic details. All fields are optional except the
               work title and identifier.
             </p>
           </ModalHeader>
-          <ModalBody>
+          <ModalBody className={styles.modalBody}>
             <form
               id="source-form"
-              className="flex flex-col gap-4"
+              className={styles.form}
               onSubmit={handleSubmit}
             >
-              <div className="flex flex-col gap-2">
-                <label htmlFor="id" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="id" className={styles.label}>
                   Identifier
                 </label>
                 <Input
@@ -363,11 +356,12 @@ export default function SourcesManager({
                   placeholder="wright-resurrection"
                   required={!editingSourceId}
                   disabled={Boolean(editingSourceId)}
+                  className={styles.input}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="work" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="work" className={styles.label}>
                   Work
                 </label>
                 <Input
@@ -377,12 +371,13 @@ export default function SourcesManager({
                   onChange={handleInputChange}
                   placeholder="The Resurrection of the Son of God"
                   required
+                  className={styles.input}
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="author" className="text-sm text-slate-300">
+              <div className={styles.fieldRow}>
+                <div className={styles.field}>
+                  <label htmlFor="author" className={styles.label}>
                     Author
                   </label>
                   <Input
@@ -391,10 +386,11 @@ export default function SourcesManager({
                     value={formState.author}
                     onChange={handleInputChange}
                     placeholder="N. T. Wright"
+                    className={styles.input}
                   />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="type" className="text-sm text-slate-300">
+                <div className={styles.field}>
+                  <label htmlFor="type" className={styles.label}>
                     Category
                   </label>
                   <Input
@@ -403,16 +399,14 @@ export default function SourcesManager({
                     value={formState.type}
                     onChange={handleInputChange}
                     placeholder="ModernApologist"
+                    className={styles.input}
                   />
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="year_or_era"
-                    className="text-sm text-slate-300"
-                  >
+              <div className={styles.fieldRow}>
+                <div className={styles.field}>
+                  <label htmlFor="year_or_era" className={styles.label}>
                     Year or Era
                   </label>
                   <Input
@@ -421,10 +415,11 @@ export default function SourcesManager({
                     value={formState.year_or_era}
                     onChange={handleInputChange}
                     placeholder="2003"
+                    className={styles.input}
                   />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="location" className="text-sm text-slate-300">
+                <div className={styles.field}>
+                  <label htmlFor="location" className={styles.label}>
                     Location / Pages
                   </label>
                   <Input
@@ -433,12 +428,13 @@ export default function SourcesManager({
                     value={formState.location}
                     onChange={handleInputChange}
                     placeholder="Chapter 2, Pages 35–60"
+                    className={styles.input}
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="url" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="url" className={styles.label}>
                   URL
                 </label>
                 <Input
@@ -448,11 +444,12 @@ export default function SourcesManager({
                   value={formState.url}
                   onChange={handleInputChange}
                   placeholder="https://example.com/resource"
+                  className={styles.input}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="notes" className="text-sm text-slate-300">
+              <div className={styles.field}>
+                <label htmlFor="notes" className={styles.label}>
                   Notes
                 </label>
                 <Textarea
@@ -460,17 +457,17 @@ export default function SourcesManager({
                   name="notes"
                   value={formState.notes}
                   onChange={handleInputChange}
-                  rows={3}
                   placeholder="Summary of why this source is helpful."
+                  className={styles.textarea}
                 />
               </div>
             </form>
           </ModalBody>
-          <ModalFooter className="gap-3 sm:flex-row sm:justify-end">
+          <ModalFooter className={styles.modalFooter}>
             <Button
               variant="ghost"
               onClick={resetModal}
-              className="sm:w-auto"
+              className={styles.modalButton}
               type="button"
             >
               Cancel
@@ -480,8 +477,8 @@ export default function SourcesManager({
               type="submit"
               disabled={isSaving}
               className={cn(
-                "sm:w-auto",
-                isSaving ? "cursor-progress opacity-80" : "",
+                styles.modalButton,
+                isSaving ? styles.busy : undefined,
               )}
             >
               {isSaving

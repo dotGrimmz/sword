@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { fetchTopics } from "@/lib/api/apologetics";
 import TopicsManager from "./TopicsManager";
 
+import pageStyles from "../AdminPage.module.css";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminTopicsPage() {
@@ -33,22 +35,20 @@ export default async function AdminTopicsPage() {
   }));
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-12 md:px-8 lg:px-12">
-      <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Admin · Topics
-        </p>
-        <h1 className="text-3xl font-semibold text-slate-100">
-          Manage Apologetics Topics
-        </h1>
-        <p className="max-w-2xl text-base text-slate-300">
+    <main className={pageStyles.page}>
+      <header className={pageStyles.header}>
+        <p className={pageStyles.eyebrow}>Admin · Topics</p>
+        <h1 className={pageStyles.title}>Manage Apologetics Topics</h1>
+        <p className={pageStyles.description}>
           Create, update, and publish apologetics topics. Each topic should
           include an objection, a gospel-centered claim, and summary details that
           power the Apologetics module.
         </p>
       </header>
 
-      <TopicsManager initialTopics={initialTopics} />
+      <div className={pageStyles.sectionSpacer}>
+        <TopicsManager initialTopics={initialTopics} />
+      </div>
     </main>
   );
 }

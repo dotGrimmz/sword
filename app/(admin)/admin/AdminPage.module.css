@@ -1,0 +1,230 @@
+.page {
+  position: relative;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  background: linear-gradient(
+      145deg,
+      rgba(28, 46, 80, 0.7),
+      rgba(15, 23, 42, 0.92)
+    ),
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent),
+    radial-gradient(circle at bottom left, rgba(125, 211, 252, 0.08), transparent);
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  border-radius: 1.75rem;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.6);
+  backdrop-filter: blur(18px);
+  animation: fadeIn 420ms ease-out;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 3.5rem 2.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page {
+    padding: 4rem 3.5rem;
+    gap: 3.5rem;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.title {
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 600;
+  color: rgb(226, 232, 240);
+  line-height: 1.15;
+}
+
+.description {
+  max-width: 42rem;
+  font-size: 1rem;
+  color: rgba(148, 163, 184, 0.85);
+  line-height: 1.6;
+}
+
+.cardsGrid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .cardsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.5);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 18px 56px rgba(14, 165, 233, 0.25);
+}
+
+.cardGradient {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease;
+}
+
+.card:hover .cardGradient {
+  opacity: 1;
+}
+
+.toneTopics {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(12, 74, 110, 0.08));
+}
+
+.tonePaths {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.26), rgba(12, 83, 56, 0.08));
+}
+
+.toneSources {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.24), rgba(120, 53, 15, 0.12));
+}
+
+.cardHeader {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.75rem 1.75rem 0.5rem;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(148, 163, 184, 0.8);
+  padding-bottom: 0.5rem;
+}
+
+.cardMetaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: rgba(15, 23, 42, 0.65);
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.cardCount {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: rgb(226, 232, 240);
+}
+
+.cardTitle {
+  position: relative;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgb(226, 232, 240);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.cardContent {
+  position: relative;
+  padding: 0.5rem 1.75rem 1.75rem;
+}
+
+.cardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(56, 189, 248);
+  background: rgba(15, 23, 42, 0.75);
+  transition: border-color 220ms ease, color 220ms ease, transform 220ms ease,
+    background 220ms ease;
+}
+
+.cardLink:hover {
+  border-color: rgba(56, 189, 248, 0.7);
+  color: rgba(125, 211, 252, 0.92);
+  transform: translateX(4px);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.sectionSpacer {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 0.5rem;
+}
+
+.muted {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.glow {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.35);
+  color: rgb(226, 232, 240);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

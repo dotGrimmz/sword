@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { fetchPaths } from "@/lib/api/apologetics";
 import PathsManager from "./PathsManager";
 
+import pageStyles from "../AdminPage.module.css";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminPathsPage() {
@@ -33,21 +35,19 @@ export default async function AdminPathsPage() {
   }));
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-12 md:px-8 lg:px-12">
-      <header className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Admin · Paths
-        </p>
-        <h1 className="text-3xl font-semibold text-slate-100">
-          Manage Learning Paths
-        </h1>
-        <p className="max-w-2xl text-base text-slate-300">
+    <main className={pageStyles.page}>
+      <header className={pageStyles.header}>
+        <p className={pageStyles.eyebrow}>Admin · Paths</p>
+        <h1 className={pageStyles.title}>Manage Learning Paths</h1>
+        <p className={pageStyles.description}>
           Paths combine multiple topics into guided learning journeys. Update the
           metadata here to influence how they appear throughout the app.
         </p>
       </header>
 
-      <PathsManager initialPaths={initialPaths} />
+      <div className={pageStyles.sectionSpacer}>
+        <PathsManager initialPaths={initialPaths} />
+      </div>
     </main>
   );
 }
