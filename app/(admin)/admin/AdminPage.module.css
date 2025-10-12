@@ -3,7 +3,7 @@
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem;
+  /* padding: 1.5rem 1.5rem; */
   display: flex;
   flex-direction: column;
   gap: 3rem;
@@ -19,20 +19,10 @@
   box-shadow: 0 20px 60px rgba(2, 6, 23, 0.6);
   backdrop-filter: blur(18px);
   animation: fadeIn 420ms ease-out;
+  outline: 3px solid red;
 }
 
-@media (min-width: 768px) {
-  .page {
-    padding: 3.5rem 2.5rem;
-  }
-}
 
-@media (min-width: 1280px) {
-  .page {
-    padding: 4rem 3.5rem;
-    gap: 3.5rem;
-  }
-}
 
 .header {
   display: flex;
@@ -66,6 +56,8 @@
 .cardsGrid {
   display: grid;
   gap: 1.5rem;
+
+  outline: 1px solid red;
 }
 
 @media (min-width: 768px) {
