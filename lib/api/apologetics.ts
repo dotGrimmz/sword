@@ -19,13 +19,25 @@ const requestInit: RequestInit = {
 const ensureLeadingSlash = (path: string) =>
   path.startsWith("/") ? path : `/${path}`;
 
-const getBaseUrl = () => {
-  const headerStore = headers();
+const getBaseUrl = async () => {
+  const fallback = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+  let headerStore: Headers | null = null;
+  try {
+    headerStore = await Promise.resolve(headers());
+  } catch {
+    headerStore = null;
+  }
+
+  if (!headerStore) {
+    return fallback;
+  }
+
   const host =
     headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
 
   if (!host) {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    return fallback;
   }
 
   const protocol =
@@ -37,13 +49,14 @@ const getBaseUrl = () => {
   return `${protocol}://${host}`;
 };
 
-const buildUrl = (path: string) => {
-  const base = getBaseUrl();
+const buildUrl = async (path: string) => {
+  const base = await getBaseUrl();
   return new URL(ensureLeadingSlash(path), base).toString();
 };
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(buildUrl(path), requestInit);
+  const url = await buildUrl(path);
+  const response = await fetch(url, requestInit);
 
   if (!response.ok) {
     let message = `Failed to fetch ${path}`;
