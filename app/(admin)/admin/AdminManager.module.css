@@ -184,6 +184,31 @@
   gap: 1rem;
 }
 
+.formFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .formFooter {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.85rem;
+  }
+}
+
+.formFooter .modalButton {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .formFooter .modalButton {
+    width: auto;
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -248,19 +273,6 @@
   font-size: 0.95rem;
 }
 
-.modalFooter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .modalFooter {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-}
-
 .modalButton {
   height: 2.5rem;
   padding: 0 1.25rem;
@@ -286,17 +298,25 @@
   box-shadow: 0 24px 64px rgba(2, 6, 23, 0.6);
   backdrop-filter: blur(12px);
   color: rgb(226, 232, 240);
+  width: min(560px, calc(100vw - 48px));
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 1.75rem;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .modalHeader {
-  padding: 1.5rem 1.5rem 0.75rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
 .modalBody {
-  padding: 0 1.5rem 1.75rem;
+  padding: 0;
 }
 
 .modalTitle {
@@ -406,6 +426,34 @@
 
   .iconButton {
     height: 2.4rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .modalContent {
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 48px);
+    border-radius: 1rem;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .modalButton {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .modalContent {
+    width: min(640px, calc(100vw - 96px));
+    border-radius: 1.5rem;
+    padding: 1.75rem 1.75rem 2rem;
+    gap: 1.75rem;
+  }
+
+  .modalButton {
+    width: auto;
   }
 }
 

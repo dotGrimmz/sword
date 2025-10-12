@@ -8,7 +8,6 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalTitle,
 } from "@/components/ui/modal";
@@ -339,7 +338,11 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
             </p>
           </ModalHeader>
           <ModalBody className={styles.modalBody}>
-            <form id="path-form" className={styles.form} onSubmit={handleSubmit}>
+            <form
+              id="path-form"
+              className={styles.form}
+              onSubmit={handleSubmit}
+            >
               <div className={styles.field}>
                 <label htmlFor="title" className={styles.label}>
                   Title
@@ -428,35 +431,35 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
                   className={styles.input}
                 />
               </div>
+              <div className={styles.formFooter}>
+                <Button
+                  variant="ghost"
+                  onClick={resetModal}
+                  className={styles.modalButton}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  form="path-form"
+                  type="submit"
+                  disabled={isSaving}
+                  className={cn(
+                    styles.modalButton,
+                    isSaving ? styles.busy : undefined,
+                  )}
+                >
+                  {isSaving
+                    ? editingPathId
+                      ? "Saving…"
+                      : "Creating…"
+                    : editingPathId
+                      ? "Save Changes"
+                      : "Create Path"}
+                </Button>
+              </div>
             </form>
           </ModalBody>
-          <ModalFooter className={styles.modalFooter}>
-            <Button
-              variant="ghost"
-              onClick={resetModal}
-              className={styles.modalButton}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button
-              form="path-form"
-              type="submit"
-              disabled={isSaving}
-              className={cn(
-                styles.modalButton,
-                isSaving ? styles.busy : undefined,
-              )}
-            >
-              {isSaving
-                ? editingPathId
-                  ? "Saving…"
-                  : "Creating…"
-                : editingPathId
-                  ? "Save Changes"
-                  : "Create Path"}
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>

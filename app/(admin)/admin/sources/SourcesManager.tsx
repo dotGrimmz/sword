@@ -8,7 +8,6 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalTitle,
 } from "@/components/ui/modal";
@@ -461,35 +460,35 @@ export default function SourcesManager({
                   className={styles.textarea}
                 />
               </div>
+              <div className={styles.formFooter}>
+                <Button
+                  variant="ghost"
+                  onClick={resetModal}
+                  className={styles.modalButton}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  form="source-form"
+                  type="submit"
+                  disabled={isSaving}
+                  className={cn(
+                    styles.modalButton,
+                    isSaving ? styles.busy : undefined,
+                  )}
+                >
+                  {isSaving
+                    ? editingSourceId
+                      ? "Saving…"
+                      : "Creating…"
+                    : editingSourceId
+                      ? "Save Changes"
+                      : "Create Source"}
+                </Button>
+              </div>
             </form>
           </ModalBody>
-          <ModalFooter className={styles.modalFooter}>
-            <Button
-              variant="ghost"
-              onClick={resetModal}
-              className={styles.modalButton}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button
-              form="source-form"
-              type="submit"
-              disabled={isSaving}
-              className={cn(
-                styles.modalButton,
-                isSaving ? styles.busy : undefined,
-              )}
-            >
-              {isSaving
-                ? editingSourceId
-                  ? "Saving…"
-                  : "Creating…"
-                : editingSourceId
-                  ? "Save Changes"
-                  : "Create Source"}
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>

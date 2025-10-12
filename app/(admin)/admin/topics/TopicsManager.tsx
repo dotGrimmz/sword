@@ -8,7 +8,6 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalTitle,
 } from "@/components/ui/modal";
@@ -340,7 +339,11 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
             </p>
           </ModalHeader>
           <ModalBody className={styles.modalBody}>
-            <form id="topic-form" className={styles.form} onSubmit={handleSubmit}>
+            <form
+              id="topic-form"
+              className={styles.form}
+              onSubmit={handleSubmit}
+            >
               <div className={styles.field}>
                 <label htmlFor="title" className={styles.label}>
                   Title
@@ -446,36 +449,36 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   placeholder="resurrection, history, evidence"
                   className={styles.input}
                 />
+                <div className={styles.formFooter}>
+                  <Button
+                    variant="ghost"
+                    onClick={resetModal}
+                    className={styles.modalButton}
+                    type="button"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    form="topic-form"
+                    type="submit"
+                    disabled={isSaving}
+                    className={cn(
+                      styles.modalButton,
+                      isSaving ? styles.busy : undefined,
+                    )}
+                  >
+                    {isSaving
+                      ? editingTopicId
+                        ? "Saving…"
+                        : "Creating…"
+                      : editingTopicId
+                        ? "Save Changes"
+                        : "Create Topic"}
+                  </Button>
+                </div>
               </div>
             </form>
           </ModalBody>
-          <ModalFooter className={styles.modalFooter}>
-            <Button
-              variant="ghost"
-              onClick={resetModal}
-              className={styles.modalButton}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button
-              form="topic-form"
-              type="submit"
-              disabled={isSaving}
-              className={cn(
-                styles.modalButton,
-                isSaving ? styles.busy : undefined,
-              )}
-            >
-              {isSaving
-                ? editingTopicId
-                  ? "Saving…"
-                  : "Creating…"
-                : editingTopicId
-                  ? "Save Changes"
-                  : "Create Topic"}
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>
