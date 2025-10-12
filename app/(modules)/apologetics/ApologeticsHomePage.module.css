@@ -7,7 +7,15 @@
   flex-direction: column;
   gap: 64px;
   box-sizing: border-box;
-  background: var(--canvas-gradient);
+  background:
+    radial-gradient(circle at top left, hsl(var(--primary) / 0.28), transparent 55%),
+    radial-gradient(circle at bottom right, hsl(var(--accent) / 0.2), transparent 60%),
+    linear-gradient(150deg, hsl(var(--background) / 0.95), hsl(var(--muted) / 0.72));
+  border: 1px solid hsl(var(--border) / 0.35);
+  border-radius: 2rem;
+  box-shadow:
+    0 26px 60px hsl(var(--background) / 0.32),
+    0 12px 28px hsl(var(--primary) / 0.16);
 }
 
 .backRow {
