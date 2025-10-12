@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { fetchPaths } from "@/lib/api/apologetics";
@@ -37,6 +39,12 @@ export default async function AdminPathsPage() {
   return (
     <main className={pageStyles.page}>
       <header className={pageStyles.header}>
+        <div className={pageStyles.backRow}>
+          <Link href="/admin" className={pageStyles.backLink}>
+            <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
+            Back to Admin Overview
+          </Link>
+        </div>
         <p className={pageStyles.eyebrow}>Admin · Paths</p>
         <h1 className={pageStyles.title}>Manage Learning Paths</h1>
         <p className={pageStyles.description}>

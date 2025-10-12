@@ -65,12 +65,23 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .buttonGroup {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .buttonGroup {
+    flex-wrap: nowrap;
+    width: auto;
+  }
 }
 
 .addButton {
@@ -271,6 +282,17 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
+}
+
+.selectContent {
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(71, 85, 105, 0.7);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
 }
 
 .modalButton {

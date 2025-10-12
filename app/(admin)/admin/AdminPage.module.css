@@ -29,6 +29,48 @@
   padding: 0.5rem;
 }
 
+.backRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.65);
+  color: rgba(148, 163, 184, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease,
+    background 180ms ease, box-shadow 180ms ease;
+}
+
+.backLink:hover {
+  border-color: rgba(56, 189, 248, 0.6);
+  color: rgba(226, 232, 240, 0.95);
+  background: rgba(15, 23, 42, 0.85);
+  transform: translateX(-2px);
+  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.25);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+}
+
+.backIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
 .eyebrow {
   font-size: 0.75rem;
   font-weight: 600;
@@ -54,8 +96,6 @@
 .cardsGrid {
   display: grid;
   gap: 1.5rem;
-
-  outline: 1px solid red;
 }
 
 @media (min-width: 768px) {

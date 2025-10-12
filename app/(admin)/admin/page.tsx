@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookMarked, ListChecks, Route } from "lucide-react";
+import { ArrowLeft, BookMarked, ListChecks, Route } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -52,6 +52,12 @@ export default async function AdminOverviewPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
+        <div className={styles.backRow}>
+          <Link href="/dashboard" className={styles.backLink}>
+            <ArrowLeft className={styles.backIcon} aria-hidden="true" />
+            Back to Dashboard
+          </Link>
+        </div>
         <p className={styles.eyebrow}>Admin Console</p>
         <h1 className={styles.title}>Apologetics Management</h1>
         <p className={styles.description}>

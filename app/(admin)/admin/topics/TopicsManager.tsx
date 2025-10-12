@@ -411,7 +411,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                     <SelectTrigger className={styles.selectTrigger}>
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={styles.selectContent}>
                       {difficulties.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
