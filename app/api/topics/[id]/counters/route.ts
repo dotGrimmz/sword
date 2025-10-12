@@ -38,7 +38,8 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { topic_id: _ignored, ...rest } = payload;
+  const { topic_id: _topicId, ...rest } = payload;
+  void _topicId;
   const supabasePayload = { ...rest, topic_id: params.id };
 
   const supabase = await createClient();
