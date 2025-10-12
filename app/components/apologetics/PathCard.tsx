@@ -11,6 +11,7 @@ import {
 import { cn } from "@/components/ui/utils";
 import { normalizeTags, sortPathTopics } from "@/lib/api/apologetics";
 import type { Path } from "@/types/apologetics";
+import styles from "./PathCard.module.css";
 
 const difficultyLabel = (value?: string | null) => {
   switch (value) {
@@ -45,48 +46,39 @@ export function PathCard({ path, href, className }: PathCardProps) {
   );
 
   const card = (
-    <Card className={cn("h-full transition hover:border-primary/40", className)}>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-100">
-          {path.title}
-        </CardTitle>
+    <Card className={cn(styles.card, className)}>
+      <CardHeader className={styles.header}>
+        <CardTitle className={styles.title}>{path.title}</CardTitle>
         {path.subtitle ? (
-          <CardDescription className="text-slate-300">
+          <CardDescription className={styles.subtitle}>
             {path.subtitle}
           </CardDescription>
         ) : null}
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className={styles.content}>
         {path.description ? (
-          <p className="text-sm text-slate-300">{path.description}</p>
+          <p className={styles.description}>{path.description}</p>
         ) : null}
 
-        <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-slate-400">
+        <div className={styles.meta}>
           {difficulty ? (
-            <span className="rounded-full border border-slate-700 px-2 py-1 text-[0.65rem] font-semibold">
-              {difficulty}
-            </span>
+            <span className={styles.metaChip}>{difficulty}</span>
           ) : null}
           {estMinutes ? (
-            <span className="rounded-full border border-slate-700 px-2 py-1 text-[0.65rem] font-semibold">
-              {estMinutes}
-            </span>
+            <span className={styles.metaChip}>{estMinutes}</span>
           ) : null}
           {topics.length ? (
-            <span className="rounded-full border border-slate-700 px-2 py-1 text-[0.65rem] font-semibold">
+            <span className={styles.metaChip}>
               {topics.length} topic{topics.length === 1 ? "" : "s"}
             </span>
           ) : null}
         </div>
 
         {tags.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div className={styles.tagList}>
             {tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-slate-800/60 px-2 py-1 text-xs text-slate-300"
-              >
+              <span key={tag} className={styles.tag}>
                 {tag}
               </span>
             ))}
@@ -94,41 +86,34 @@ export function PathCard({ path, href, className }: PathCardProps) {
         ) : null}
 
         {topics.length ? (
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-slate-500">
-              Includes
-            </p>
-            <ul className="space-y-1 text-sm text-slate-300">
-              {topics.slice(0, 3).map(
-                (topic) =>
-                  topic && (
-                    <li key={topic.id} className="truncate" title={topic.title}>
-                      {topic.title}
-                    </li>
-                  ),
-              )}
-              {topics.length > 3 ? (
-                <li className="text-slate-500">
-                  +{topics.length - 3} more topics
-                </li>
-              ) : null}
-            </ul>
+          <div className={styles.topicList}>
+            <p className={styles.topicHeading}>Includes</p>
+            {topics.slice(0, 3).map(
+              (topic) =>
+                topic && (
+                  <p key={topic.id} className={styles.topicItem} title={topic.title}>
+                    {topic.title}
+                  </p>
+                ),
+            )}
+            {topics.length > 3 ? (
+              <p className={styles.topicItem}>
+                +{topics.length - 3} more topics
+              </p>
+            ) : null}
           </div>
         ) : null}
       </CardContent>
 
-      <CardFooter className="pt-0 text-sm text-primary">
-        {href ? <span>View path →</span> : null}
+      <CardFooter className={styles.footer}>
+        {href ? <span className={styles.footerLink}>View path</span> : null}
       </CardFooter>
     </Card>
   );
 
   if (href) {
     return (
-      <Link
-        href={href}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-      >
+      <Link href={href} className={styles.link}>
         {card}
       </Link>
     );

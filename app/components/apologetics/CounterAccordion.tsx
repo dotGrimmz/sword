@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import type { Counter } from "@/types/apologetics";
+import styles from "./CounterAccordion.module.css";
 
 interface CounterAccordionProps {
   items: Counter[] | null | undefined;
@@ -16,41 +17,41 @@ interface CounterAccordionProps {
 export function CounterAccordion({ items }: CounterAccordionProps) {
   if (!items || items.length === 0) {
     return (
-      <p className="text-sm text-slate-400">
+      <p className={styles.empty}>
         No counterarguments have been recorded for this topic yet.
       </p>
     );
   }
 
   return (
-    <Accordion type="multiple" className="w-full space-y-2">
+    <Accordion type="multiple" className={styles.container}>
       {items.map((item) => (
         <AccordionItem
           key={item.id}
           value={item.id}
-          className="rounded-lg border border-slate-800 bg-slate-900/60 px-4"
+          className={styles.item}
         >
-          <AccordionTrigger className="text-left text-base font-semibold text-slate-100">
-            <div className="flex flex-col gap-1 text-left">
-              <span className="text-sm font-medium">
+          <AccordionTrigger className={styles.trigger}>
+            <div className={styles.summary}>
+              <p className={styles.summaryText}>
                 {item.objection ?? "Objection"}
-              </span>
-              <Badge variant="outline" className="w-fit text-[0.7rem]">
+              </p>
+              <Badge variant="outline" className={styles.badge}>
                 Objection
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="space-y-3 text-sm text-slate-300">
+          <AccordionContent className={styles.content}>
             {item.rebuttal ? (
-              <div>
-                <p className="font-semibold text-slate-100">Rebuttal</p>
-                <p>{item.rebuttal}</p>
+              <div className={styles.contentBlock}>
+                <p className={styles.contentHeading}>Rebuttal</p>
+                <p className={styles.contentText}>{item.rebuttal}</p>
               </div>
             ) : null}
             {item.objection ? (
-              <div>
-                <p className="font-semibold text-slate-100">Objection</p>
-                <p>{item.objection}</p>
+              <div className={styles.contentBlock}>
+                <p className={styles.contentHeading}>Objection</p>
+                <p className={styles.contentText}>{item.objection}</p>
               </div>
             ) : null}
           </AccordionContent>

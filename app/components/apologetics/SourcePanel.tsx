@@ -1,5 +1,6 @@
 import { cn } from "@/components/ui/utils";
 import type { Source } from "@/types/apologetics";
+import styles from "./SourcePanel.module.css";
 
 interface SourcePanelProps {
   sources: Source[] | null | undefined;
@@ -14,9 +15,9 @@ export function SourcePanel({
 }: SourcePanelProps) {
   if (!sources || sources.length === 0) {
     return (
-      <div className={cn("rounded-xl border border-slate-800 p-6", className)}>
-        <h3 className="text-base font-semibold text-slate-100">{title}</h3>
-        <p className="mt-2 text-sm text-slate-400">
+      <div className={cn(styles.panel, className)}>
+        <h3 className={styles.title}>{title}</h3>
+        <p className={styles.empty}>
           No sources are linked to this topic yet.
         </p>
       </div>
@@ -24,33 +25,33 @@ export function SourcePanel({
   }
 
   return (
-    <div className={cn("rounded-xl border border-slate-800 p-6", className)}>
-      <h3 className="text-base font-semibold text-slate-100">{title}</h3>
-      <ul className="mt-4 space-y-4">
+    <div className={cn(styles.panel, className)}>
+      <h3 className={styles.title}>{title}</h3>
+      <ul className={styles.list}>
         {sources.map((source) => (
-          <li key={source.id} className="space-y-1 text-sm text-slate-300">
-            <p className="font-semibold text-slate-100">
+          <li key={source.id} className={styles.item}>
+            <p className={styles.work}>
               {source.work ?? source.author ?? "Source"}
             </p>
-            <p className="text-slate-400">
+            <p className={styles.meta}>
               {[source.author, source.year_or_era]
                 .filter((part) => part && part.length > 0)
                 .join(" · ")}
             </p>
             {source.location ? (
-              <p className="text-slate-400">Location: {source.location}</p>
+              <p className={styles.meta}>Location: {source.location}</p>
             ) : null}
             {source.notes ? (
-              <p className="text-slate-300">{source.notes}</p>
+              <p className={styles.notes}>{source.notes}</p>
             ) : null}
             {source.url ? (
               <a
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex text-sm font-medium text-primary hover:underline"
+                className={styles.link}
               >
-                View resource →
+                View resource
               </a>
             ) : null}
           </li>

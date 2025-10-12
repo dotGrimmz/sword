@@ -11,7 +11,9 @@ import {
   Clock,
   Heart,
   Lightbulb,
+  Shield,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useTranslationContext } from "./TranslationContext";
 import {
@@ -75,6 +77,7 @@ const getExcerpt = (body: string, limit = 120) => {
 };
 
 export function HomeScreen({ onNavigate }: HomeScreenProps) {
+  const router = useRouter();
   const handleNavigate = useCallback(
     (screen: string) => {
       onNavigate?.(screen);
@@ -256,7 +259,15 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     };
   }, [loadHomeData]);
 
-  const quickActions = useMemo(
+  type QuickAction = {
+    icon: typeof BookOpen;
+    label: string;
+    subtitle: string;
+    screen?: string;
+    href?: string;
+  };
+
+  const quickActions = useMemo<QuickAction[]>(
     () => [
       {
         icon: BookOpen,
@@ -283,6 +294,12 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         label: "Memory Verses",
         screen: "memory",
         subtitle: `${needsReviewCount} need review`,
+      },
+      {
+        icon: Shield,
+        label: "Apologetics",
+        href: "/apologetics",
+        subtitle: "Engage tough questions with confidence",
       },
     ],
     [translationCode, highlightsCount, notesCount, needsReviewCount]
@@ -365,7 +382,15 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                 >
                   <Card
                     className={styles.quickCard}
-                    onClick={() => handleNavigate(action.screen)}
+                    onClick={() => {
+                      if (action.href) {
+                        router.push(action.href);
+                        return;
+                      }
+                      if (action.screen) {
+                        handleNavigate(action.screen);
+                      }
+                    }}
                   >
                     <CardContent className={styles.quickCardContent}>
                       <action.icon

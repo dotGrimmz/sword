@@ -11,6 +11,7 @@ import {
   normalizeTags,
 } from "@/lib/api/apologetics";
 import type { Topic } from "@/types/apologetics";
+import styles from "../TopicDetailPage.module.css";
 
 interface TopicDetailPageProps {
   params: {
@@ -63,83 +64,67 @@ export default async function TopicDetailPage({ params }: TopicDetailPageProps) 
   const relatedTopics = findRelatedTopics(allTopics, topic.id);
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 py-12 md:px-8 lg:px-12">
-      <div className="space-y-6">
-        <Link
-          href="/apologetics"
-          className="text-sm font-semibold text-primary hover:underline"
-        >
-          ← Back to Apologetics
-        </Link>
+    <main className={styles.page}>
+      <Link href="/apologetics" className={styles.backLink}>
+        ← Back to Apologetics
+      </Link>
 
-        <div className="space-y-4">
-          <h1 className="text-3xl font-semibold text-slate-100">
-            {topic.title ?? topic.objection ?? "Untitled Topic"}
-          </h1>
+      <div className={styles.header}>
+        <h1 className={styles.title}>
+          {topic.title ?? topic.objection ?? "Untitled Topic"}
+        </h1>
 
-          {topic.summary ? (
-            <p className="text-lg text-slate-300">{topic.summary}</p>
-          ) : null}
+        {topic.summary ? (
+          <p className={styles.summary}>{topic.summary}</p>
+        ) : null}
 
-          {topic.claim ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-slate-200">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                Christian Claim
-              </h2>
-              <p className="mt-2 text-base">{topic.claim}</p>
-            </div>
-          ) : null}
+        {topic.claim ? (
+          <div className={styles.claim}>
+            <p className={styles.claimHeading}>Christian Claim</p>
+            <p>{topic.claim}</p>
+          </div>
+        ) : null}
 
-          {tags.length ? (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-slate-800/60 px-3 py-1 text-xs uppercase tracking-wide text-slate-300"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        {tags.length ? (
+          <div className={styles.tagList}>
+            {tags.map((tag) => (
+              <span key={tag} className={styles.tag}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      <section className="space-y-4">
+      <section className={styles.section}>
         <div>
-          <h2 className="text-2xl font-semibold text-slate-100">
-            Supporting Evidence
-          </h2>
-          <p className="text-sm text-slate-400">
+          <h2 className={styles.sectionTitle}>Supporting Evidence</h2>
+          <p className={styles.sectionSubtitle}>
             Historical, logical, and scriptural support for this topic.
           </p>
         </div>
         <EvidenceAccordion items={topic.evidence ?? []} />
       </section>
 
-      <section className="space-y-4">
+      <section className={styles.section}>
         <div>
-          <h2 className="text-2xl font-semibold text-slate-100">
-            Counterarguments
-          </h2>
-          <p className="text-sm text-slate-400">
+          <h2 className={styles.sectionTitle}>Counterarguments</h2>
+          <p className={styles.sectionSubtitle}>
             Common objections with thoughtful responses.
           </p>
         </div>
         <CounterAccordion items={topic.counters ?? []} />
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-100">Sources</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sources</h2>
         <SourcePanel sources={sources} />
       </section>
 
       {relatedTopics.length ? (
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-slate-100">
-            Related Topics
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Related Topics</h2>
+          <div className={styles.relatedGrid}>
             {relatedTopics.map((related) => (
               <TopicCard
                 key={related.id}

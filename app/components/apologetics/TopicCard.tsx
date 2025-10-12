@@ -11,6 +11,7 @@ import {
 import { cn } from "@/components/ui/utils";
 import { normalizeTags } from "@/lib/api/apologetics";
 import type { Topic } from "@/types/apologetics";
+import styles from "./TopicCard.module.css";
 
 const difficultyLabel = (value?: string | null) => {
   switch (value) {
@@ -50,39 +51,30 @@ export function TopicCard({
   const estMinutes = formatMinutes(topic.est_minutes);
 
   const card = (
-    <Card className={cn("h-full transition hover:border-primary/40", className)}>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-100">
-          {title}
-        </CardTitle>
+    <Card className={cn(styles.card, className)}>
+      <CardHeader className={styles.header}>
+        <CardTitle className={styles.title}>{title}</CardTitle>
         {showSummary && summary ? (
-          <CardDescription className="text-slate-300">
+          <CardDescription className={styles.description}>
             {summary}
           </CardDescription>
         ) : null}
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-slate-400">
+      <CardContent className={styles.content}>
+        <div className={styles.meta}>
           {difficulty ? (
-            <span className="rounded-full border border-slate-700 px-2 py-1 text-[0.65rem] font-semibold">
-              {difficulty}
-            </span>
+            <span className={styles.metaChip}>{difficulty}</span>
           ) : null}
           {estMinutes ? (
-            <span className="rounded-full border border-slate-700 px-2 py-1 text-[0.65rem] font-semibold">
-              {estMinutes}
-            </span>
+            <span className={styles.metaChip}>{estMinutes}</span>
           ) : null}
         </div>
 
         {tags.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div className={styles.tagList}>
             {tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-slate-800/60 px-2 py-1 text-xs text-slate-300"
-              >
+              <span key={tag} className={styles.tag}>
                 {tag}
               </span>
             ))}
@@ -90,18 +82,15 @@ export function TopicCard({
         ) : null}
       </CardContent>
 
-      <CardFooter className="pt-0 text-sm text-primary">
-        {href ? <span>View topic →</span> : null}
+      <CardFooter className={styles.footer}>
+        {href ? <span className={styles.footerLink}>View topic</span> : null}
       </CardFooter>
     </Card>
   );
 
   if (href) {
     return (
-      <Link
-        href={href}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-      >
+      <Link href={href} className={styles.link}>
         {card}
       </Link>
     );

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import type { Evidence } from "@/types/apologetics";
+import styles from "./EvidenceAccordion.module.css";
 
 interface EvidenceAccordionProps {
   items: Evidence[] | null | undefined;
@@ -21,31 +22,31 @@ const labelForKind = (kind?: string | null) => {
 export function EvidenceAccordion({ items }: EvidenceAccordionProps) {
   if (!items || items.length === 0) {
     return (
-      <p className="text-sm text-slate-400">
+      <p className={styles.empty}>
         No supporting evidence has been added yet.
       </p>
     );
   }
 
   return (
-    <Accordion type="multiple" className="w-full space-y-2">
+    <Accordion type="multiple" className={styles.container}>
       {items.map((item) => (
         <AccordionItem
           key={item.id}
           value={item.id}
-          className="rounded-lg border border-slate-800 bg-slate-900/60 px-4"
+          className={styles.item}
         >
-          <AccordionTrigger className="text-left text-base font-semibold text-slate-100">
-            <div className="flex flex-col gap-1 text-left">
-              <span className="text-sm font-medium">
+          <AccordionTrigger className={styles.trigger}>
+            <div className={styles.summary}>
+              <p className={styles.summaryText}>
                 {item.summary ?? "Evidence summary"}
-              </span>
-              <Badge variant="outline" className="w-fit text-[0.7rem]">
+              </p>
+              <Badge variant="outline" className={styles.badge}>
                 {labelForKind(item.kind)}
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="text-sm text-slate-300">
+          <AccordionContent className={styles.content}>
             {item.summary ?? "No summary provided yet."}
           </AccordionContent>
         </AccordionItem>

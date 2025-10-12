@@ -1,0 +1,140 @@
+.link {
+  display: block;
+  text-decoration: none;
+  border-radius: 18px;
+  outline: none;
+}
+
+.link:focus-visible {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+
+.card {
+  height: 100%;
+  background: var(--surface-gradient);
+  border: 1px solid hsla(var(--border), 0.45);
+  transition: transform 0.25s ease, box-shadow 0.25s ease,
+    border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: hsla(var(--primary), 0.55);
+  box-shadow: 0 22px 36px rgba(15, 23, 42, 0.28);
+}
+
+.header {
+  padding: 24px 26px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.subtitle {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.content {
+  flex: 1;
+  padding: 0 26px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.metaChip {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid hsla(var(--border), 0.5);
+  background: rgba(30, 41, 59, 0.26);
+  font-weight: 600;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.45);
+  color: hsl(var(--foreground));
+  font-size: 12px;
+}
+
+.topicList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.topicHeading {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.topicItem {
+  margin: 0;
+  font-size: 14px;
+  color: hsl(var(--foreground));
+  opacity: 0.88;
+}
+
+.footer {
+  padding: 0 26px 20px;
+}
+
+.footerLink {
+  font-size: 14px;
+  color: hsl(var(--primary));
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footerLink::after {
+  content: "→";
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.card:hover .footerLink::after {
+  transform: translateX(4px);
+}
