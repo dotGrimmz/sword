@@ -14,14 +14,15 @@ const errorStatusFromCode = (code?: string) =>
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("topics")
     .select(TOPIC_SELECT)
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -40,7 +41,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   let payload: Record<string, unknown>;
 
@@ -50,12 +51,13 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const { id } = await context.params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("topics")
     .update(payload)
-    .eq("id", params.id)
+    .eq("id", id)
     .select(TOPIC_SELECT)
     .single();
 
@@ -75,14 +77,15 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("topics")
     .delete()
-    .eq("id", params.id)
+    .eq("id", id)
     .select()
     .single();
 
