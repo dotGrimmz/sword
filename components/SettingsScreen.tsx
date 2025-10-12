@@ -25,24 +25,40 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const { theme, setTheme } = useTheme();
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    const supabase = createClient();
-
     const loadProfile = async () => {
       setIsLoadingProfile(true);
       const { data, error } = await supabase.auth.getUser();
       if (error) {
         toast.error(error.message);
         setAuthUser(null);
-      } else {
-        setAuthUser(data.user ?? null);
+        setIsLoadingProfile(false);
+        return;
       }
+      const user = data.user ?? null;
+      setAuthUser(user);
+
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("theme")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error(profileError);
+        } else if (profile?.theme) {
+          setTheme(profile.theme as Theme);
+        }
+      }
+
       setIsLoadingProfile(false);
     };
 
     void loadProfile();
-  }, []);
+  }, [supabase, setTheme]);
 
   const themePreviewClassMap: Record<Theme, string> = {
     ocean: styles.themePreviewOcean,
@@ -80,6 +96,32 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
   const memberSince = formatDateLabel(authUser?.created_at);
   const lastSignIn = formatDateLabel(authUser?.last_sign_in_at);
+
+  const handleThemeChange = async (nextTheme: Theme) => {
+    if (nextTheme === theme) {
+      return;
+    }
+
+    const previousTheme = theme;
+    setTheme(nextTheme);
+
+    if (!authUser) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ theme: nextTheme })
+      .eq("id", authUser.id);
+
+    if (error) {
+      setTheme(previousTheme);
+      toast.error(error.message ?? "Unable to update theme");
+      return;
+    }
+
+    toast.success("Theme updated");
+  };
 
   return (
     <div className={styles.screen}>
@@ -189,7 +231,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                     className={`${styles.themeOptionCard} ${
                       theme === themeOption.value ? styles.themeOptionCardSelected : ""
                     }`}
-                    onClick={() => setTheme(themeOption.value)}
+                    onClick={() => {
+                      void handleThemeChange(themeOption.value);
+                    }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -234,8 +278,6 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                   }
 
                   setIsSigningOut(true);
-                  const supabase = createClient();
-
                   try {
                     const { error } = await supabase.auth.signOut();
 

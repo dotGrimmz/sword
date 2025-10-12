@@ -4,7 +4,7 @@ import { useMemo, type ReactNode, type CSSProperties } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { BottomNavigation } from "@/components/BottomNavigation";
-import { ThemeProvider } from "@/components/ThemeContext";
+import { ThemeProvider, type Theme } from "@/components/ThemeContext";
 import { TranslationProvider } from "@/components/TranslationContext";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -17,9 +17,10 @@ import styles from "./AppShell.module.css";
 
 type AppShellProps = {
   children: ReactNode;
+  initialTheme?: Theme | null;
 };
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, initialTheme }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -35,7 +36,7 @@ export function AppShell({ children }: AppShellProps) {
   const bottomNavHeight = "104px";
 
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={initialTheme}>
       <TranslationProvider>
         <div
           className={styles.container}

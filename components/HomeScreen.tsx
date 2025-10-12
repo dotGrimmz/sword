@@ -273,6 +273,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     screen?: string;
     href?: string;
     renderIcon?: () => ReactNode;
+    detail: string;
   };
 
   const quickActions = useMemo<QuickAction[]>(
@@ -284,24 +285,28 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         subtitle: translationCode
           ? `${translationCode.toUpperCase()} active`
           : "Choose a translation",
+        detail: "Return to the passage you were studying.",
       },
       {
         icon: Heart,
         label: "My Highlights",
         screen: "highlights",
         subtitle: `${highlightsCount} saved`,
+        detail: "Review and reflect on verses you marked.",
       },
       {
         icon: Lightbulb,
         label: "Study Notes",
         screen: "notes",
         subtitle: `${notesCount} reflections`,
+        detail: "Capture insights and prayers in one place.",
       },
       {
         icon: Brain,
         label: "Memory Verses",
         screen: "memory",
         subtitle: `${needsReviewCount} need review`,
+        detail: "Strengthen recall with gentle spaced reviews.",
       },
       {
         renderIcon: () => (
@@ -315,13 +320,16 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         ),
         label: "Apologetics",
         href: "/apologetics",
-        subtitle: " ",
+        subtitle: "2 Corinthians 10:5 ",
+        detail:
+          "We demolish arguments and every pretension that sets itself up against the knowledge of God, and we take captive every thought to make it obedient to Christ.",
       },
       {
         icon: Settings,
         label: "Settings",
         screen: "settings",
-        subtitle: "",
+        subtitle: "Manage your account and theme.",
+        detail: "Update preferences, appearance, and profile info.",
       },
     ],
     [translationCode, highlightsCount, notesCount, needsReviewCount]
@@ -444,6 +452,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                         >
                           {action.subtitle}
                         </CardDescription>
+                        <p className={styles.quickFootnote}>{action.detail}</p>
                       </div>
                     </CardContent>
                   </Card>
