@@ -1,0 +1,646 @@
+{
+  "info": {
+    "name": "Apologetics Module",
+    "_postman_id": "4b0cc5df-1fd5-4e53-aa0f-e2cb8a7c6d7d",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Topics",
+      "item": [
+        {
+          "name": "List Topics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics"
+              ]
+            },
+            "description": "Retrieve all topics with related evidence, counters, and sources."
+          }
+        },
+        {
+          "name": "Create Topic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Resurrection of Jesus\",\n  \"summary\": \"Key historical arguments supporting the resurrection.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/topics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics"
+              ]
+            },
+            "description": "Create a new topic."
+          }
+        },
+        {
+          "name": "Get Topic",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}"
+              ]
+            },
+            "description": "Get a single topic including evidence, counters, and sources."
+          }
+        },
+        {
+          "name": "Update Topic",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"summary\": \"Concise overview updated.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}"
+              ]
+            },
+            "description": "Update fields for an existing topic."
+          }
+        },
+        {
+          "name": "Delete Topic",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}"
+              ]
+            },
+            "description": "Delete a topic by id."
+          }
+        },
+        {
+          "name": "List Evidence",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}/evidence",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}",
+                "evidence"
+              ]
+            },
+            "description": "List evidence entries for a topic."
+          }
+        },
+        {
+          "name": "Add Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Empty tomb attested by multiple sources.\",\n  \"type\": \"historical\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}/evidence",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}",
+                "evidence"
+              ]
+            },
+            "description": "Create a new evidence item for a topic."
+          }
+        },
+        {
+          "name": "List Counters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}/counters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}",
+                "counters"
+              ]
+            },
+            "description": "List counterarguments for a topic."
+          }
+        },
+        {
+          "name": "Add Counter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Disciples fabricated the story to gain influence.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}/counters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}",
+                "counters"
+              ]
+            },
+            "description": "Create a counterargument entry for a topic."
+          }
+        },
+        {
+          "name": "List Topic Sources",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/topics/{{topicId}}/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "topics",
+                "{{topicId}}",
+                "sources"
+              ]
+            },
+            "description": "Get sources linked to a topic."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paths",
+      "item": [
+        {
+          "name": "List Paths",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paths",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths"
+              ]
+            },
+            "description": "Retrieve all learning paths."
+          }
+        },
+        {
+          "name": "Create Path",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Foundations of Faith\",\n  \"description\": \"Introductory apologetics pathway.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paths",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths"
+              ]
+            },
+            "description": "Create a new path."
+          }
+        },
+        {
+          "name": "Get Path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paths/{{pathId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths",
+                "{{pathId}}"
+              ]
+            },
+            "description": "Retrieve a single path and its ordered topics."
+          }
+        },
+        {
+          "name": "Update Path",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated pathway description.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/paths/{{pathId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths",
+                "{{pathId}}"
+              ]
+            },
+            "description": "Update details for a path."
+          }
+        },
+        {
+          "name": "Delete Path",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paths/{{pathId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths",
+                "{{pathId}}"
+              ]
+            },
+            "description": "Delete a path."
+          }
+        },
+        {
+          "name": "Get Path Topics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paths/{{pathId}}/topics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paths",
+                "{{pathId}}",
+                "topics"
+              ]
+            },
+            "description": "Get the ordered topic entries for a path."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sources",
+      "item": [
+        {
+          "name": "List Sources",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sources"
+              ]
+            },
+            "description": "Retrieve all sources."
+          }
+        },
+        {
+          "name": "Create Source",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apiKey",
+                "value": "{{SUPABASE_ANON_KEY}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{SUPABASE_ANON_KEY}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"N. T. Wright - The Resurrection of the Son of God\",\n  \"url\": \"https://example.com/resources/wright-resurrection\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sources"
+              ]
+            },
+            "description": "Add a new research source."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "SUPABASE_ANON_KEY",
+      "value": ""
+    },
+    {
+      "key": "topicId",
+      "value": ""
+    },
+    {
+      "key": "pathId",
+      "value": ""
+    }
+  ]
+}

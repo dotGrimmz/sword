@@ -1,26 +1,57 @@
-//@ts-ignore
-import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+import { createClient } from "@/lib/supabase/server";
+
+const TOPIC_SELECT = `
+  *,
+  evidence(*),
+  counters(*),
+  topic_sources(*, sources(*))
+`;
+
+const errorStatusFromCode = (code?: string) =>
+  code === "PGRST116" ? 404 : 500;
+
+export async function GET() {
+  const supabase = await createClient();
+
   const { data, error } = await supabase
     .from("topics")
-    .select(
-      `
-      *,
-      evidence (*, evidence_scriptures(*)),
-      counters (*, counter_sources(*)),
-      topic_sources (*, sources(*)),
-      topic_scriptures (*, scriptures(*))
-    `
-    )
-    .eq("id", params.id)
+    .select(TOPIC_SELECT);
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: errorStatusFromCode(error.code) }
+    );
+  }
+
+  return NextResponse.json(data ?? []);
+}
+
+export async function POST(request: Request) {
+  let payload: Record<string, unknown>;
+
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("topics")
+    .insert(payload)
+    .select(TOPIC_SELECT)
     .single();
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: errorStatusFromCode(error.code) }
+    );
+  }
+
+  return NextResponse.json(data, { status: 201 });
 }
