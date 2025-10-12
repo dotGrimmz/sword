@@ -59,7 +59,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Resurrection of Jesus\",\n  \"summary\": \"Key historical arguments supporting the resurrection.\"\n}"
+              "raw": "{\n  \"title\": \"Resurrection of Jesus\",\n  \"objection\": \"Skeptics claim the resurrection is a myth or later legend invented by the early church.\",\n  \"claim\": \"The resurrection of Jesus is a historical event supported by early eyewitness testimony, empty tomb evidence, and the transformation of the disciples.\",\n  \"summary\": \"This topic defends the resurrection of Jesus as a verifiable historical event. It outlines the scriptural foundation (1 Corinthians 15, John 20), early creedal sources, and modern scholarly consensus supporting the claim.\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/topics",
