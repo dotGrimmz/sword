@@ -334,6 +334,81 @@
   color: rgb(56, 189, 248);
 }
 
+@media (max-width: 768px) {
+  .tableWrapper {
+    overflow: visible;
+  }
+
+  .table {
+    display: block;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .tableHead {
+    display: none;
+  }
+
+  .tableRow {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.1rem 1rem;
+    margin: 0.75rem 0;
+    border-radius: 1rem;
+    border: 1px solid rgba(71, 85, 105, 0.45);
+    background: rgba(15, 23, 42, 0.82);
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.42);
+    transform: none;
+  }
+
+  .tableRow:first-child {
+    margin-top: 0.25rem;
+  }
+
+  .tableRow:hover {
+    transform: none;
+  }
+
+  .tableCell {
+    padding: 0;
+    border-top: none;
+    text-align: left;
+  }
+
+  .tableCell::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(148, 163, 184, 0.7);
+  }
+
+  .tableCell:last-child {
+    text-align: left;
+  }
+
+  .tableCell[data-label=""]::before {
+    display: none;
+    content: none;
+  }
+
+  .buttonGroup {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .iconButton {
+    height: 2.4rem;
+  }
+}
+
 @keyframes fadeInSoft {
   from {
     opacity: 0;

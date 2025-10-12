@@ -274,7 +274,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
             <tbody>
               {sortedTopics.map((topic) => (
                 <tr key={topic.id} className={styles.tableRow}>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Title">
                     <div>
                       <p>{topic.title || "Untitled Topic"}</p>
                       {topic.summary ? (
@@ -282,18 +282,18 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                       ) : null}
                     </div>
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Difficulty">
                     {topic.difficulty || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Est. Minutes">
                     {topic.est_minutes ?? "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Tags">
                     <span className={styles.tagList}>
                       {topic.tags.length ? topic.tags.join(", ") : "—"}
                     </span>
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Actions">
                     <div className={styles.buttonGroup}>
                       <Button
                         variant="ghost"
@@ -319,7 +319,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
               ))}
               {sortedTopics.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className={styles.emptyState}>
+                  <td colSpan={5} className={styles.emptyState} data-label="">
                     No topics yet. Create one to get started.
                   </td>
                 </tr>

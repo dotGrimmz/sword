@@ -255,7 +255,7 @@ export default function SourcesManager({
             <tbody>
               {sortedSources.map((source) => (
                 <tr key={source.id} className={styles.tableRow}>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Work">
                     <div>
                       <p className={styles.sourceWork}>
                         <BookOpenCheck
@@ -279,19 +279,19 @@ export default function SourcesManager({
                       ) : null}
                     </div>
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Author">
                     {source.author || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Type">
                     {source.type || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Year / Era">
                     {source.year_or_era || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Location">
                     {source.location || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Actions">
                     <div className={styles.buttonGroup}>
                       <Button
                         variant="ghost"
@@ -317,7 +317,7 @@ export default function SourcesManager({
               ))}
               {sortedSources.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={styles.emptyState}>
+                  <td colSpan={6} className={styles.emptyState} data-label="">
                     No sources have been added yet.
                   </td>
                 </tr>

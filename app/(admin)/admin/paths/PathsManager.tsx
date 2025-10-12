@@ -269,7 +269,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
             <tbody>
               {sortedPaths.map((path) => (
                 <tr key={path.id} className={styles.tableRow}>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Title">
                     <div>
                       <p>{path.title || "Untitled Path"}</p>
                       {path.description ? (
@@ -277,21 +277,21 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
                       ) : null}
                     </div>
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Subtitle">
                     {path.subtitle || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Difficulty">
                     {path.difficulty || "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Est. Minutes">
                     {path.est_minutes ?? "—"}
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Tags">
                     <span className={styles.tagList}>
                       {path.tags.length ? path.tags.join(", ") : "—"}
                     </span>
                   </td>
-                  <td className={styles.tableCell}>
+                  <td className={styles.tableCell} data-label="Actions">
                     <div className={styles.buttonGroup}>
                       <Button
                         variant="ghost"
@@ -317,7 +317,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
               ))}
               {sortedPaths.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={styles.emptyState}>
+                  <td colSpan={6} className={styles.emptyState} data-label="">
                     No learning paths yet. Create one to begin.
                   </td>
                 </tr>
