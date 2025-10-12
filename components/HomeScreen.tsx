@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -11,7 +17,7 @@ import {
   Clock,
   Heart,
   Lightbulb,
-  Shield,
+  Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +30,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Progress } from "./ui/progress";
+import { cn } from "./ui/utils";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserMemoryVerses } from "@/lib/api/memory";
@@ -260,11 +267,12 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   }, [loadHomeData]);
 
   type QuickAction = {
-    icon: typeof BookOpen;
+    icon?: typeof BookOpen;
     label: string;
     subtitle: string;
     screen?: string;
     href?: string;
+    renderIcon?: () => ReactNode;
   };
 
   const quickActions = useMemo<QuickAction[]>(
@@ -296,10 +304,24 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         subtitle: `${needsReviewCount} need review`,
       },
       {
-        icon: Shield,
+        renderIcon: () => (
+          <Image
+            src="/sword_logo.png"
+            alt="SWORD logo"
+            width={36}
+            height={36}
+            className={styles.quickLogo}
+          />
+        ),
         label: "Apologetics",
         href: "/apologetics",
-        subtitle: "Engage tough questions with confidence",
+        subtitle: " ",
+      },
+      {
+        icon: Settings,
+        label: "Settings",
+        screen: "settings",
+        subtitle: "",
       },
     ],
     [translationCode, highlightsCount, notesCount, needsReviewCount]
@@ -375,13 +397,17 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             <div className={styles.quickGrid}>
               {quickActions.map((action, index) => (
                 <motion.div
-                  key={action.screen}
+                  key={action.label}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className={styles.quickCard}
+                    className={cn(
+                      styles.quickCard,
+                      action.href === "/apologetics" &&
+                        styles.quickCardApologetics
+                    )}
                     onClick={() => {
                       if (action.href) {
                         router.push(action.href);
@@ -392,11 +418,23 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                       }
                     }}
                   >
-                    <CardContent className={styles.quickCardContent}>
-                      <action.icon
-                        className={styles.quickIcon}
-                        aria-hidden="true"
-                      />
+                    <CardContent
+                      className={cn(
+                        styles.quickCardContent,
+                        action.href === "/apologetics" &&
+                          styles.quickCardContentCentered
+                      )}
+                    >
+                      {action.renderIcon ? (
+                        <div className={styles.quickIconWrapper}>
+                          {action.renderIcon()}
+                        </div>
+                      ) : action.icon ? (
+                        <action.icon
+                          className={styles.quickIcon}
+                          aria-hidden="true"
+                        />
+                      ) : null}
                       <div className={styles.quickCopy}>
                         <CardTitle className={styles.quickCardTitle}>
                           {action.label}
@@ -482,7 +520,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                       Your next reflection starts here
                     </h3>
                     <p className={styles.notePlaceholderCopy}>
-                      Capture a takeaway, prayer, or question and watch this space fill with your study journey.
+                      Capture a takeaway, prayer, or question and watch this
+                      space fill with your study journey.
                     </p>
                   </div>
                 )}

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   Accordion,
   AccordionContent,
@@ -22,9 +24,18 @@ const labelForKind = (kind?: string | null) => {
 export function EvidenceAccordion({ items }: EvidenceAccordionProps) {
   if (!items || items.length === 0) {
     return (
-      <p className={styles.empty}>
-        No supporting evidence has been added yet.
-      </p>
+      <div className={styles.emptyState}>
+        <Image
+          src="/sword_logo.png"
+          alt="SWORD logo"
+          width={36}
+          height={36}
+          className={styles.emptyIcon}
+        />
+        <p className={styles.empty}>
+          No supporting evidence has been added yet.
+        </p>
+      </div>
     );
   }
 

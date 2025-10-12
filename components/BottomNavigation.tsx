@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "./ui/button";
-import { Home, BookOpen, Heart, Brain, FileText, Settings } from "lucide-react";
+import { Home, BookOpen, Heart, Brain, FileText } from "lucide-react";
 import { motion } from "motion/react";
+import Image from "next/image";
+
 import { cn } from "./ui/utils";
 import styles from "./BottomNavigation.module.css";
 
@@ -18,7 +20,7 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
     { id: "highlights", icon: Heart, label: "Highlights" },
     { id: "memory", icon: Brain, label: "Memory" },
     { id: "notes", icon: FileText, label: "Notes" },
-    { id: "settings", icon: Settings, label: "Settings" }
+    { id: "apologetics", label: "Apologetics" },
   ];
 
   return (
@@ -36,7 +38,17 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
                 className={cn(styles.navButton, isActive && styles.navButtonActive)}
               >
                 <div className={styles.iconWrapper}>
-                  <item.icon className={styles.navIcon} aria-hidden="true" />
+                  {item.icon ? (
+                    <item.icon className={styles.navIcon} aria-hidden="true" />
+                  ) : (
+                    <Image
+                      src="/sword_logo.png"
+                      alt="Apologetics"
+                      width={20}
+                      height={20}
+                      className={cn(styles.navIcon, styles.navIconLogo)}
+                    />
+                  )}
                   {isActive && (
                     <motion.div
                       layoutId="activeIndicator"

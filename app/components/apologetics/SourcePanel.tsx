@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { cn } from "@/components/ui/utils";
 import type { Source } from "@/types/apologetics";
 import styles from "./SourcePanel.module.css";
@@ -15,7 +17,16 @@ export function SourcePanel({
 }: SourcePanelProps) {
   if (!sources || sources.length === 0) {
     return (
-      <div className={cn(styles.panel, className)}>
+      <div className={cn(styles.panel, styles.panelEmpty, className)}>
+        <div className={styles.emptyIconWrap}>
+          <Image
+            src="/sword_logo.png"
+            alt="SWORD logo"
+            className={styles.emptyIcon}
+            width={40}
+            height={40}
+          />
+        </div>
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.empty}>
           No sources are linked to this topic yet.

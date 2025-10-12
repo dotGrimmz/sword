@@ -5,6 +5,7 @@ export const screenRoutes = {
   memory: "/dashboard/memory",
   notes: "/dashboard/notes",
   settings: "/dashboard/settings",
+  apologetics: "/apologetics",
 } as const;
 
 export type ScreenKey = keyof typeof screenRoutes;

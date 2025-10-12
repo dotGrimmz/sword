@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -44,9 +45,18 @@ export default async function ApologeticsHomePage() {
         </div>
 
         {topics.length === 0 ? (
-          <p className={styles.empty}>
-            No topics have been published yet. Check back soon.
-          </p>
+          <div className={styles.emptyState}>
+            <Image
+              src="/sword_logo.png"
+              alt="SWORD logo"
+              width={40}
+              height={40}
+              className={styles.emptyIcon}
+            />
+            <p className={styles.empty}>
+              No topics have been published yet. Check back soon.
+            </p>
+          </div>
         ) : (
           <div className={styles.gridTopics}>
             {topics.map((topic) => (
@@ -69,10 +79,19 @@ export default async function ApologeticsHomePage() {
         </div>
 
         {paths.length === 0 ? (
-          <p className={styles.empty}>
-            No learning paths are available yet. Add paths in Supabase to see
-            them here.
-          </p>
+          <div className={styles.emptyState}>
+            <Image
+              src="/sword_logo.png"
+              alt="SWORD logo"
+              width={40}
+              height={40}
+              className={styles.emptyIcon}
+            />
+            <p className={styles.empty}>
+              No learning paths are available yet. Add paths in Supabase to see
+              them here.
+            </p>
+          </div>
         ) : (
           <div className={styles.gridPaths}>
             {paths.map((path) => (

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { TopicCard } from "@/app/components/apologetics/TopicCard";
@@ -92,7 +93,16 @@ export default async function PathDetailPage({ params }: PathDetailPageProps) {
         </div>
 
         {topics.length === 0 ? (
-          <p className={styles.empty}>This path does not have any topics yet.</p>
+          <div className={styles.emptyState}>
+            <Image
+              src="/sword_logo.png"
+              alt="SWORD logo"
+              width={40}
+              height={40}
+              className={styles.emptyIcon}
+            />
+            <p className={styles.empty}>This path does not have any topics yet.</p>
+          </div>
         ) : (
           <div className={styles.topicGrid}>
             {topics.map((topic) => (

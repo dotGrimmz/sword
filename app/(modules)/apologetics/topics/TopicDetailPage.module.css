@@ -2,7 +2,7 @@
   width: 100%;
   margin: 0 auto;
   max-width: 960px;
-  padding: 72px clamp(20px, 6vw, 56px) 100px;
+  padding: 48px clamp(20px, 6vw, 56px) 92px;
   display: flex;
   flex-direction: column;
   gap: 56px;
@@ -105,6 +105,7 @@
   display: grid;
   gap: 20px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  justify-items: center;
 }
 
 @keyframes fadeInUp {
@@ -120,10 +121,20 @@
 
 @media (max-width: 720px) {
   .page {
-    padding: 64px 20px 96px;
+    padding: 48px 20px 92px;
+    align-items: center;
+    text-align: center;
   }
 
   .section {
     gap: 14px;
+  }
+
+  .tagList {
+    justify-content: center;
+  }
+
+  .header {
+    align-items: center;
   }
 }

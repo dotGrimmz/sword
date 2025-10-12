@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   Accordion,
   AccordionContent,
@@ -17,9 +19,18 @@ interface CounterAccordionProps {
 export function CounterAccordion({ items }: CounterAccordionProps) {
   if (!items || items.length === 0) {
     return (
-      <p className={styles.empty}>
-        No counterarguments have been recorded for this topic yet.
-      </p>
+      <div className={styles.emptyState}>
+        <Image
+          src="/sword_logo.png"
+          alt="SWORD logo"
+          width={36}
+          height={36}
+          className={styles.emptyIcon}
+        />
+        <p className={styles.empty}>
+          No counterarguments have been recorded for this topic yet.
+        </p>
+      </div>
     );
   }
 

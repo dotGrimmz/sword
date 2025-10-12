@@ -111,12 +111,17 @@
   border: 1px solid hsla(var(--border), 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   background: var(--surface-gradient-soft);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
 }
 
 .quickCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
   background: var(--surface-gradient);
+}
+
+.quickCardApologetics {
+  text-align: center;
 }
 
 .quickCardContent {
@@ -138,6 +143,11 @@
   color: hsl(var(--primary));
 }
 
+.quickCardContentCentered {
+  align-items: center;
+  text-align: center;
+}
+
 .quickCardTitle {
   font-size: 15px;
   margin: 0;
@@ -147,6 +157,21 @@
 .quickCardDescription {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+.quickIconWrapper {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.quickLogo {
+  width: 32px;
+  height: 32px;
 }
 
 .statsCard,
