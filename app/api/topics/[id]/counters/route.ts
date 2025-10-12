@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -6,15 +6,16 @@ const errorStatusFromCode = (code?: string) =>
   code === "PGRST116" ? 404 : 500;
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("counters")
     .select("*, counter_sources(*, sources(*))")
-    .eq("topic_id", params.id);
+    .eq("topic_id", id);
 
   if (error) {
     return NextResponse.json(
@@ -27,9 +28,10 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   let payload: Record<string, unknown>;
 
   try {
@@ -40,7 +42,7 @@ export async function POST(
 
   const { topic_id: _topicId, ...rest } = payload;
   void _topicId;
-  const supabasePayload = { ...rest, topic_id: params.id };
+  const supabasePayload = { ...rest, topic_id: id };
 
   const supabase = await createClient();
 
