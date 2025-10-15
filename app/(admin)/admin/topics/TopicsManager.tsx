@@ -88,13 +88,12 @@ const mapTopic = (topic: any): AdminTopic => ({
   claim: topic.claim ?? "",
   summary: topic.summary ?? "",
   difficulty: topic.difficulty ?? "intro",
-  est_minutes:
-    typeof topic.est_minutes === "number" ? topic.est_minutes : null,
+  est_minutes: typeof topic.est_minutes === "number" ? topic.est_minutes : null,
   tags: Array.isArray(topic.tags)
     ? topic.tags.filter(Boolean)
     : typeof topic.tags === "string"
-      ? toTagArray(topic.tags)
-      : [],
+    ? toTagArray(topic.tags)
+    : [],
   updated_at: topic.updated_at ?? null,
 });
 
@@ -104,8 +103,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
-  const [formState, setFormState] =
-    useState<TopicFormState>(defaultFormState);
+  const [formState, setFormState] = useState<TopicFormState>(defaultFormState);
   const [extraObjections, setExtraObjections] = useState<ObjectionForm[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -113,9 +111,9 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   const sortedTopics = useMemo(
     () =>
       [...topics].sort((a, b) =>
-        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
+        a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
       ),
-    [topics],
+    [topics]
   );
 
   const openCreate = () => {
@@ -155,7 +153,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   };
 
   const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -166,21 +164,18 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   };
 
   const addExtraObjection = () => {
-    setExtraObjections((prev) => [
-      ...prev,
-      { objection: "", rebuttal: "" },
-    ]);
+    setExtraObjections((prev) => [...prev, { objection: "", rebuttal: "" }]);
   };
 
   const updateExtraObjection = (
     index: number,
     field: keyof ObjectionForm,
-    value: string,
+    value: string
   ) => {
     setExtraObjections((prev) =>
       prev.map((entry, idx) =>
-        idx === index ? { ...entry, [field]: value } : entry,
-      ),
+        idx === index ? { ...entry, [field]: value } : entry
+      )
     );
   };
 
@@ -199,7 +194,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
         counters.map((entry) => ({
           objection: entry.objection ?? "",
           rebuttal: entry.rebuttal ?? "",
-        })),
+        }))
       );
     } catch (error) {
       console.error("Unable to load counters", error);
@@ -256,8 +251,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
 
     const extraPayloads = extraObjections
       .map((entry) => ({
-        objection: entry.objection.trim(),
-        rebuttal: entry.rebuttal.trim(),
+        objection: entry.objection?.trim() ?? "",
+        rebuttal: entry.rebuttal?.trim() ?? "",
       }))
       .filter((entry) => entry.objection.length || entry.rebuttal.length);
 
@@ -285,7 +280,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        },
+        }
       );
 
       const data = await response.json();
@@ -303,14 +298,14 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
       setTopics((prev) => {
         if (editingTopicId) {
           return prev.map((topic) =>
-            topic.id === editingTopicId ? mapped : topic,
+            topic.id === editingTopicId ? mapped : topic
           );
         }
         return [mapped, ...prev];
       });
 
       toast.success(
-        editingTopicId ? "Topic updated successfully." : "Topic created.",
+        editingTopicId ? "Topic updated successfully." : "Topic created."
       );
       resetModal();
       if (!editingTopicId) {
@@ -326,7 +321,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
 
   const handleDelete = async (topic: AdminTopic) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete “${topic.title}”?`,
+      `Are you sure you want to delete “${topic.title}”?`
     );
     if (!confirmed) return;
 
@@ -617,8 +612,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                 {extraObjections.length === 0 ? (
                   <p className={styles.extraNotice}>
                     Each objection will appear under this topic’s details as a
-                    separate counterpoint. Use “Add Another Objection” to include
-                    more perspectives.
+                    separate counterpoint. Use “Add Another Objection” to
+                    include more perspectives.
                   </p>
                 ) : (
                   <div className={styles.managerContainer}>
@@ -636,14 +631,14 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                           </label>
                           <Textarea
                             id={`extra-objection-${index}`}
-                            value={entry.objection}
+                            value={entry.objection || ""}
                             className={styles.textarea}
                             placeholder="Enter the additional objection or claim."
                             onChange={(event) =>
                               updateExtraObjection(
                                 index,
                                 "objection",
-                                event.target.value,
+                                event.target.value
                               )
                             }
                           />
@@ -658,14 +653,14 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                           </label>
                           <Textarea
                             id={`extra-rebuttal-${index}`}
-                            value={entry.rebuttal}
+                            value={entry.rebuttal || ""}
                             className={styles.textarea}
                             placeholder="Write the rebuttal or counter-argument."
                             onChange={(event) =>
                               updateExtraObjection(
                                 index,
                                 "rebuttal",
-                                event.target.value,
+                                event.target.value
                               )
                             }
                           />
@@ -705,7 +700,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                   disabled={isSaving}
                   className={cn(
                     styles.modalButton,
-                    isSaving ? styles.busy : undefined,
+                    isSaving ? styles.busy : undefined
                   )}
                 >
                   {isSaving
@@ -713,8 +708,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                       ? "Saving…"
                       : "Creating…"
                     : editingTopicId
-                      ? "Save Changes"
-                      : "Create Topic"}
+                    ? "Save Changes"
+                    : "Create Topic"}
                 </Button>
               </div>
             </form>
