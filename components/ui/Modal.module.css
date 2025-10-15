@@ -80,7 +80,7 @@
   outline: none;
   display: flex;
   flex-direction: column;
-  gap: clamp(16px, 3vw, 26px);
+  /* gap: clamp(16px, 3vw, 26px); */
   overflow: hidden;
   isolation: isolate;
   animation-duration: 220ms;
@@ -161,7 +161,8 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  padding: 0px;
+  margin: 0px;
 }
 
 .header[data-align="center"] {
