@@ -154,7 +154,7 @@
   }
 
   .lg {
-    width: min(78vw, 44rem);
+    width: min(vw, 44rem);
   }
 }
 
@@ -175,11 +175,19 @@
   flex-direction: column;
   gap: clamp(16px, 2.4vw, 22px);
   overflow-y: auto;
-  padding-right: 4px;
+  overflow-x: hidden; /* prevent horizontal scrollbar */
+  width: 100%; /* fill parent width instead of fit-content */
+  box-sizing: border-box; /* ensures padding stays inside */
+  /* padding-right: 4px; */
 }
 
-.body[data-tight="true"] {
-  gap: 12px;
+
+.body > * {
+  max-width: 100%;       /* shrink to fit parent width */
+  flex-shrink: 1;         /* allow items to shrink */
+  overflow-wrap: break-word; /* long text wraps instead of pushing layout */
+  padding-right: 3rem;
+  padding-left: .5rem;
 }
 
 .footer {

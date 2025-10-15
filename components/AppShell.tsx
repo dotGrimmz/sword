@@ -13,10 +13,7 @@ import {
   screenRoutes,
   type ScreenKey,
 } from "@/components/app-navigation";
-import {
-  ProfileProvider,
-  type UserRole,
-} from "@/components/ProfileContext";
+import { ProfileProvider, type UserRole } from "@/components/ProfileContext";
 import styles from "./AppShell.module.css";
 
 type AppShellProps = {
@@ -33,7 +30,10 @@ export function AppShell({
   const pathname = usePathname();
   const router = useRouter();
 
-  const currentScreen: ScreenKey = useMemo(() => getScreenForPath(pathname ?? "/dashboard"), [pathname]);
+  const currentScreen: ScreenKey = useMemo(
+    () => getScreenForPath(pathname ?? "/dashboard"),
+    [pathname]
+  );
 
   const handleNavigate = (nextScreen: string) => {
     const target = getRouteForScreen(nextScreen);
@@ -59,7 +59,10 @@ export function AppShell({
                 </div>
               </div>
             </div>
-            <BottomNavigation currentScreen={currentScreen} onNavigate={handleNavigate} />
+            <BottomNavigation
+              currentScreen={currentScreen}
+              onNavigate={handleNavigate}
+            />
             <Toaster position="top-center" />
           </div>
         </TranslationProvider>
