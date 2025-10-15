@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, PlusIcon, Trash2 } from "lucide-react";
 
@@ -24,6 +31,7 @@ import {
 import { cn } from "@/components/ui/utils";
 
 import styles from "../AdminManager.module.css";
+import type { Counter } from "@/types/apologetics";
 
 type AdminTopic = {
   id: string;
@@ -48,8 +56,9 @@ type TopicFormState = {
   summary: string;
   difficulty: string;
   est_minutes: string;
-  tags: string;
 };
+
+type ObjectionForm = Pick<Counter, "objection" | "rebuttal">;
 
 const defaultFormState: TopicFormState = {
   title: "",
@@ -57,8 +66,7 @@ const defaultFormState: TopicFormState = {
   claim: "",
   summary: "",
   difficulty: "intro",
-  est_minutes: "",
-  tags: "",
+  est_minutes: "8",
 };
 
 const difficulties = [
@@ -91,12 +99,16 @@ const mapTopic = (topic: any): AdminTopic => ({
 });
 
 export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
+  const router = useRouter();
   const [topics, setTopics] = useState<AdminTopic[]>(initialTopics);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
   const [formState, setFormState] =
     useState<TopicFormState>(defaultFormState);
+  const [extraObjections, setExtraObjections] = useState<ObjectionForm[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
   const sortedTopics = useMemo(
     () =>
@@ -109,6 +121,9 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   const openCreate = () => {
     setEditingTopicId(null);
     setFormState(defaultFormState);
+    setExtraObjections([]);
+    setTags([]);
+    setTagInput("");
     setIsModalOpen(true);
   };
 
@@ -121,9 +136,12 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
       summary: topic.summary,
       difficulty: topic.difficulty ?? "intro",
       est_minutes: topic.est_minutes?.toString() ?? "",
-      tags: topic.tags.join(", "),
     });
+    setExtraObjections([]);
+    setTags(topic.tags ?? []);
+    setTagInput("");
     setIsModalOpen(true);
+    void loadExistingCounters(topic.id);
   };
 
   const resetModal = () => {
@@ -131,6 +149,9 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
     setIsSaving(false);
     setEditingTopicId(null);
     setFormState(defaultFormState);
+    setExtraObjections([]);
+    setTags([]);
+    setTagInput("");
   };
 
   const handleInputChange = (
@@ -142,6 +163,78 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
 
   const handleDifficultyChange = (value: string) => {
     setFormState((prev) => ({ ...prev, difficulty: value }));
+  };
+
+  const addExtraObjection = () => {
+    setExtraObjections((prev) => [
+      ...prev,
+      { objection: "", rebuttal: "" },
+    ]);
+  };
+
+  const updateExtraObjection = (
+    index: number,
+    field: keyof ObjectionForm,
+    value: string,
+  ) => {
+    setExtraObjections((prev) =>
+      prev.map((entry, idx) =>
+        idx === index ? { ...entry, [field]: value } : entry,
+      ),
+    );
+  };
+
+  const removeExtraObjection = (index: number) => {
+    setExtraObjections((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const loadExistingCounters = async (topicId: string) => {
+    try {
+      const response = await fetch(`/api/topics/${topicId}/counters`);
+      if (!response.ok) {
+        return;
+      }
+      const counters = (await response.json()) as Counter[];
+      setExtraObjections(
+        counters.map((entry) => ({
+          objection: entry.objection ?? "",
+          rebuttal: entry.rebuttal ?? "",
+        })),
+      );
+    } catch (error) {
+      console.error("Unable to load counters", error);
+    }
+  };
+
+  const handleTagInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setTagInput(event.target.value);
+  };
+
+  const commitTag = () => {
+    const value = tagInput.trim();
+    if (!value) return;
+    const lowered = value.toLowerCase();
+    if (tags.includes(lowered)) {
+      setTagInput("");
+      return;
+    }
+    setTags((prev) => [...prev, lowered]);
+    setTagInput("");
+  };
+
+  const handleTagKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitTag();
+    }
+    if (event.key === "Backspace" && tagInput.length === 0 && tags.length) {
+      event.preventDefault();
+      setTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const removeTag = (value: string) => {
+    setTags((prev) => prev.filter((tag) => tag !== value));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -161,15 +254,27 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
       minutesValue = parsed;
     }
 
-    const payload = {
+    const extraPayloads = extraObjections
+      .map((entry) => ({
+        objection: entry.objection.trim(),
+        rebuttal: entry.rebuttal.trim(),
+      }))
+      .filter((entry) => entry.objection.length || entry.rebuttal.length);
+
+    const payload: Record<string, unknown> = {
       title: formState.title.trim(),
       objection: formState.objection.trim() || null,
       claim: formState.claim.trim() || null,
       summary: formState.summary.trim() || null,
       difficulty: formState.difficulty,
       est_minutes: minutesValue,
-      tags: toTagArray(formState.tags),
+      tags,
     };
+
+    payload.objections = extraPayloads.map((entry) => ({
+      objection: entry.objection,
+      summary: entry.rebuttal,
+    }));
 
     try {
       const response = await fetch(
@@ -189,7 +294,11 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
         throw new Error(data?.error ?? "Unable to save topic");
       }
 
-      const mapped = mapTopic(data);
+      const mapped = mapTopic(data.topic ?? data);
+
+      setExtraObjections([]);
+      setTags([]);
+      setTagInput("");
 
       setTopics((prev) => {
         if (editingTopicId) {
@@ -204,6 +313,9 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
         editingTopicId ? "Topic updated successfully." : "Topic created.",
       );
       resetModal();
+      if (!editingTopicId) {
+        router.push(`/apologetics/topics/${mapped.id}`);
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to save topic";
@@ -422,7 +534,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="est_minutes" className={styles.label}>
-                    Estimated Minutes
+                    Estimated Reading Time (mins)
                   </label>
                   <Input
                     id="est_minutes"
@@ -431,51 +543,179 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                     min={0}
                     value={formState.est_minutes}
                     onChange={handleInputChange}
-                    placeholder="e.g. 12"
+                    placeholder="8"
                     className={styles.input}
                   />
                 </div>
               </div>
 
               <div className={styles.field}>
-                <label htmlFor="tags" className={styles.label}>
-                  Tags (comma separated)
+                <label htmlFor="tagInput" className={styles.label}>
+                  Tags
                 </label>
-                <Input
-                  id="tags"
-                  name="tags"
-                  value={formState.tags}
-                  onChange={handleInputChange}
-                  placeholder="resurrection, history, evidence"
-                  className={styles.input}
-                />
-                <div className={styles.formFooter}>
-                  <Button
-                    variant="ghost"
-                    onClick={resetModal}
-                    className={styles.modalButton}
-                    type="button"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    form="topic-form"
-                    type="submit"
+                <div className={styles.tagComposer}>
+                  <Input
+                    id="tagInput"
+                    value={tagInput}
+                    onChange={handleTagInputChange}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Add tags like law, fulfillment, covenant"
+                    className={styles.input}
                     disabled={isSaving}
-                    className={cn(
-                      styles.modalButton,
-                      isSaving ? styles.busy : undefined,
-                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={commitTag}
+                    disabled={!tagInput.trim() || isSaving}
+                    className={styles.tagButton}
                   >
-                    {isSaving
-                      ? editingTopicId
-                        ? "Saving…"
-                        : "Creating…"
-                      : editingTopicId
-                        ? "Save Changes"
-                        : "Create Topic"}
+                    Add Tag
                   </Button>
                 </div>
+                {tags.length ? (
+                  <div className={styles.tagPillRow}>
+                    {tags.map((tag) => (
+                      <span key={tag} className={styles.tagPill}>
+                        {tag}
+                        <button
+                          type="button"
+                          className={styles.tagRemove}
+                          onClick={() => removeTag(tag)}
+                          aria-label={`Remove ${tag}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className={styles.field}>
+                <div className={styles.extraHeader}>
+                  <div className={styles.extraHeading}>
+                    <h3 className={styles.managerTitle}>
+                      Additional Objections (Optional)
+                    </h3>
+                    <p className={styles.managerMeta}>
+                      Each objection will appear under this topic’s details as a
+                      separate counterpoint.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={addExtraObjection}
+                    className={styles.addButton}
+                    disabled={isSaving}
+                  >
+                    <PlusIcon size={16} aria-hidden="true" />
+                    Add Another Objection
+                  </Button>
+                </div>
+
+                {extraObjections.length === 0 ? (
+                  <p className={styles.extraNotice}>
+                    Each objection will appear under this topic’s details as a
+                    separate counterpoint. Use “Add Another Objection” to include
+                    more perspectives.
+                  </p>
+                ) : (
+                  <div className={styles.managerContainer}>
+                    {extraObjections.map((entry, index) => (
+                      <div
+                        key={`extra-objection-${index}`}
+                        className={cn(styles.form, styles.extraForm)}
+                      >
+                        <div className={styles.field}>
+                          <label
+                            htmlFor={`extra-objection-${index}`}
+                            className={styles.label}
+                          >
+                            Objection
+                          </label>
+                          <Textarea
+                            id={`extra-objection-${index}`}
+                            value={entry.objection}
+                            className={styles.textarea}
+                            placeholder="Enter the additional objection or claim."
+                            onChange={(event) =>
+                              updateExtraObjection(
+                                index,
+                                "objection",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label
+                            htmlFor={`extra-rebuttal-${index}`}
+                            className={styles.label}
+                          >
+                            Rebuttal (Answer)
+                          </label>
+                          <Textarea
+                            id={`extra-rebuttal-${index}`}
+                            value={entry.rebuttal}
+                            className={styles.textarea}
+                            placeholder="Write the rebuttal or counter-argument."
+                            onChange={(event) =>
+                              updateExtraObjection(
+                                index,
+                                "rebuttal",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div className={styles.formFooter}>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            className={styles.modalButton}
+                            onClick={() => removeExtraObjection(index)}
+                            disabled={isSaving}
+                          >
+                            <Trash2 size={16} aria-hidden="true" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.formFooter}>
+                <Button
+                  variant="ghost"
+                  onClick={resetModal}
+                  className={styles.modalButton}
+                  type="button"
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  form="topic-form"
+                  type="submit"
+                  disabled={isSaving}
+                  className={cn(
+                    styles.modalButton,
+                    isSaving ? styles.busy : undefined,
+                  )}
+                >
+                  {isSaving
+                    ? editingTopicId
+                      ? "Saving…"
+                      : "Creating…"
+                    : editingTopicId
+                      ? "Save Changes"
+                      : "Create Topic"}
+                </Button>
               </div>
             </form>
           </ModalBody>

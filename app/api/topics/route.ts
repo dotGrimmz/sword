@@ -12,6 +12,12 @@ const TOPIC_SELECT = `
 const errorStatusFromCode = (code?: string) =>
   code === "PGRST116" ? 404 : 500;
 
+type AdditionalObjection = {
+  objection?: unknown;
+  claim?: unknown;
+  summary?: unknown;
+};
+
 export async function GET() {
   const supabase = await createClient();
 
@@ -28,19 +34,25 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  let payload: Record<string, unknown>;
+  let rawPayload: unknown;
 
   try {
-    payload = await request.json();
+    rawPayload = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  if (typeof rawPayload !== "object" || rawPayload === null) {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { objections, ...topicPayload } = rawPayload as Record<string, unknown>;
+
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data: topic, error } = await supabase
     .from("topics")
-    .insert(payload)
+    .insert(topicPayload)
     .select(TOPIC_SELECT)
     .single();
 
@@ -51,7 +63,50 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json(data, { status: 201 });
+  if (!topic?.id) {
+    return NextResponse.json({ error: "Topic creation failed" }, { status: 500 });
+  }
+
+  const additionalObjections: AdditionalObjection[] = Array.isArray(objections)
+    ? objections
+    : [];
+
+  const formattedCounters = additionalObjections
+    .map((entry) => (typeof entry === "object" && entry !== null ? entry : null))
+    .filter((entry): entry is AdditionalObjection => entry !== null)
+    .map((entry) => {
+      const objectionText =
+        typeof entry.objection === "string" ? entry.objection.trim() : "";
+      const summaryText =
+        typeof entry.summary === "string" ? entry.summary.trim() : "";
+      const claimText =
+        typeof entry.claim === "string" ? entry.claim.trim() : "";
+
+      const rebuttalText = summaryText || claimText;
+
+      return {
+        topic_id: topic.id,
+        objection: objectionText || null,
+        rebuttal: rebuttalText || null,
+      };
+    })
+    .filter((entry) => entry.objection || entry.rebuttal);
+
+  if (formattedCounters.length > 0) {
+    const { error: counterError } = await supabase
+      .from("counters")
+      .insert(formattedCounters)
+      .select("id");
+
+    if (counterError) {
+      return NextResponse.json(
+        { error: counterError.message },
+        { status: errorStatusFromCode(counterError.code) }
+      );
+    }
+  }
+
+  return NextResponse.json({ topic }, { status: 201 });
 }
 
 export async function PUT(request: Request) {
@@ -63,7 +118,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { id, ...updates } = payload;
+  const { id, objections, ...updates } = payload;
 
   if (!id) {
     return NextResponse.json(
@@ -97,6 +152,73 @@ export async function PUT(request: Request) {
 
   if (!data) {
     return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+  }
+
+  if (Array.isArray(objections)) {
+    const formattedCounters = objections
+      .map((entry) =>
+        typeof entry === "object" && entry !== null
+          ? (entry as AdditionalObjection)
+          : null,
+      )
+      .filter((entry): entry is AdditionalObjection => entry !== null)
+      .map((entry) => {
+        const objectionText =
+          typeof entry.objection === "string" ? entry.objection.trim() : "";
+        const summaryText =
+          typeof entry.summary === "string" ? entry.summary.trim() : "";
+        const claimText =
+          typeof entry.claim === "string" ? entry.claim.trim() : "";
+
+        const rebuttalText = summaryText || claimText;
+
+        return {
+          topic_id: id,
+          objection: objectionText || null,
+          rebuttal: rebuttalText || null,
+        };
+      });
+
+    const { error: deleteError } = await supabase
+      .from("counters")
+      .delete()
+      .eq("topic_id", id);
+
+    if (deleteError) {
+      return NextResponse.json(
+        { error: deleteError.message },
+        { status: errorStatusFromCode(deleteError.code) }
+      );
+    }
+
+    if (formattedCounters.length > 0) {
+      const { error: insertError } = await supabase
+        .from("counters")
+        .insert(formattedCounters)
+        .select("id");
+
+      if (insertError) {
+        return NextResponse.json(
+          { error: insertError.message },
+          { status: errorStatusFromCode(insertError.code) }
+        );
+      }
+    }
+
+    const { data: refreshed, error: refreshError } = await supabase
+      .from("topics")
+      .select(TOPIC_SELECT)
+      .eq("id", id)
+      .single();
+
+    if (refreshError) {
+      return NextResponse.json(
+        { error: refreshError.message },
+        { status: errorStatusFromCode(refreshError.code) }
+      );
+    }
+
+    return NextResponse.json(refreshed ?? data);
   }
 
   return NextResponse.json(data);

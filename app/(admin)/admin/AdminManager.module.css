@@ -215,9 +215,77 @@
 }
 
 @media (min-width: 768px) {
-  .formFooter .modalButton {
-    width: auto;
-  }
+.formFooter .modalButton {
+  width: auto;
+}
+}
+
+.extraHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.extraHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.extraNotice {
+  padding: 0.75rem 0;
+  font-size: 0.9rem;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.extraForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tagComposer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tagButton {
+  padding: 0 1.1rem;
+  height: 2.5rem;
+}
+
+.tagPillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.6);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+.tagRemove {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .field {
