@@ -70,16 +70,19 @@ const toTagArray = (value: string) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-const mapPath = (path: {
-  id: any;
-  title: any;
-  subtitle: any;
-  description: any;
-  difficulty: any;
+type RawPathRecord = {
+  id: string;
+  title: string | null;
+  subtitle: string | null;
+  description: string | null;
+  difficulty: string | null;
   est_minutes: number | null;
-  tags: string | any[];
-  updated_at: any;
-}): AdminPath => ({
+  tags: string[] | string | null;
+  updated_at: string | null;
+  error?: string;
+};
+
+const mapPath = (path: RawPathRecord): AdminPath => ({
   id: path.id,
   title: path.title ?? "",
   subtitle: path.subtitle ?? "",
@@ -87,7 +90,7 @@ const mapPath = (path: {
   difficulty: path.difficulty ?? "intro",
   est_minutes: typeof path.est_minutes === "number" ? path.est_minutes : null,
   tags: Array.isArray(path.tags)
-    ? path.tags.filter(Boolean)
+    ? path.tags.filter((tag): tag is string => Boolean(tag))
     : typeof path.tags === "string"
     ? toTagArray(path.tags)
     : [],
@@ -184,7 +187,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
         }
       );
 
-      const data = await response.json();
+      const data: RawPathRecord = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Unable to save path");
@@ -224,7 +227,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
         method: "DELETE",
       });
 
-      const data = await response.json();
+      const data: { success: true } = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Unable to delete path");

@@ -73,17 +73,20 @@ const toTagArray = (value: string) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-const mapTopic = (topic: {
-  id: any;
-  title: any;
-  objection: any;
-  claim: any;
-  summary: any;
-  difficulty: any;
+type RawTopicRecord = {
+  id: string;
+  title: string | null;
+  objection: string | null;
+  claim: string | null;
+  summary: string | null;
+  difficulty: string | null;
   est_minutes: number | null;
-  tags: string | any[];
-  updated_at: any;
-}): AdminTopic => ({
+  tags: string[] | string | null;
+  updated_at: string | null;
+  error?: string;
+};
+
+const mapTopic = (topic: RawTopicRecord): AdminTopic => ({
   id: topic.id,
   title: topic.title ?? "",
   objection: topic.objection ?? "",
@@ -92,7 +95,7 @@ const mapTopic = (topic: {
   difficulty: topic.difficulty ?? "intro",
   est_minutes: typeof topic.est_minutes === "number" ? topic.est_minutes : null,
   tags: Array.isArray(topic.tags)
-    ? topic.tags.filter(Boolean)
+    ? topic.tags.filter((tag): tag is string => Boolean(tag))
     : typeof topic.tags === "string"
     ? toTagArray(topic.tags)
     : [],
@@ -191,7 +194,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
         }
       );
 
-      const data = await response.json();
+      const data: RawTopicRecord & { error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Unable to save topic");
@@ -231,7 +234,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
         method: "DELETE",
       });
 
-      const data = await response.json();
+      const data: { success?: boolean; error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Unable to delete topic");

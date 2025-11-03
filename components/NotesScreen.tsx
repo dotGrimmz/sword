@@ -8,10 +8,8 @@ import {
   Calendar,
   Edit,
   Loader2,
-  Mic,
   Plus,
   Search,
-  Square,
   Trash2,
   BookOpen,
   Sparkles,
@@ -54,10 +52,10 @@ import {
   getUserNotes,
   updateUserNote,
 } from "@/lib/api/notes";
-import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserNote } from "@/types/user";
 import { NOTES_UPDATED_EVENT, dispatchNotesUpdated } from "@/lib/events";
+import { AudioNotePanel, type AudioNotePayload } from "./notes/AudioNotePanel";
 import styles from "./NotesScreen.module.css";
 
 interface NotesScreenProps {
@@ -71,19 +69,6 @@ type DerivedNote = {
   referenceLabel: string | null;
   verseText: string | null;
   dateLabel: string | null;
-};
-
-type ParsedVoiceReference = {
-  book: string;
-  chapter: number;
-  verseStart: number | null;
-  verseEnd: number | null;
-};
-
-type ParsedVoiceNote = {
-  reference: ParsedVoiceReference | null;
-  bodyText: string;
-  transcript: string;
 };
 
 const formatDate = (iso: string | null) => {
@@ -125,6 +110,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const [notes, setNotes] = useState<UserNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAudioNoteOpen, setIsAudioNoteOpen] = useState(false);
   const [createBookId, setCreateBookId] = useState<string | null>(null);
   const [createChapter, setCreateChapter] = useState("1");
   const [createVerseStart, setCreateVerseStart] = useState("1");
@@ -132,23 +118,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const [createBody, setCreateBody] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [isSavingCreate, setIsSavingCreate] = useState(false);
-
-  const {
-    status: recorderStatus,
-    error: recorderError,
-    audioBlob,
-    audioUrl,
-    durationLabel,
-    startRecording,
-    stopRecording,
-    resetRecorder,
-  } = useAudioRecorder();
-
-  const [isTranscribingVoice, setIsTranscribingVoice] = useState(false);
-  const [voiceTranscription, setVoiceTranscription] =
-    useState<ParsedVoiceNote | null>(null);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const [shouldProcessRecording, setShouldProcessRecording] = useState(false);
 
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
   const [editBody, setEditBody] = useState("");
@@ -171,32 +140,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     return index;
   }, [books]);
 
-  const bookNameLookup = useMemo(() => {
-    const index = new Map<string, BibleBookSummary>();
-    const normalise = (value: string | null | undefined) =>
-      value
-        ? value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/gi, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-        : null;
-
-    for (const book of books) {
-      const nameKey = normalise(book.name);
-      if (nameKey) {
-        index.set(nameKey, book);
-      }
-
-      const abbrKey = normalise(book.abbreviation);
-      if (abbrKey) {
-        index.set(abbrKey, book);
-      }
-    }
-
-    return index;
-  }, [books]);
-
   const resetCreateForm = useCallback(() => {
     const firstBook = books[0]?.id ?? null;
     setCreateBookId(firstBook);
@@ -205,215 +148,13 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     setCreateVerseEnd("1");
     setCreateBody("");
     setCreateError(null);
-    resetRecorder();
-    setVoiceTranscription(null);
-    setVoiceError(null);
-    setIsTranscribingVoice(false);
-    setShouldProcessRecording(false);
-  }, [books, resetRecorder]);
+  }, [books]);
 
   useEffect(() => {
     if (isCreateOpen) {
       resetCreateForm();
-    } else {
-      resetRecorder();
-      setVoiceTranscription(null);
-      setVoiceError(null);
-      setIsTranscribingVoice(false);
-      setShouldProcessRecording(false);
     }
-  }, [isCreateOpen, resetCreateForm, resetRecorder]);
-
-  const applyVoiceReference = useCallback(
-    (reference: ParsedVoiceReference | null) => {
-      if (!reference) {
-        return;
-      }
-
-      const normalise = (value: string) =>
-        value
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/gi, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-      const bookKey = normalise(reference.book);
-      const matchedBook = bookNameLookup.get(bookKey) ?? null;
-
-      if (matchedBook) {
-        setCreateBookId(matchedBook.id);
-      }
-
-      if (typeof reference.chapter === "number" && reference.chapter > 0) {
-        setCreateChapter(String(reference.chapter));
-      }
-
-      const startVerse =
-        typeof reference.verseStart === "number" && reference.verseStart > 0
-          ? reference.verseStart
-          : typeof reference.verseEnd === "number" && reference.verseEnd > 0
-          ? reference.verseEnd
-          : null;
-
-      if (startVerse !== null) {
-        setCreateVerseStart(String(startVerse));
-      }
-
-      const endVerse =
-        typeof reference.verseEnd === "number" && reference.verseEnd > 0
-          ? reference.verseEnd
-          : startVerse;
-
-      if (endVerse !== null) {
-        setCreateVerseEnd(String(endVerse));
-      }
-    },
-    [bookNameLookup]
-  );
-
-  const buildVoiceReferenceLabel = useCallback(
-    (reference: ParsedVoiceReference | null) => {
-      if (!reference) {
-        return "Not detected";
-      }
-
-      const start =
-        typeof reference.verseStart === "number" && reference.verseStart > 0
-          ? reference.verseStart
-          : typeof reference.verseEnd === "number" && reference.verseEnd > 0
-          ? reference.verseEnd
-          : null;
-
-      const end =
-        typeof reference.verseEnd === "number" && reference.verseEnd > 0
-          ? reference.verseEnd
-          : start;
-
-      const verseSegment = start
-        ? `:${start}${end && end !== start ? `-${end}` : ""}`
-        : "";
-
-      return `${reference.book} ${reference.chapter}${verseSegment}`;
-    },
-    []
-  );
-
-  const transcribeAudio = useCallback(async (blob: Blob) => {
-    setIsTranscribingVoice(true);
-    setVoiceError(null);
-    const toastId = toast.loading("Uploading voice note…");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", blob, "voice-note.webm");
-
-      const response = await fetch("/api/notes/transcribe", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        const message = data.error ?? "Failed to transcribe voice note.";
-        throw new Error(message);
-      }
-
-      const data = (await response.json()) as {
-        reference?: ParsedVoiceReference | null;
-        bodyText?: string;
-        transcript?: string;
-      };
-
-      const referenceData = data.reference
-        ? {
-            book: data.reference.book,
-            chapter: Number(data.reference.chapter),
-            verseStart:
-              data.reference.verseStart !== undefined &&
-              data.reference.verseStart !== null
-                ? Number(data.reference.verseStart)
-                : null,
-            verseEnd:
-              data.reference.verseEnd !== undefined &&
-              data.reference.verseEnd !== null
-                ? Number(data.reference.verseEnd)
-                : null,
-          }
-        : null;
-
-      setVoiceTranscription({
-        reference: referenceData,
-        bodyText: (data.bodyText ?? data.transcript ?? "").trim(),
-        transcript: data.transcript ?? "",
-      });
-      toast.success("Transcription complete", { id: toastId });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to transcribe voice note.";
-      setVoiceError(message);
-      setVoiceTranscription(null);
-      toast.error(message, { id: toastId });
-    } finally {
-      setIsTranscribingVoice(false);
-    }
-  }, []);
-
-  const handleStartRecording = useCallback(async () => {
-    setVoiceError(null);
-    setVoiceTranscription(null);
-    resetRecorder();
-    const started = await startRecording();
-    if (started) {
-      toast("Recording started");
-    }
-  }, [resetRecorder, startRecording]);
-
-  const handleStopRecording = useCallback(() => {
-    const stopped = stopRecording();
-    if (stopped) {
-      toast("Recording stopped");
-      setShouldProcessRecording(true);
-    }
-  }, [stopRecording]);
-
-  const handleApplyVoiceResult = useCallback(() => {
-    if (!voiceTranscription) {
-      return;
-    }
-
-    const body = voiceTranscription.bodyText?.trim();
-    if (body && body.length > 0) {
-      setCreateBody(body);
-    }
-
-    applyVoiceReference(voiceTranscription.reference ?? null);
-    toast.success("Voice note applied to form");
-    setVoiceError(null);
-    setVoiceTranscription(null);
-    resetRecorder();
-  }, [applyVoiceReference, resetRecorder, voiceTranscription]);
-
-  const handleDiscardVoice = useCallback(() => {
-    setVoiceTranscription(null);
-    setVoiceError(null);
-    resetRecorder();
-    toast("Voice note discarded");
-  }, [resetRecorder]);
-
-  useEffect(() => {
-    if (shouldProcessRecording && audioBlob) {
-      void transcribeAudio(audioBlob);
-      setShouldProcessRecording(false);
-    }
-  }, [audioBlob, shouldProcessRecording, transcribeAudio]);
-
-  useEffect(() => {
-    if (recorderError) {
-      toast.error(recorderError);
-    }
-  }, [recorderError]);
+  }, [isCreateOpen, resetCreateForm]);
 
   useEffect(() => {
     setCreateVerseEnd((current) => {
@@ -631,8 +372,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     return `${savedLabel} • ${linkedLabel}`;
   }, [noteCount, verseLinkedCount]);
 
-  const isVoiceBusy = recorderStatus === "recording" || isTranscribingVoice;
-
   const statsCards = useMemo(
     () => [
       {
@@ -732,6 +471,32 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     }
   };
 
+  const handleVoiceNoteSubmit = useCallback(
+    async (payload: AudioNotePayload) => {
+      if (!translationCode) {
+        throw new Error("Select a translation before creating notes.");
+      }
+
+      const newNote = await createUserNote({
+        translationId: translationCode,
+        bookId: payload.bookId,
+        chapter: payload.chapter,
+        verseStart: payload.verseStart,
+        verseEnd: payload.verseEnd,
+        body: payload.body,
+      });
+
+      setNotes((prev) => [newNote, ...prev]);
+      setVerseTexts((prev) => {
+        const next = { ...prev };
+        delete next[newNote.id];
+        return next;
+      });
+      dispatchNotesUpdated({ source: "notes-screen" });
+    },
+    [dispatchNotesUpdated, translationCode]
+  );
+
   const handleEdit = (note: UserNote) => {
     setEditingNote(note);
     setEditBody(note.body);
@@ -814,373 +579,25 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             <h1 className={styles.headerTitle}>Study Notes</h1>
             <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
-          <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <ModalTrigger asChild>
-              <Button
-                size="lg"
-                className={styles.addButton}
-                disabled={books.length === 0}
-              >
-                <Plus className={styles.addButtonIcon} />
-                New Note
-              </Button>
-            </ModalTrigger>
-            <ModalContent size="lg">
-              <ModalHeader className={styles.dialogHeader}>
-                <ModalTitle>Create Note</ModalTitle>
-                <ModalDescription className={styles.dialogDescription}>
-                  Capture reflections, prayers, and applications as you study
-                  Scripture.
-                </ModalDescription>
-              </ModalHeader>
-
-              <ModalBody>
-                <motion.div
-                  className={styles.dialogHero}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <span className={styles.dialogHeroIcon}>
-                    <Sparkles aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className={styles.dialogHeroTitle}>
-                      Build a richer study archive
-                    </p>
-                    <p className={styles.dialogHeroSubtitle}>
-                      Anchor each insight to the passage you&apos;re exploring
-                      and watch themes emerge.
-                    </p>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  className={styles.dialogMetaRow}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
-                >
-                  <div className={styles.dialogMetaTile}>
-                    <NotebookPen
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>Saved notes</p>
-                      <p className={styles.dialogMetaValue}>{noteCount}</p>
-                    </div>
-                  </div>
-                  <div className={styles.dialogMetaTile}>
-                    <BookOpen
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>Linked verses</p>
-                      <p className={styles.dialogMetaValue}>
-                        {noteCount === 0 ? "—" : `${verseLinkedPercent}%`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.dialogMetaTile}>
-                    <Calendar
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>Last updated</p>
-                      <p className={styles.dialogMetaValue}>
-                        {latestNoteLabel}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <div className={styles.dialogDivider} />
-
-                <div className={styles.formStack}>
-                  <motion.div
-                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.08,
-                    }}
-                  >
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Book</span>
-                      <Select
-                        value={createBookId ?? undefined}
-                        onValueChange={(value) => {
-                          setCreateBookId(value);
-                          setCreateChapter("1");
-                          setCreateVerseStart("1");
-                          setCreateVerseEnd("1");
-                        }}
-                      >
-                        <SelectTrigger className={styles.selectTrigger}>
-                          <SelectValue placeholder="Select book" />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={`${styles.selectContent} z-[9999]`}
-                        >
-                          {books.map((book) => (
-                            <SelectItem
-                              key={book.id}
-                              value={book.id}
-                              className={styles.selectItem}
-                            >
-                              {book.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className={styles.dialogHint}>
-                        {books.length > 0
-                          ? `${books.length} books available in ${
-                              translationCode?.toUpperCase() ?? "your library"
-                            }`
-                          : "Books will appear once a translation is loaded."}
-                      </p>
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Chapter</span>
-                      <Select
-                        value={createChapter}
-                        onValueChange={(value) => {
-                          setCreateChapter(value);
-                          setCreateVerseStart("1");
-                          setCreateVerseEnd("1");
-                        }}
-                      >
-                        <SelectTrigger className={styles.selectTrigger}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={`${styles.selectContent} z-[9999]`}
-                        >
-                          {Array.from(
-                            { length: chapterOptions },
-                            (_, index) => index + 1
-                          ).map((chapterNumber) => (
-                            <SelectItem
-                              key={chapterNumber}
-                              value={`${chapterNumber}`}
-                              className={styles.selectItem}
-                            >
-                              {chapterNumber}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className={styles.dialogHint}>
-                        {selectedBook
-                          ? `${selectedBook.chapters} chapters in ${selectedBook.name}`
-                          : "Pick a book to see chapter options."}
-                      </p>
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.12,
-                    }}
-                  >
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Verse start</span>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={createVerseStart}
-                        onChange={(event) =>
-                          setCreateVerseStart(event.target.value)
-                        }
-                        className={styles.input}
-                      />
-                      <p className={styles.dialogHint}>
-                        We&apos;ll fetch the verse text automatically.
-                      </p>
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Verse end</span>
-                      <Input
-                        type="number"
-                        min={createVerseStart}
-                        value={createVerseEnd}
-                        onChange={(event) =>
-                          setCreateVerseEnd(event.target.value)
-                        }
-                        className={styles.input}
-                      />
-                      <p className={styles.dialogHint}>
-                        Use the same number to capture a single verse.
-                      </p>
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    className={`${styles.fieldGroup} ${styles.voiceSection}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.14,
-                    }}
-                  >
-                    <span className={styles.fieldLabel}>Voice capture</span>
-                    <div className={styles.voiceControlRow}>
-                      {recorderStatus === "recording" ? (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          onClick={handleStopRecording}
-                          className={styles.voiceButton}
-                        >
-                          <Square className={styles.addButtonIcon} />
-                          Stop recording
-                        </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleStartRecording}
-                          disabled={isTranscribingVoice}
-                          className={styles.voiceButton}
-                        >
-                          <Mic className={styles.addButtonIcon} />
-                          🎙 Record Note
-                        </Button>
-                      )}
-                      {recorderStatus === "recording" ? (
-                        <span className={styles.voiceTimer}>{durationLabel}</span>
-                      ) : null}
-                    </div>
-
-                    {isTranscribingVoice ? (
-                      <div className={styles.voiceStatus}>
-                        <Loader2 className={styles.spinner} />
-                        Transcribing audio…
-                      </div>
-                    ) : null}
-
-                    {recorderError ? (
-                      <p className={styles.errorMessage}>{recorderError}</p>
-                    ) : null}
-                    {voiceError ? (
-                      <p className={styles.errorMessage}>{voiceError}</p>
-                    ) : null}
-
-                    {voiceTranscription ? (
-                      <div className={styles.voicePreview}>
-                        <div className={styles.voicePreviewHeader}>
-                          <h4 className={styles.voicePreviewTitle}>
-                            Transcription preview
-                          </h4>
-                          {audioUrl ? (
-                            <audio
-                              className={styles.voiceAudio}
-                              controls
-                              src={audioUrl}
-                            />
-                          ) : null}
-                        </div>
-                        <dl className={styles.voiceDetails}>
-                          <div>
-                            <dt>Detected reference</dt>
-                            <dd>
-                              {buildVoiceReferenceLabel(
-                                voiceTranscription.reference ?? null
-                              )}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt>Suggested note</dt>
-                            <dd>{voiceTranscription.bodyText}</dd>
-                          </div>
-                          <div>
-                            <dt>Transcript</dt>
-                            <dd>{voiceTranscription.transcript}</dd>
-                          </div>
-                        </dl>
-                        <div className={styles.voiceActionRow}>
-                          <Button type="button" onClick={handleApplyVoiceResult}>
-                            Use this note
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={handleDiscardVoice}
-                          >
-                            Discard
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </motion.div>
-                  <motion.div
-                    className={styles.fieldGroup}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.16,
-                    }}
-                  >
-                    <span className={styles.fieldLabel}>Reflection</span>
-                    <Textarea
-                      value={createBody}
-                      onChange={(event) => setCreateBody(event.target.value)}
-                      placeholder="Write your insights, prayers, and observations..."
-                      className={styles.textarea}
-                    />
-                    <p className={styles.dialogHint}>
-                      Focus on what stood out, why it matters, and how
-                      you&apos;ll respond.
-                    </p>
-                  </motion.div>
-                  {createError ? (
-                    <motion.p
-                      className={styles.errorMessage}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                    >
-                      {createError}
-                    </motion.p>
-                  ) : null}
-                  <motion.div
-                    className={styles.saveButtonWrap}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
-                  >
-                    <Button
-                      className={styles.saveButton}
-                      onClick={handleCreateNote}
-                      disabled={isSavingCreate || isVoiceBusy}
-                    >
-                      {isSavingCreate ? (
-                        <Loader2 className={styles.spinner} />
-                      ) : null}
-                      Save Note
-                    </Button>
-                    <p className={styles.dialogTip}>
-                      Tip: tag key verses so your notes surface alongside memory
-                      reviews.
-                    </p>
-                  </motion.div>
-                </div>
-              </ModalBody>
-            </ModalContent>
-          </Modal>
+          <div className={styles.headerActions}>
+            <Button
+              size="lg"
+              variant="outline"
+              disabled={books.length === 0}
+              onClick={() => setIsAudioNoteOpen(true)}
+            >
+              🎙 Record Note
+            </Button>
+            <Button
+              size="lg"
+              className={styles.addButton}
+              disabled={books.length === 0}
+              onClick={() => setIsCreateOpen(true)}
+            >
+              <Plus className={styles.addButtonIcon} />
+              New Note
+            </Button>
+          </div>
         </div>
 
         <div className={styles.statsRow}>
@@ -1213,6 +630,253 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
           />
         </div>
       </div>
+
+      <Modal open={isAudioNoteOpen} onOpenChange={setIsAudioNoteOpen}>
+        <ModalContent size="lg">
+          <ModalHeader className="sr-only">
+            <ModalTitle>Record a voice note</ModalTitle>
+          </ModalHeader>
+          <ModalBody>
+            <AudioNotePanel
+              isOpen={isAudioNoteOpen}
+              books={books}
+              onClose={() => setIsAudioNoteOpen(false)}
+              onSubmit={handleVoiceNoteSubmit}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <ModalContent size="lg">
+          <ModalHeader className={styles.dialogHeader}>
+            <ModalTitle>Create Note</ModalTitle>
+            <ModalDescription className={styles.dialogDescription}>
+              Capture reflections, prayers, and applications as you study
+              Scripture.
+            </ModalDescription>
+          </ModalHeader>
+
+          <ModalBody>
+            <motion.div
+              className={styles.dialogHero}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <span className={styles.dialogHeroIcon}>
+                <Sparkles aria-hidden="true" />
+              </span>
+              <div>
+                <p className={styles.dialogHeroTitle}>
+                  Build a richer study archive
+                </p>
+                <p className={styles.dialogHeroSubtitle}>
+                  Anchor each insight to the passage you&apos;re exploring and
+                  watch themes emerge.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className={styles.dialogMetaRow}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
+            >
+              <div className={styles.dialogMetaTile}>
+                <NotebookPen
+                  className={styles.dialogMetaIcon}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className={styles.dialogMetaLabel}>Saved notes</p>
+                  <p className={styles.dialogMetaValue}>{noteCount}</p>
+                </div>
+              </div>
+              <div className={styles.dialogMetaTile}>
+                <BookOpen
+                  className={styles.dialogMetaIcon}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className={styles.dialogMetaLabel}>Linked verses</p>
+                  <p className={styles.dialogMetaValue}>
+                    {noteCount === 0 ? "—" : `${verseLinkedPercent}%`}
+                  </p>
+                </div>
+              </div>
+              <div className={styles.dialogMetaTile}>
+                <Calendar
+                  className={styles.dialogMetaIcon}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className={styles.dialogMetaLabel}>Last updated</p>
+                  <p className={styles.dialogMetaValue}>{latestNoteLabel}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            <div className={styles.dialogDivider} />
+
+            <div className={styles.formStack}>
+              <motion.div
+                className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
+              >
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>Book</span>
+                  <Select
+                    value={createBookId ?? undefined}
+                    onValueChange={(value) => {
+                      setCreateBookId(value);
+                      setCreateChapter("1");
+                      setCreateVerseStart("1");
+                      setCreateVerseEnd("1");
+                    }}
+                  >
+                    <SelectTrigger className={styles.selectTrigger}>
+                      <SelectValue placeholder="Select book" />
+                    </SelectTrigger>
+                    <SelectContent className={`${styles.selectContent} z-[9999]`}>
+                      {books.map((book) => (
+                        <SelectItem
+                          key={book.id}
+                          value={book.id}
+                          className={styles.selectItem}
+                        >
+                          {book.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className={styles.dialogHint}>
+                    {books.length > 0
+                      ? `${books.length} books available in ${
+                          translationCode?.toUpperCase() ?? "your library"
+                        }`
+                      : "Books will appear once a translation is loaded."}
+                  </p>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>Chapter</span>
+                  <Select
+                    value={createChapter}
+                    onValueChange={(value) => {
+                      setCreateChapter(value);
+                      setCreateVerseStart("1");
+                      setCreateVerseEnd("1");
+                    }}
+                  >
+                    <SelectTrigger className={styles.selectTrigger}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={`${styles.selectContent} z-[9999]`}>
+                      {Array.from({ length: chapterOptions }, (_, index) => index + 1).map(
+                        (chapterNumber) => (
+                          <SelectItem
+                            key={chapterNumber}
+                            value={`${chapterNumber}`}
+                            className={styles.selectItem}
+                          >
+                            {chapterNumber}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className={styles.dialogHint}>
+                    {selectedBook
+                      ? `${selectedBook.chapters} chapters in ${selectedBook.name}`
+                      : "Pick a book to see chapter options."}
+                  </p>
+                </div>
+              </motion.div>
+              <motion.div
+                className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
+              >
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>Verse start</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={createVerseStart}
+                    onChange={(event) => setCreateVerseStart(event.target.value)}
+                    className={styles.input}
+                  />
+                  <p className={styles.dialogHint}>
+                    We&apos;ll fetch the verse text automatically.
+                  </p>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <span className={styles.fieldLabel}>Verse end</span>
+                  <Input
+                    type="number"
+                    min={createVerseStart}
+                    value={createVerseEnd}
+                    onChange={(event) => setCreateVerseEnd(event.target.value)}
+                    className={styles.input}
+                  />
+                  <p className={styles.dialogHint}>
+                    Use the same number to capture a single verse.
+                  </p>
+                </div>
+              </motion.div>
+              <motion.div
+                className={styles.fieldGroup}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
+              >
+                <span className={styles.fieldLabel}>Reflection</span>
+                <Textarea
+                  value={createBody}
+                  onChange={(event) => setCreateBody(event.target.value)}
+                  placeholder="Write your insights, prayers, and observations..."
+                  className={styles.textarea}
+                />
+                <p className={styles.dialogHint}>
+                  Focus on what stood out, why it matters, and how you&apos;ll respond.
+                </p>
+              </motion.div>
+              {createError ? (
+                <motion.p
+                  className={styles.errorMessage}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  {createError}
+                </motion.p>
+              ) : null}
+              <motion.div
+                className={styles.saveButtonWrap}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
+              >
+                <Button
+                  className={styles.saveButton}
+                  onClick={handleCreateNote}
+                  disabled={isSavingCreate}
+                >
+                  {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
+                  Save Note
+                </Button>
+                <p className={styles.dialogTip}>
+                  Tip: tag key verses so your notes surface alongside memory reviews.
+                </p>
+              </motion.div>
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
 
       <div className={styles.listArea}>
         {showLoadingState ? (
