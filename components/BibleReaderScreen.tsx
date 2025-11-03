@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -56,6 +56,7 @@ interface BibleReaderScreenProps {
 }
 
 const HIGHLIGHT_COLOR = "yellow" as const;
+const READER_STORAGE_KEY = "sword-reader-state";
 
 export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const {
@@ -116,18 +117,96 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const selectedBook = selectedBookId
     ? bookIndex.get(selectedBookId) ?? null
     : null;
+  const hasHydratedReaderState = useRef(false);
+  const hydratedReaderStateRef = useRef<{ bookId: string | null; chapter: number | null } | null>(null);
 
   useEffect(() => {
-    if (books.length === 0) {
-      setSelectedBookId(null);
+    if (hasHydratedReaderState.current) {
+      return;
+    }
+    if (typeof window === "undefined") {
       return;
     }
 
-    if (!selectedBookId || !bookIndex.has(selectedBookId)) {
-      setSelectedBookId(books[0]!.id);
-      setChapter(1);
+    try {
+      const raw = window.localStorage.getItem(READER_STORAGE_KEY);
+      if (!raw) {
+        hasHydratedReaderState.current = true;
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as {
+        bookId?: string | null;
+        chapter?: number;
+      } | null;
+
+      hydratedReaderStateRef.current = {
+        bookId: parsed?.bookId ?? null,
+        chapter:
+          parsed?.chapter && Number.isInteger(parsed.chapter) && parsed.chapter > 0
+            ? parsed.chapter
+            : null,
+      };
+
+      if (parsed?.bookId) {
+        setSelectedBookId(parsed.bookId);
+      }
+      if (hydratedReaderStateRef.current?.chapter) {
+        setChapter(hydratedReaderStateRef.current.chapter);
+      }
+    } catch (error) {
+      console.warn("Failed to restore reader state from storage", error);
+    } finally {
+      hasHydratedReaderState.current = true;
     }
-  }, [books, selectedBookId, bookIndex]);
+  }, []);
+
+  useEffect(() => {
+    if (books.length === 0) {
+      return;
+    }
+
+    const hydrated = hydratedReaderStateRef.current;
+
+    if (hydrated?.bookId && bookIndex.has(hydrated.bookId)) {
+      if (selectedBookId !== hydrated.bookId) {
+        setSelectedBookId(hydrated.bookId);
+        return;
+      }
+
+      const target = hydrated.chapter;
+      const book = bookIndex.get(hydrated.bookId);
+      if (target && book) {
+        if (target >= 1 && target <= book.chapters) {
+          if (chapter !== target) {
+            setChapter(target);
+            return;
+          }
+        } else if (chapter < 1 || chapter > book.chapters) {
+          setChapter(1);
+          hydratedReaderStateRef.current = null;
+          return;
+        }
+      }
+
+      hydratedReaderStateRef.current = null;
+      return;
+    }
+
+    if (hydrated && hydrated.bookId && !bookIndex.has(hydrated.bookId)) {
+      hydratedReaderStateRef.current = null;
+    }
+
+    if (!selectedBookId || !bookIndex.has(selectedBookId)) {
+      const firstBook = books[0]!;
+      if (selectedBookId !== firstBook.id) {
+        setSelectedBookId(firstBook.id);
+        setChapter(1);
+      } else if (chapter !== 1) {
+        setChapter(1);
+      }
+    }
+  }, [books, selectedBookId, bookIndex, chapter]);
 
   useEffect(() => {
     const loadChapter = async () => {
@@ -420,6 +499,23 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const translationLabel = translationCode
     ? translationsByCode.get(translationCode)?.name ?? translationCode
     : "Select translation";
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (!selectedBookId) {
+      window.localStorage.removeItem(READER_STORAGE_KEY);
+      return;
+    }
+
+    const payload = JSON.stringify({
+      bookId: selectedBookId,
+      chapter,
+    });
+
+    window.localStorage.setItem(READER_STORAGE_KEY, payload);
+  }, [selectedBookId, chapter]);
 
   return (
     <div className={styles.readerPage}>

@@ -9,6 +9,12 @@
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --radius: 0.75rem;
+  --nav-control-height: 56px;
+  --nav-control-padding-y: 8px;
+  --nav-control-font-size: 12px;
+  --nav-control-label-font-size: 11px;
+  --nav-control-icon-size: 20px;
+  --nav-control-gap: 4px;
 }
 
 :root,
@@ -196,6 +202,15 @@
   --sidebar-accent-foreground: #831843;
   --sidebar-border: rgba(131, 24, 67, 0.1);
   --sidebar-ring: rgba(244, 114, 182, 0.3);
+}
+
+@media (max-width: 520px) {
+  :root {
+    --nav-control-height: 52px;
+    --nav-control-padding-y: 6px;
+    --nav-control-font-size: 11px;
+    --nav-control-label-font-size: 11px;
+  }
 }
 
 :root,

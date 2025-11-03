@@ -27,6 +27,7 @@ const buttonVariants = cva(
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9 rounded-md",
+        nav: "h-auto min-h-[var(--nav-control-height)] rounded-md px-0 py-[var(--nav-control-padding-y)] gap-[var(--nav-control-gap)]",
       },
     },
     defaultVariants: {

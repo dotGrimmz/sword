@@ -32,7 +32,7 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
               <Button
                 key={item.id}
                 variant="ghost"
-                size="sm"
+                size="nav"
                 onClick={() => onNavigate(item.id)}
                 className={cn(styles.navButton, isActive && styles.navButtonActive)}
               >

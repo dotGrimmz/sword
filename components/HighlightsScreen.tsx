@@ -56,6 +56,7 @@ type HighlightViewModel = {
 };
 
 const availableFilterColors = ["blue", "yellow", "green", "pink", "purple"] as const;
+const HIGHLIGHTS_STORAGE_KEY = "sword-highlights-preferences";
 
 const cardColorClasses: Record<string, string> = {
   blue: styles.highlightCardBlue,
@@ -165,6 +166,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
   const verseTextsRef = useRef(verseTexts);
   const pendingPassages = useRef(new Set<string>());
+  const hasHydratedPreferences = useRef(false);
 
   useEffect(() => {
     verseTextsRef.current = verseTexts;
@@ -197,6 +199,51 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   }, [loadHighlights]);
 
   useEffect(() => {
+    if (hasHydratedPreferences.current) {
+      return;
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+      if (!raw) {
+        hasHydratedPreferences.current = true;
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as {
+        searchQuery?: string;
+        selectedColor?: string;
+        tabValue?: string;
+      } | null;
+
+      if (typeof parsed?.searchQuery === "string") {
+        setSearchQuery(parsed.searchQuery);
+      }
+
+      if (
+        parsed?.selectedColor &&
+        (parsed.selectedColor === "all" ||
+          availableFilterColors.includes(
+            parsed.selectedColor as (typeof availableFilterColors)[number],
+          ))
+      ) {
+        setSelectedColor(parsed.selectedColor);
+      }
+
+      if (parsed?.tabValue && ["timeline", "books"].includes(parsed.tabValue)) {
+        setTabValue(parsed.tabValue);
+      }
+    } catch (error) {
+      console.warn("Failed to restore highlight preferences", error);
+    } finally {
+      hasHydratedPreferences.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -215,6 +262,23 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
       window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
     };
   }, [loadHighlights]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (!hasHydratedPreferences.current) {
+      return;
+    }
+
+    const payload = JSON.stringify({
+      searchQuery,
+      selectedColor,
+      tabValue,
+    });
+
+    window.localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, payload);
+  }, [searchQuery, selectedColor, tabValue]);
 
   useEffect(() => {
     if (!translationCode) {
