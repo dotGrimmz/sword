@@ -600,9 +600,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
           <div className={styles.navControls}>
             <Button
               variant="ghost"
-              size="sm"
+              size="nav"
               onClick={goToPrevious}
               disabled={!selectedBook}
+              className={styles.navControlButton}
             >
               <ChevronLeft
                 className={clsx(styles.navIcon, styles.navIconLeft)}
@@ -611,9 +612,10 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             </Button>
             <Button
               variant="ghost"
-              size="sm"
+              size="nav"
               onClick={goToNext}
               disabled={!selectedBook}
+              className={styles.navControlButton}
             >
               Next{" "}
               <ChevronRight
@@ -622,8 +624,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             </Button>
             <Button
               variant="ghost"
-              size="sm"
+              size="nav"
               onClick={() => handleNavigate("settings")}
+              className={clsx(styles.navControlButton, styles.navControlButtonIconOnly)}
             >
               <Settings className={styles.navIcon} />
             </Button>
@@ -767,6 +770,41 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             </p>
           </CardContent>
         </Card>
+
+        <div className={clsx(styles.navControls, styles.navControlsBottom)}>
+          <Button
+            variant="ghost"
+            size="nav"
+            onClick={goToPrevious}
+            disabled={!selectedBook}
+            className={styles.navControlButton}
+          >
+            <ChevronLeft
+              className={clsx(styles.navIcon, styles.navIconLeft)}
+            />{" "}
+            Previous
+          </Button>
+          <Button
+            variant="ghost"
+            size="nav"
+            onClick={goToNext}
+            disabled={!selectedBook}
+            className={styles.navControlButton}
+          >
+            Next{" "}
+            <ChevronRight
+              className={clsx(styles.navIcon, styles.navIconRight)}
+            />
+          </Button>
+          <Button
+            variant="ghost"
+            size="nav"
+            onClick={() => handleNavigate("settings")}
+            className={clsx(styles.navControlButton, styles.navControlButtonIconOnly)}
+          >
+            <Settings className={styles.navIcon} />
+          </Button>
+        </div>
       </div>
 
       <Modal open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
