@@ -35,7 +35,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 56px;
+  min-height: 56px;
+  width: 100%;
+  padding: 8px 0;
   gap: 4px;
   position: relative;
   color: hsla(var(--muted-foreground), 1);
@@ -86,7 +88,8 @@
   }
 
   .navButton {
-    height: 52px;
+    min-height: 52px;
+    padding: 6px 0;
     font-size: 11px;
   }
 }
