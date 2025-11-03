@@ -26,7 +26,9 @@ function ModalOverlay({ className, ...props }: ModalOverlayProps) {
 
 type ModalSize = "sm" | "md" | "lg";
 
-type ModalContentProps = React.ComponentProps<typeof DialogPrimitive.Content> & {
+type ModalContentProps = React.ComponentProps<
+  typeof DialogPrimitive.Content
+> & {
   size?: ModalSize;
 };
 
@@ -59,7 +61,11 @@ interface ModalHeaderProps extends React.ComponentProps<"div"> {
   align?: "left" | "center";
 }
 
-function ModalHeader({ className, align = "left", ...props }: ModalHeaderProps) {
+function ModalHeader({
+  className,
+  align = "left",
+  ...props
+}: ModalHeaderProps) {
   return (
     <div
       data-slot="modal-header"
@@ -89,7 +95,11 @@ interface ModalFooterProps extends React.ComponentProps<"div"> {
   direction?: "row" | "column";
 }
 
-function ModalFooter({ className, direction = "column", ...props }: ModalFooterProps) {
+function ModalFooter({
+  className,
+  direction = "column",
+  ...props
+}: ModalFooterProps) {
   return (
     <div
       data-slot="modal-footer"

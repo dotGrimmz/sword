@@ -73,20 +73,29 @@ const toTagArray = (value: string) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-const mapTopic = (topic: any): AdminTopic => ({
+const mapTopic = (topic: {
+  id: any;
+  title: any;
+  objection: any;
+  claim: any;
+  summary: any;
+  difficulty: any;
+  est_minutes: number | null;
+  tags: string | any[];
+  updated_at: any;
+}): AdminTopic => ({
   id: topic.id,
   title: topic.title ?? "",
   objection: topic.objection ?? "",
   claim: topic.claim ?? "",
   summary: topic.summary ?? "",
   difficulty: topic.difficulty ?? "intro",
-  est_minutes:
-    typeof topic.est_minutes === "number" ? topic.est_minutes : null,
+  est_minutes: typeof topic.est_minutes === "number" ? topic.est_minutes : null,
   tags: Array.isArray(topic.tags)
     ? topic.tags.filter(Boolean)
     : typeof topic.tags === "string"
-      ? toTagArray(topic.tags)
-      : [],
+    ? toTagArray(topic.tags)
+    : [],
   updated_at: topic.updated_at ?? null,
 });
 
@@ -95,15 +104,14 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
-  const [formState, setFormState] =
-    useState<TopicFormState>(defaultFormState);
+  const [formState, setFormState] = useState<TopicFormState>(defaultFormState);
 
   const sortedTopics = useMemo(
     () =>
       [...topics].sort((a, b) =>
-        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
+        a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
       ),
-    [topics],
+    [topics]
   );
 
   const openCreate = () => {
@@ -134,7 +142,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
   };
 
   const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -180,7 +188,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        },
+        }
       );
 
       const data = await response.json();
@@ -194,14 +202,14 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
       setTopics((prev) => {
         if (editingTopicId) {
           return prev.map((topic) =>
-            topic.id === editingTopicId ? mapped : topic,
+            topic.id === editingTopicId ? mapped : topic
           );
         }
         return [mapped, ...prev];
       });
 
       toast.success(
-        editingTopicId ? "Topic updated successfully." : "Topic created.",
+        editingTopicId ? "Topic updated successfully." : "Topic created."
       );
       resetModal();
     } catch (error) {
@@ -214,7 +222,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
 
   const handleDelete = async (topic: AdminTopic) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete “${topic.title}”?`,
+      `Are you sure you want to delete “${topic.title}”?`
     );
     if (!confirmed) return;
 
@@ -464,7 +472,7 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                     disabled={isSaving}
                     className={cn(
                       styles.modalButton,
-                      isSaving ? styles.busy : undefined,
+                      isSaving ? styles.busy : undefined
                     )}
                   >
                     {isSaving
@@ -472,8 +480,8 @@ export default function TopicsManager({ initialTopics }: TopicsManagerProps) {
                         ? "Saving…"
                         : "Creating…"
                       : editingTopicId
-                        ? "Save Changes"
-                        : "Create Topic"}
+                      ? "Save Changes"
+                      : "Create Topic"}
                   </Button>
                 </div>
               </div>

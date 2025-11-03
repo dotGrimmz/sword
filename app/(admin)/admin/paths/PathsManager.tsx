@@ -70,19 +70,27 @@ const toTagArray = (value: string) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-const mapPath = (path: any): AdminPath => ({
+const mapPath = (path: {
+  id: any;
+  title: any;
+  subtitle: any;
+  description: any;
+  difficulty: any;
+  est_minutes: number | null;
+  tags: string | any[];
+  updated_at: any;
+}): AdminPath => ({
   id: path.id,
   title: path.title ?? "",
   subtitle: path.subtitle ?? "",
   description: path.description ?? "",
   difficulty: path.difficulty ?? "intro",
-  est_minutes:
-    typeof path.est_minutes === "number" ? path.est_minutes : null,
+  est_minutes: typeof path.est_minutes === "number" ? path.est_minutes : null,
   tags: Array.isArray(path.tags)
     ? path.tags.filter(Boolean)
     : typeof path.tags === "string"
-      ? toTagArray(path.tags)
-      : [],
+    ? toTagArray(path.tags)
+    : [],
   updated_at: path.updated_at ?? null,
 });
 
@@ -91,15 +99,14 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingPathId, setEditingPathId] = useState<string | null>(null);
-  const [formState, setFormState] =
-    useState<PathFormState>(defaultFormState);
+  const [formState, setFormState] = useState<PathFormState>(defaultFormState);
 
   const sortedPaths = useMemo(
     () =>
       [...paths].sort((a, b) =>
-        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
+        a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
       ),
-    [paths],
+    [paths]
   );
 
   const openCreate = () => {
@@ -129,7 +136,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
   };
 
   const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -174,7 +181,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
-        },
+        }
       );
 
       const data = await response.json();
@@ -188,14 +195,14 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
       setPaths((prev) => {
         if (editingPathId) {
           return prev.map((path) =>
-            path.id === editingPathId ? mapped : path,
+            path.id === editingPathId ? mapped : path
           );
         }
         return [mapped, ...prev];
       });
 
       toast.success(
-        editingPathId ? "Path updated successfully." : "Path created.",
+        editingPathId ? "Path updated successfully." : "Path created."
       );
       resetModal();
     } catch (error) {
@@ -208,7 +215,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
 
   const handleDelete = async (path: AdminPath) => {
     const confirmed = window.confirm(
-      `Delete the learning path “${path.title}”?`,
+      `Delete the learning path “${path.title}”?`
     );
     if (!confirmed) return;
 
@@ -446,7 +453,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
                   disabled={isSaving}
                   className={cn(
                     styles.modalButton,
-                    isSaving ? styles.busy : undefined,
+                    isSaving ? styles.busy : undefined
                   )}
                 >
                   {isSaving
@@ -454,8 +461,8 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
                       ? "Saving…"
                       : "Creating…"
                     : editingPathId
-                      ? "Save Changes"
-                      : "Create Path"}
+                    ? "Save Changes"
+                    : "Create Path"}
                 </Button>
               </div>
             </form>
