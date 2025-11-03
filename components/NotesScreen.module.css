@@ -426,6 +426,100 @@
   gap: 8px;
 }
 
+.voiceSection {
+  background: color-mix(in oklab, var(--surface) 65%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  border-radius: 14px;
+  padding: 14px;
+  gap: 12px;
+}
+
+.voiceButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.55rem 1.05rem;
+  font-size: 0.9rem;
+  border-radius: calc(var(--radius) - 0.2rem);
+}
+
+.voiceControlRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.voiceTimer {
+  font-size: 0.82rem;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.voiceStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+}
+
+.voicePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+}
+
+.voicePreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voicePreviewTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.voiceAudio {
+  width: 100%;
+}
+
+.voiceDetails {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.voiceDetails dt {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
+}
+
+.voiceDetails dd {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--foreground);
+}
+
+.voiceActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .fieldLabel {
   font-size: 0.75rem;
   font-weight: 500;

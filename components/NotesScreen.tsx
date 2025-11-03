@@ -8,8 +8,10 @@ import {
   Calendar,
   Edit,
   Loader2,
+  Mic,
   Plus,
   Search,
+  Square,
   Trash2,
   BookOpen,
   Sparkles,
@@ -52,6 +54,7 @@ import {
   getUserNotes,
   updateUserNote,
 } from "@/lib/api/notes";
+import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserNote } from "@/types/user";
 import { NOTES_UPDATED_EVENT, dispatchNotesUpdated } from "@/lib/events";
@@ -68,6 +71,19 @@ type DerivedNote = {
   referenceLabel: string | null;
   verseText: string | null;
   dateLabel: string | null;
+};
+
+type ParsedVoiceReference = {
+  book: string;
+  chapter: number;
+  verseStart: number | null;
+  verseEnd: number | null;
+};
+
+type ParsedVoiceNote = {
+  reference: ParsedVoiceReference | null;
+  bodyText: string;
+  transcript: string;
 };
 
 const formatDate = (iso: string | null) => {
@@ -117,6 +133,23 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const [createError, setCreateError] = useState<string | null>(null);
   const [isSavingCreate, setIsSavingCreate] = useState(false);
 
+  const {
+    status: recorderStatus,
+    error: recorderError,
+    audioBlob,
+    audioUrl,
+    durationLabel,
+    startRecording,
+    stopRecording,
+    resetRecorder,
+  } = useAudioRecorder();
+
+  const [isTranscribingVoice, setIsTranscribingVoice] = useState(false);
+  const [voiceTranscription, setVoiceTranscription] =
+    useState<ParsedVoiceNote | null>(null);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [shouldProcessRecording, setShouldProcessRecording] = useState(false);
+
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
   const [editBody, setEditBody] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
@@ -138,6 +171,32 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     return index;
   }, [books]);
 
+  const bookNameLookup = useMemo(() => {
+    const index = new Map<string, BibleBookSummary>();
+    const normalise = (value: string | null | undefined) =>
+      value
+        ? value
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/gi, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+        : null;
+
+    for (const book of books) {
+      const nameKey = normalise(book.name);
+      if (nameKey) {
+        index.set(nameKey, book);
+      }
+
+      const abbrKey = normalise(book.abbreviation);
+      if (abbrKey) {
+        index.set(abbrKey, book);
+      }
+    }
+
+    return index;
+  }, [books]);
+
   const resetCreateForm = useCallback(() => {
     const firstBook = books[0]?.id ?? null;
     setCreateBookId(firstBook);
@@ -146,13 +205,215 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     setCreateVerseEnd("1");
     setCreateBody("");
     setCreateError(null);
-  }, [books]);
+    resetRecorder();
+    setVoiceTranscription(null);
+    setVoiceError(null);
+    setIsTranscribingVoice(false);
+    setShouldProcessRecording(false);
+  }, [books, resetRecorder]);
 
   useEffect(() => {
     if (isCreateOpen) {
       resetCreateForm();
+    } else {
+      resetRecorder();
+      setVoiceTranscription(null);
+      setVoiceError(null);
+      setIsTranscribingVoice(false);
+      setShouldProcessRecording(false);
     }
-  }, [isCreateOpen, resetCreateForm]);
+  }, [isCreateOpen, resetCreateForm, resetRecorder]);
+
+  const applyVoiceReference = useCallback(
+    (reference: ParsedVoiceReference | null) => {
+      if (!reference) {
+        return;
+      }
+
+      const normalise = (value: string) =>
+        value
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/gi, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+      const bookKey = normalise(reference.book);
+      const matchedBook = bookNameLookup.get(bookKey) ?? null;
+
+      if (matchedBook) {
+        setCreateBookId(matchedBook.id);
+      }
+
+      if (typeof reference.chapter === "number" && reference.chapter > 0) {
+        setCreateChapter(String(reference.chapter));
+      }
+
+      const startVerse =
+        typeof reference.verseStart === "number" && reference.verseStart > 0
+          ? reference.verseStart
+          : typeof reference.verseEnd === "number" && reference.verseEnd > 0
+          ? reference.verseEnd
+          : null;
+
+      if (startVerse !== null) {
+        setCreateVerseStart(String(startVerse));
+      }
+
+      const endVerse =
+        typeof reference.verseEnd === "number" && reference.verseEnd > 0
+          ? reference.verseEnd
+          : startVerse;
+
+      if (endVerse !== null) {
+        setCreateVerseEnd(String(endVerse));
+      }
+    },
+    [bookNameLookup]
+  );
+
+  const buildVoiceReferenceLabel = useCallback(
+    (reference: ParsedVoiceReference | null) => {
+      if (!reference) {
+        return "Not detected";
+      }
+
+      const start =
+        typeof reference.verseStart === "number" && reference.verseStart > 0
+          ? reference.verseStart
+          : typeof reference.verseEnd === "number" && reference.verseEnd > 0
+          ? reference.verseEnd
+          : null;
+
+      const end =
+        typeof reference.verseEnd === "number" && reference.verseEnd > 0
+          ? reference.verseEnd
+          : start;
+
+      const verseSegment = start
+        ? `:${start}${end && end !== start ? `-${end}` : ""}`
+        : "";
+
+      return `${reference.book} ${reference.chapter}${verseSegment}`;
+    },
+    []
+  );
+
+  const transcribeAudio = useCallback(async (blob: Blob) => {
+    setIsTranscribingVoice(true);
+    setVoiceError(null);
+    const toastId = toast.loading("Uploading voice note…");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", blob, "voice-note.webm");
+
+      const response = await fetch("/api/notes/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        const message = data.error ?? "Failed to transcribe voice note.";
+        throw new Error(message);
+      }
+
+      const data = (await response.json()) as {
+        reference?: ParsedVoiceReference | null;
+        bodyText?: string;
+        transcript?: string;
+      };
+
+      const referenceData = data.reference
+        ? {
+            book: data.reference.book,
+            chapter: Number(data.reference.chapter),
+            verseStart:
+              data.reference.verseStart !== undefined &&
+              data.reference.verseStart !== null
+                ? Number(data.reference.verseStart)
+                : null,
+            verseEnd:
+              data.reference.verseEnd !== undefined &&
+              data.reference.verseEnd !== null
+                ? Number(data.reference.verseEnd)
+                : null,
+          }
+        : null;
+
+      setVoiceTranscription({
+        reference: referenceData,
+        bodyText: (data.bodyText ?? data.transcript ?? "").trim(),
+        transcript: data.transcript ?? "",
+      });
+      toast.success("Transcription complete", { id: toastId });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to transcribe voice note.";
+      setVoiceError(message);
+      setVoiceTranscription(null);
+      toast.error(message, { id: toastId });
+    } finally {
+      setIsTranscribingVoice(false);
+    }
+  }, []);
+
+  const handleStartRecording = useCallback(async () => {
+    setVoiceError(null);
+    setVoiceTranscription(null);
+    resetRecorder();
+    const started = await startRecording();
+    if (started) {
+      toast("Recording started");
+    }
+  }, [resetRecorder, startRecording]);
+
+  const handleStopRecording = useCallback(() => {
+    const stopped = stopRecording();
+    if (stopped) {
+      toast("Recording stopped");
+      setShouldProcessRecording(true);
+    }
+  }, [stopRecording]);
+
+  const handleApplyVoiceResult = useCallback(() => {
+    if (!voiceTranscription) {
+      return;
+    }
+
+    const body = voiceTranscription.bodyText?.trim();
+    if (body && body.length > 0) {
+      setCreateBody(body);
+    }
+
+    applyVoiceReference(voiceTranscription.reference ?? null);
+    toast.success("Voice note applied to form");
+    setVoiceError(null);
+    setVoiceTranscription(null);
+    resetRecorder();
+  }, [applyVoiceReference, resetRecorder, voiceTranscription]);
+
+  const handleDiscardVoice = useCallback(() => {
+    setVoiceTranscription(null);
+    setVoiceError(null);
+    resetRecorder();
+    toast("Voice note discarded");
+  }, [resetRecorder]);
+
+  useEffect(() => {
+    if (shouldProcessRecording && audioBlob) {
+      void transcribeAudio(audioBlob);
+      setShouldProcessRecording(false);
+    }
+  }, [audioBlob, shouldProcessRecording, transcribeAudio]);
+
+  useEffect(() => {
+    if (recorderError) {
+      toast.error(recorderError);
+    }
+  }, [recorderError]);
 
   useEffect(() => {
     setCreateVerseEnd((current) => {
@@ -369,6 +630,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     }`;
     return `${savedLabel} • ${linkedLabel}`;
   }, [noteCount, verseLinkedCount]);
+
+  const isVoiceBusy = recorderStatus === "recording" || isTranscribingVoice;
 
   const statsCards = useMemo(
     () => [
@@ -762,6 +1025,106 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     </div>
                   </motion.div>
                   <motion.div
+                    className={`${styles.fieldGroup} ${styles.voiceSection}`}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.28,
+                      ease: "easeOut",
+                      delay: 0.14,
+                    }}
+                  >
+                    <span className={styles.fieldLabel}>Voice capture</span>
+                    <div className={styles.voiceControlRow}>
+                      {recorderStatus === "recording" ? (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={handleStopRecording}
+                          className={styles.voiceButton}
+                        >
+                          <Square className={styles.addButtonIcon} />
+                          Stop recording
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleStartRecording}
+                          disabled={isTranscribingVoice}
+                          className={styles.voiceButton}
+                        >
+                          <Mic className={styles.addButtonIcon} />
+                          🎙 Record Note
+                        </Button>
+                      )}
+                      {recorderStatus === "recording" ? (
+                        <span className={styles.voiceTimer}>{durationLabel}</span>
+                      ) : null}
+                    </div>
+
+                    {isTranscribingVoice ? (
+                      <div className={styles.voiceStatus}>
+                        <Loader2 className={styles.spinner} />
+                        Transcribing audio…
+                      </div>
+                    ) : null}
+
+                    {recorderError ? (
+                      <p className={styles.errorMessage}>{recorderError}</p>
+                    ) : null}
+                    {voiceError ? (
+                      <p className={styles.errorMessage}>{voiceError}</p>
+                    ) : null}
+
+                    {voiceTranscription ? (
+                      <div className={styles.voicePreview}>
+                        <div className={styles.voicePreviewHeader}>
+                          <h4 className={styles.voicePreviewTitle}>
+                            Transcription preview
+                          </h4>
+                          {audioUrl ? (
+                            <audio
+                              className={styles.voiceAudio}
+                              controls
+                              src={audioUrl}
+                            />
+                          ) : null}
+                        </div>
+                        <dl className={styles.voiceDetails}>
+                          <div>
+                            <dt>Detected reference</dt>
+                            <dd>
+                              {buildVoiceReferenceLabel(
+                                voiceTranscription.reference ?? null
+                              )}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Suggested note</dt>
+                            <dd>{voiceTranscription.bodyText}</dd>
+                          </div>
+                          <div>
+                            <dt>Transcript</dt>
+                            <dd>{voiceTranscription.transcript}</dd>
+                          </div>
+                        </dl>
+                        <div className={styles.voiceActionRow}>
+                          <Button type="button" onClick={handleApplyVoiceResult}>
+                            Use this note
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleDiscardVoice}
+                          >
+                            Discard
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </motion.div>
+                  <motion.div
                     className={styles.fieldGroup}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -802,7 +1165,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     <Button
                       className={styles.saveButton}
                       onClick={handleCreateNote}
-                      disabled={isSavingCreate}
+                      disabled={isSavingCreate || isVoiceBusy}
                     >
                       {isSavingCreate ? (
                         <Loader2 className={styles.spinner} />
