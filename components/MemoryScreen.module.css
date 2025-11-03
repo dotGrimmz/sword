@@ -45,6 +45,11 @@
   background-color: var(--primary);
   color: var(--primary-foreground);
   transition: background-color 0.2s ease, transform 0.2s ease;
+  height: auto;
+  min-height: 48px;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.95rem;
+  border-radius: calc(var(--radius) - 0.15rem);
 }
 
 .addButton:disabled {
@@ -57,9 +62,9 @@
 }
 
 .addButtonIcon {
-  width: 16px;
-  height: 16px;
-  margin-right: 4px;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
 }
 
 .dialogHeader {

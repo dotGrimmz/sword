@@ -554,7 +554,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
           <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <ModalTrigger asChild>
               <Button
-                size="sm"
+                size="lg"
                 className={styles.addButton}
                 disabled={books.length === 0}
               >
