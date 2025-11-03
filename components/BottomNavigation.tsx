@@ -20,7 +20,6 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
     { id: "highlights", icon: Heart, label: "Highlights" },
     { id: "memory", icon: Brain, label: "Memory" },
     { id: "notes", icon: FileText, label: "Notes" },
-    { id: "apologetics", label: "Apologetics" },
   ];
 
   return (
