@@ -25,6 +25,14 @@
   gap: 16px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .headerTitle {
   margin: 0;
   font-size: 1.25rem;
@@ -65,6 +73,21 @@
   width: 18px;
   height: 18px;
   margin-right: 6px;
+}
+
+.reviewButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.95rem;
+  border-radius: calc(var(--radius) - 0.15rem);
+}
+
+.reviewButtonIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .dialogHeader {
@@ -264,6 +287,151 @@
   transform: translateY(-1px);
 }
 
+.reviewHeader {
+  gap: 4px;
+}
+
+.reviewDescription {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.reviewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reviewReference {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.reviewBook {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.reviewVerse {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--foreground);
+}
+
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reviewActionAgain {
+  border-color: color-mix(in oklab, var(--destructive) 60%, transparent);
+  color: var(--destructive);
+}
+
+.reviewActionAgain:hover {
+  background: color-mix(in oklab, var(--destructive) 12%, transparent);
+}
+
+.reviewActionGood {
+  min-width: 110px;
+}
+
+.reviewActionEasy {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  min-width: 110px;
+}
+
+.reviewActionEasy:hover {
+  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
+}
+
+.reviewActionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.reviewActionCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.reviewActionMeta {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.reviewLoading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.reviewLoadingSpinner {
+  width: 16px;
+  height: 16px;
+  animation: memoryScreenSpinner 1s linear infinite;
+}
+
+.reviewComplete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 28px 20px;
+  background: var(--surface-gradient);
+  border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  border-radius: 18px;
+}
+
+.reviewCompleteBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: radial-gradient(circle at 30% 20%, color-mix(in oklab, var(--primary) 32%, transparent) 0%, transparent 72%),
+    color-mix(in oklab, var(--card) 88%, transparent);
+  color: var(--primary);
+}
+
+.reviewCompleteTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.reviewCompleteCopy {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.reviewCompleteButton {
+  min-width: 120px;
+}
+
 .dialogTip {
   margin: 0;
   font-size: 0.75rem;
@@ -392,6 +560,7 @@
   border: 1px solid var(--border);
   border-color: color-mix(in oklab, var(--border) 40%, transparent);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+  padding: .5rem;
 }
 
 .verseCard:hover {

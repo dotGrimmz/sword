@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server";
 
-import { getAccessTokenFromRequest, unauthorizedResponse } from "@/lib/auth/context";
+import {
+  getAccessTokenFromRequest,
+  unauthorizedResponse,
+} from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
+import {
+  INITIAL_EASE,
+  INITIAL_INTERVAL_DAYS,
+  REVIEW_RATINGS,
+  calculateNextReview,
+  type ReviewRating,
+} from "@/lib/memory/scheduling";
 
 type MemoryVerseRow = Pick<
   Database["public"]["Tables"]["user_memory_verses"]["Row"],
   | "id"
+  | "user_id"
+  | "translation_id"
   | "book_id"
   | "chapter"
   | "verse_start"
   | "verse_end"
+  | "label"
+  | "tags"
   | "ease"
   | "interval_days"
   | "next_review_date"
@@ -19,19 +33,29 @@ type MemoryVerseRow = Pick<
   | "updated_at"
 >;
 
-const mapMemoryVerse = (row: MemoryVerseRow) => ({
+const selectColumns =
+  "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, label, tags, ease, interval_days, next_review_date, created_at, updated_at" as const;
+const legacySelectColumns =
+  "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, ease, interval_days, next_review_date, created_at, updated_at" as const;
+
+type MemoryVerseSelectableRow = Omit<MemoryVerseRow, "label" | "tags"> & {
+  label?: string | null;
+  tags?: string[] | null;
+};
+
+const mapMemoryVerse = (row: MemoryVerseSelectableRow) => ({
   id: row.id,
   bookId: row.book_id,
   chapter: row.chapter,
   verseStart: row.verse_start,
   verseEnd: row.verse_end,
+  label: row.label ?? null,
+  tags: row.tags ?? null,
   ease: row.ease,
   intervalDays: row.interval_days,
   nextReviewDate: row.next_review_date,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
-  label: null as string | null,
-  tags: null as string[] | null,
 });
 
 type MemoryVersePayload = {
@@ -43,7 +67,9 @@ type MemoryVersePayload = {
   tags: string[] | null;
 };
 
-const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { error: string } => {
+const validatePayload = (
+  payload: unknown
+): { data: MemoryVersePayload } | { error: string } => {
   if (!payload || typeof payload !== "object") {
     return { error: "Payload must be an object" };
   }
@@ -61,12 +87,20 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
   }
 
   const parsedChapter = toOptionalInteger(source.chapter);
-  if (parsedChapter === undefined || parsedChapter === null || parsedChapter < 1) {
+  if (
+    parsedChapter === undefined ||
+    parsedChapter === null ||
+    parsedChapter < 1
+  ) {
     return { error: "chapter must be a positive integer" };
   }
 
   const parsedVerseStart = toOptionalInteger(source.verseStart);
-  if (parsedVerseStart === undefined || parsedVerseStart === null || parsedVerseStart < 1) {
+  if (
+    parsedVerseStart === undefined ||
+    parsedVerseStart === null ||
+    parsedVerseStart < 1
+  ) {
     return { error: "verseStart must be a positive integer" };
   }
 
@@ -76,7 +110,10 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
   if (!hasVerseEnd || parsedVerseEndValue === null) {
     parsedVerseEnd = parsedVerseStart;
   } else {
-    if (parsedVerseEndValue === undefined || parsedVerseEndValue < parsedVerseStart) {
+    if (
+      parsedVerseEndValue === undefined ||
+      parsedVerseEndValue < parsedVerseStart
+    ) {
       return { error: "verseEnd must be greater than or equal to verseStart" };
     }
     parsedVerseEnd = parsedVerseEndValue;
@@ -123,8 +160,23 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
   };
 };
 
-const selectColumns =
-  "id, book_id, chapter, verse_start, verse_end, ease, interval_days, next_review_date, created_at, updated_at" as const;
+const isMissingColumnError = (error: unknown) => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const candidate = error as { code?: string; message?: string };
+  if (candidate.code === "42703") {
+    return true;
+  }
+  if (
+    candidate.message &&
+    candidate.message.toLowerCase().includes("column") &&
+    candidate.message.toLowerCase().includes("does not exist")
+  ) {
+    return true;
+  }
+  return false;
+};
 
 export async function GET(request: Request) {
   const accessToken = getAccessTokenFromRequest(request);
@@ -150,14 +202,32 @@ export async function GET(request: Request) {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false, nullsFirst: false });
 
-  if (error) {
+  if (error && !isMissingColumnError(error)) {
     return NextResponse.json(
       { error: "Failed to load memory verses", message: error.message },
       { status: 500 }
     );
   }
 
-  const verses = (data ?? []).map(mapMemoryVerse);
+  if (!error) {
+    const verses = (data ?? []).map(mapMemoryVerse);
+    return NextResponse.json(verses);
+  }
+
+  const legacy = await supabase
+    .from("user_memory_verses")
+    .select(legacySelectColumns)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false, nullsFirst: false });
+
+  if (legacy.error) {
+    return NextResponse.json(
+      { error: "Failed to load memory verses", message: legacy.error.message },
+      { status: 500 }
+    );
+  }
+
+  const verses = (legacy.data ?? []).map(mapMemoryVerse);
 
   return NextResponse.json(verses);
 }
@@ -167,7 +237,10 @@ export async function POST(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Body must be valid JSON" },
+      { status: 400 }
+    );
   }
 
   const validation = validatePayload(payload);
@@ -197,31 +270,62 @@ export async function POST(request: Request) {
     .from("user_memory_verses")
     .insert({
       user_id: user.id,
+      translation_id: null,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse_start: validation.data.verseStart,
       verse_end: validation.data.verseEnd,
+      label: validation.data.label,
+      tags: validation.data.tags,
+      ease: INITIAL_EASE,
+      interval_days: INITIAL_INTERVAL_DAYS,
+      next_review_date: new Date(
+        Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString(),
     })
     .select(selectColumns)
     .single();
 
-  if (error || !data) {
+  if (!error && data) {
+    return NextResponse.json(mapMemoryVerse(data), { status: 201 });
+  }
+
+  if (!isMissingColumnError(error)) {
     return NextResponse.json(
       { error: "Failed to create memory verse", message: error?.message ?? "" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json(
-    {
-      ...mapMemoryVerse(data),
-      label: validation.data.label,
-      tags: validation.data.tags,
-    },
-    {
-      status: 201,
-    }
-  );
+  const fallback = await supabase
+    .from("user_memory_verses")
+    .insert({
+      user_id: user.id,
+      translation_id: null,
+      book_id: validation.data.bookId,
+      chapter: validation.data.chapter,
+      verse_start: validation.data.verseStart,
+      verse_end: validation.data.verseEnd,
+      ease: INITIAL_EASE,
+      interval_days: INITIAL_INTERVAL_DAYS,
+      next_review_date: new Date(
+        Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString(),
+    })
+    .select(legacySelectColumns)
+    .single();
+
+  if (fallback.error || !fallback.data) {
+    return NextResponse.json(
+      {
+        error: "Failed to create memory verse",
+        message: fallback.error?.message ?? "",
+      },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(mapMemoryVerse(fallback.data), { status: 201 });
 }
 
 export async function DELETE(request: Request) {
@@ -246,11 +350,17 @@ export async function DELETE(request: Request) {
   const id = url.searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json({ error: "Memory verse id is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Memory verse id is required" },
+      { status: 400 }
+    );
   }
 
   if (!isUuid(id)) {
-    return NextResponse.json({ error: "Memory verse id must be a UUID" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Memory verse id must be a UUID" },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabase
@@ -268,8 +378,171 @@ export async function DELETE(request: Request) {
   }
 
   if (!data || data.length === 0) {
-    return NextResponse.json({ error: "Memory verse not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Memory verse not found" },
+      { status: 404 }
+    );
   }
 
   return NextResponse.json({ success: true });
+}
+
+type ReviewPayload = {
+  id: string;
+  rating: ReviewRating;
+};
+
+const parseReviewPayload = (
+  payload: unknown
+): { data: ReviewPayload } | { error: string } => {
+  if (!payload || typeof payload !== "object") {
+    return { error: "Payload must be an object" };
+  }
+
+  const source = payload as Record<string, unknown>;
+
+  const rawId = source.id;
+  if (typeof rawId !== "string" || rawId.trim().length === 0) {
+    return { error: "id must be a non-empty string" };
+  }
+
+  const id = rawId.trim();
+  if (!isUuid(id)) {
+    return { error: "id must be a UUID" };
+  }
+
+  const rawRating = source.rating;
+  if (typeof rawRating !== "string") {
+    return { error: "rating must be provided" };
+  }
+
+  const rating = rawRating.toLowerCase() as ReviewRating;
+  if (!REVIEW_RATINGS.includes(rating)) {
+    return { error: "rating must be one of: again, good, easy" };
+  }
+
+  return { data: { id, rating } };
+};
+
+export async function PATCH(request: Request) {
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Body must be valid JSON" },
+      { status: 400 }
+    );
+  }
+
+  const validation = parseReviewPayload(payload);
+
+  if ("error" in validation) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const accessToken = getAccessTokenFromRequest(request);
+
+  if (!accessToken) {
+    return unauthorizedResponse();
+  }
+
+  const supabase = await createClient(accessToken);
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return unauthorizedResponse();
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("user_memory_verses")
+    .select(selectColumns)
+    .eq("id", validation.data.id)
+    .eq("user_id", user.id)
+    .single();
+
+  let current = existing;
+  let currentError = fetchError;
+
+  if (currentError && isMissingColumnError(currentError)) {
+    const legacyFetch = await supabase
+      .from("user_memory_verses")
+      .select(legacySelectColumns)
+      .eq("id", validation.data.id)
+      .eq("user_id", user.id)
+      .single();
+    current = legacyFetch.data;
+    currentError = legacyFetch.error;
+  }
+
+  if (currentError || !current) {
+    return NextResponse.json(
+      { error: "Memory verse not found" },
+      { status: 404 }
+    );
+  }
+
+  const schedule = calculateNextReview(
+    {
+      ease: current.ease,
+      intervalDays: current.interval_days,
+    },
+    validation.data.rating
+  );
+
+  const { data: updated, error: updateError } = await supabase
+    .from("user_memory_verses")
+    .update({
+      ease: schedule.ease,
+      interval_days: schedule.intervalDays,
+      next_review_date: schedule.nextReviewDate,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", validation.data.id)
+    .eq("user_id", user.id)
+    .select(selectColumns)
+    .single();
+
+  if (!updateError && updated) {
+    return NextResponse.json(mapMemoryVerse(updated));
+  }
+
+  if (!isMissingColumnError(updateError)) {
+    return NextResponse.json(
+      {
+        error: "Failed to update memory verse",
+        message: updateError?.message ?? "",
+      },
+      { status: 500 }
+    );
+  }
+
+  const fallback = await supabase
+    .from("user_memory_verses")
+    .update({
+      ease: schedule.ease,
+      interval_days: schedule.intervalDays,
+      next_review_date: schedule.nextReviewDate,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", validation.data.id)
+    .eq("user_id", user.id)
+    .select(legacySelectColumns)
+    .single();
+
+  if (fallback.error || !fallback.data) {
+    return NextResponse.json(
+      {
+        error: "Failed to update memory verse",
+        message: fallback.error?.message ?? "",
+      },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json(mapMemoryVerse(fallback.data));
 }

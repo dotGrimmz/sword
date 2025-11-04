@@ -14,6 +14,11 @@ export type CreateMemoryVerseInput = {
 export const getUserMemoryVerses = async () =>
   apiFetch<UserMemoryVerse[]>("/api/user/memory");
 
+export type ReviewMemoryVerseInput = {
+  id: string;
+  rating: "again" | "good" | "easy";
+};
+
 export const createUserMemoryVerse = async (payload: CreateMemoryVerseInput) =>
   apiFetch<UserMemoryVerse>("/api/user/memory", {
     method: "POST",
@@ -31,4 +36,13 @@ export const createUserMemoryVerse = async (payload: CreateMemoryVerseInput) =>
 export const deleteUserMemoryVerse = async (id: string) =>
   apiFetch<{ success: boolean }>(`/api/user/memory?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+
+export const reviewUserMemoryVerse = async (payload: ReviewMemoryVerseInput) =>
+  apiFetch<UserMemoryVerse>("/api/user/memory", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
   });

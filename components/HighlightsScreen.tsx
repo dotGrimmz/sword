@@ -41,6 +41,7 @@ import {
   dispatchHighlightsUpdated,
 } from "@/lib/events";
 import styles from "./HighlightsScreen.module.css";
+import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
 
 interface HighlightsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -159,8 +160,16 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState<string>("all");
-  const [highlights, setHighlights] = useState<UserHighlight[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const highlightsQuery = useDataQuery(
+    "user-highlights",
+    getUserHighlights,
+    { staleTime: 1000 * 60 * 5 },
+  );
+  const highlights = useMemo(
+    () => highlightsQuery.data ?? [],
+    [highlightsQuery.data],
+  );
+  const { setData: setHighlightsCache, refetch: refetchHighlights } = highlightsQuery;
   const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
   const [tabValue, setTabValue] = useState("timeline");
 
@@ -179,24 +188,6 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     }
     return index;
   }, [books]);
-
-  const loadHighlights = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getUserHighlights();
-      setHighlights(data);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load highlights";
-      toast.error(message);
-      setHighlights([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadHighlights();
-  }, [loadHighlights]);
 
   useEffect(() => {
     if (hasHydratedPreferences.current) {
@@ -254,14 +245,24 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
         return;
       }
 
-      void loadHighlights();
+      void refetchHighlights();
     };
 
     window.addEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
     return () => {
       window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
     };
-  }, [loadHighlights]);
+  }, [refetchHighlights]);
+
+  useEffect(() => {
+    if (highlightsQuery.isError && highlightsQuery.error) {
+      const message =
+        highlightsQuery.error instanceof Error
+          ? highlightsQuery.error.message
+          : "Failed to load highlights";
+      toast.error(message);
+    }
+  }, [highlightsQuery.error, highlightsQuery.isError]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -385,7 +386,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
   const handleDeleteHighlight = async (highlight: UserHighlight) => {
     const previous = highlights;
-    setHighlights((prev) => prev.filter((item) => item.id !== highlight.id));
+    setHighlightsCache((prev) => (prev ?? []).filter((item) => item.id !== highlight.id));
 
     try {
       await deleteUserHighlight(highlight.id);
@@ -394,15 +395,15 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to remove highlight";
       toast.error(message);
-      setHighlights(previous);
+      setHighlightsCache(() => previous);
     }
   };
 
   const handleReapplyColor = async (highlight: UserHighlight, color: string) => {
     // simple reapply via recreate highlight with new color
     const previous = highlights;
-    setHighlights((prev) =>
-      prev.map((item) => (item.id === highlight.id ? { ...item, color } : item))
+    setHighlightsCache((prev) =>
+      (prev ?? []).map((item) => (item.id === highlight.id ? { ...item, color } : item))
     );
 
     try {
@@ -414,12 +415,15 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
         verseEnd: highlight.verseEnd,
         color,
       });
-      setHighlights((prev) => [recreated, ...prev.filter((item) => item.id !== highlight.id)]);
+      setHighlightsCache((prev) => [
+        recreated,
+        ...((prev ?? []).filter((item) => item.id !== highlight.id)),
+      ]);
       dispatchHighlightsUpdated({ source: "highlights-screen" });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to update highlight";
       toast.error(message);
-      setHighlights(previous);
+      setHighlightsCache(() => previous);
     }
   };
 
@@ -512,7 +516,10 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     );
   };
 
-  const busy = isLoading || isLoadingTranslations || isLoadingBooks;
+  const busy =
+    isLoadingTranslations ||
+    isLoadingBooks ||
+    highlightsQuery.isLoading;
 
   return (
     <div className={styles.highlightsPage}>
