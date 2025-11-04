@@ -62,7 +62,7 @@ const clearTimeoutRef = (
   ref: MutableRefObject<ReturnType<typeof setTimeout> | null>
 ) => {
   if (ref.current !== null) {
-    window.clearTimeout(ref.current);
+    globalThis.clearTimeout(ref.current);
     ref.current = null;
   }
 };
@@ -211,7 +211,7 @@ export function AudioNotePanel({
     );
     reset();
     clearTimeoutRef(transitionTimeoutRef);
-    transitionTimeoutRef.current = window.setTimeout(() => {
+    transitionTimeoutRef.current = globalThis.setTimeout(() => {
       setStage("confirming-reference");
       transitionTimeoutRef.current = null;
     }, TRANSITION_DELAY_MS);
@@ -234,7 +234,7 @@ export function AudioNotePanel({
     toast.success("Transcription captured.");
     reset();
     clearTimeoutRef(transitionTimeoutRef);
-    transitionTimeoutRef.current = window.setTimeout(() => {
+    transitionTimeoutRef.current = globalThis.setTimeout(() => {
       setStage("confirming-note");
       transitionTimeoutRef.current = null;
     }, TRANSITION_DELAY_MS);
