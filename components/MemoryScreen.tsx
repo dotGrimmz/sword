@@ -13,6 +13,10 @@ import {
   Trash2,
   Sparkles,
   BookOpen,
+  Play,
+  RotateCcw,
+  ThumbsUp,
+  PartyPopper,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
@@ -47,7 +51,12 @@ import {
   createUserMemoryVerse,
   deleteUserMemoryVerse,
   getUserMemoryVerses,
+  reviewUserMemoryVerse,
 } from "@/lib/api/memory";
+import {
+  calculateNextReview,
+  type ReviewRating,
+} from "@/lib/memory/scheduling";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserMemoryVerse } from "@/types/user";
 import { MEMORY_UPDATED_EVENT, dispatchMemoryUpdated } from "@/lib/events";
@@ -81,20 +90,44 @@ const formatDate = (iso: string | null) => {
   }).format(date);
 };
 
+const formatIntervalLabel = (days: number | null | undefined) => {
+  if (days === null || days === undefined) {
+    return "Scheduled";
+  }
+
+  if (!Number.isFinite(days) || days <= 0) {
+    return "Later today";
+  }
+
+  if (days === 1) {
+    return "In 1 day";
+  }
+
+  if (days < 7) {
+    return `In ${days} days`;
+  }
+
+  const weeks = Math.round(days / 7);
+  if (weeks < 8) {
+    return `In ${weeks} week${weeks === 1 ? "" : "s"}`;
+  }
+
+  const months = Math.round(days / 30);
+  return `In ${months} month${months === 1 ? "" : "s"}`;
+};
+
 export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   void onNavigate;
 
   const { books, translationCode, isLoadingTranslations, isLoadingBooks } =
     useTranslationContext();
 
-  const memoryQuery = useDataQuery(
-    "user-memory-verses",
-    getUserMemoryVerses,
-    { staleTime: 1000 * 60 * 5 },
-  );
+  const memoryQuery = useDataQuery("user-memory-verses", getUserMemoryVerses, {
+    staleTime: 1000 * 60 * 5,
+  });
   const memoryVerses = useMemo(
     () => memoryQuery.data ?? [],
-    [memoryQuery.data],
+    [memoryQuery.data]
   );
   const { setData: setMemoryCache, refetch: refetchMemory } = memoryQuery;
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,6 +140,9 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const [createLabel, setCreateLabel] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [isSavingCreate, setIsSavingCreate] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  const [initialReviewCount, setInitialReviewCount] = useState(0);
 
   const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
   const verseTextsRef = useRef(verseTexts);
@@ -266,19 +302,116 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
     });
   }, [derivedVerses, searchQuery]);
 
-  const needsReviewCount = useMemo(() => {
+  const dueVerses = useMemo(() => {
     const today = new Date();
-    return memoryVerses.filter((verse) => {
-      if (!verse.nextReviewDate) {
-        return false;
-      }
-      const nextReview = new Date(verse.nextReviewDate);
-      if (Number.isNaN(nextReview.getTime())) {
-        return false;
-      }
-      return nextReview <= today;
-    }).length;
+    return memoryVerses
+      .filter((verse) => {
+        if (!verse.nextReviewDate) {
+          return true;
+        }
+        const nextReview = new Date(verse.nextReviewDate);
+        if (Number.isNaN(nextReview.getTime())) {
+          return true;
+        }
+        return nextReview <= today;
+      })
+      .sort((left, right) => {
+        const leftTime = left.nextReviewDate
+          ? new Date(left.nextReviewDate).getTime()
+          : 0;
+        const rightTime = right.nextReviewDate
+          ? new Date(right.nextReviewDate).getTime()
+          : 0;
+
+        const normalizedLeft = Number.isNaN(leftTime) ? 0 : leftTime;
+        const normalizedRight = Number.isNaN(rightTime) ? 0 : rightTime;
+
+        if (normalizedLeft !== normalizedRight) {
+          return normalizedLeft - normalizedRight;
+        }
+
+        const leftCreated = left.createdAt
+          ? new Date(left.createdAt).getTime()
+          : 0;
+        const rightCreated = right.createdAt
+          ? new Date(right.createdAt).getTime()
+          : 0;
+
+        return leftCreated - rightCreated;
+      });
   }, [memoryVerses]);
+
+  const needsReviewCount = dueVerses.length;
+
+  const activeReview = dueVerses.length > 0 ? dueVerses[0]! : null;
+  const activeReviewId = activeReview?.id ?? null;
+
+  const activeReviewViewModel = useMemo(() => {
+    if (!activeReviewId) {
+      return null;
+    }
+    return (
+      derivedVerses.find((verse) => verse.raw.id === activeReviewId) ?? null
+    );
+  }, [activeReviewId, derivedVerses]);
+
+  const reviewProgressTotal = initialReviewCount || dueVerses.length;
+  const reviewProgressCompleted = Math.max(
+    0,
+    reviewProgressTotal - dueVerses.length
+  );
+  const activeReviewText = activeReviewViewModel?.verseText ?? "";
+  const activeReviewReference =
+    activeReviewViewModel?.referenceLabel ?? "Verse";
+  const activeReviewBook = activeReviewViewModel?.bookName ?? "";
+  const reviewProgressHeadline =
+    reviewProgressTotal > 0
+      ? `${reviewProgressCompleted} of ${reviewProgressTotal} completed`
+      : "Work through the verses due today.";
+  const reviewPreviews = useMemo(() => {
+    if (!activeReview) {
+      return null;
+    }
+    const input = {
+      ease: activeReview.ease,
+      intervalDays: activeReview.intervalDays,
+    };
+    return {
+      again: calculateNextReview(input, "again"),
+      good: calculateNextReview(input, "good"),
+      easy: calculateNextReview(input, "easy"),
+    };
+  }, [activeReview]);
+  const reviewPreviewLabels = useMemo(() => {
+    if (!reviewPreviews) {
+      return null;
+    }
+
+    return {
+      again: formatIntervalLabel(reviewPreviews.again.intervalDays),
+      good: formatIntervalLabel(reviewPreviews.good.intervalDays),
+      easy: formatIntervalLabel(reviewPreviews.easy.intervalDays),
+    };
+  }, [reviewPreviews]);
+
+  useEffect(() => {
+    if (!isReviewOpen) {
+      return;
+    }
+
+    setInitialReviewCount((current) => {
+      if (current === 0) {
+        return dueVerses.length;
+      }
+      return Math.max(current, dueVerses.length);
+    });
+  }, [isReviewOpen, dueVerses.length]);
+
+  useEffect(() => {
+    if (!isReviewOpen) {
+      setInitialReviewCount(0);
+    }
+  }, [isReviewOpen]);
 
   const averageInterval = useMemo(() => {
     if (memoryVerses.length === 0) {
@@ -348,7 +481,9 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
   const handleDelete = async (verse: UserMemoryVerse) => {
     const previous = memoryVerses;
-    setMemoryCache((prev) => (prev ?? []).filter((item) => item.id !== verse.id));
+    setMemoryCache((prev) =>
+      (prev ?? []).filter((item) => item.id !== verse.id)
+    );
     setVerseTexts((prev) => {
       const next = { ...prev };
       delete next[verse.id];
@@ -369,13 +504,72 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
     }
   };
 
+  const handleOpenReview = useCallback(() => {
+    if (dueVerses.length === 0) {
+      return;
+    }
+    setInitialReviewCount(dueVerses.length);
+    setIsReviewOpen(true);
+  }, [dueVerses.length]);
+
+  const handleReviewOpenChange = useCallback((open: boolean) => {
+    setIsReviewOpen(open);
+    if (!open) {
+      setIsReviewSubmitting(false);
+    }
+  }, []);
+
+  const handleReviewAction = useCallback(
+    async (rating: ReviewRating) => {
+      if (!activeReview) {
+        return;
+      }
+
+      setIsReviewSubmitting(true);
+      const remainingAfterCurrent = Math.max(0, dueVerses.length - 1);
+
+      try {
+        const updated = await reviewUserMemoryVerse({
+          id: activeReview.id,
+          rating,
+        });
+
+        setMemoryCache((prev) => {
+          if (!prev) {
+            return prev;
+          }
+          return prev.map((item) => (item.id === updated.id ? updated : item));
+        });
+
+        dispatchMemoryUpdated({ source: "memory-screen" });
+
+        if (remainingAfterCurrent <= 0) {
+          toast.success("You’re all caught up!");
+        } else {
+          const intervalLabel = formatIntervalLabel(updated.intervalDays);
+          const reference = activeReviewReference;
+          const message = reference
+            ? `${reference} — ${intervalLabel}`
+            : intervalLabel;
+          toast.success(message);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to update review schedule";
+        toast.error(message);
+      } finally {
+        setIsReviewSubmitting(false);
+      }
+    },
+    [activeReview, dueVerses.length, setMemoryCache, activeReviewReference]
+  );
+
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
   const chapterCount = selectedBook?.chapters ?? 1;
 
-  const busy =
-    isLoadingTranslations ||
-    isLoadingBooks ||
-    memoryQuery.isLoading;
+  const busy = isLoadingTranslations || isLoadingBooks || memoryQuery.isLoading;
 
   return (
     <div className={styles.screen}>
@@ -387,283 +581,406 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
               {memoryVerses.length} saved • {needsReviewCount} ready for review
             </p>
           </div>
-          <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <ModalTrigger asChild>
-              <Button
-                size="lg"
-                className={styles.addButton}
-                disabled={books.length === 0}
-              >
-                <Plus className={styles.addButtonIcon} /> Add Verse
-              </Button>
-            </ModalTrigger>
-            <ModalContent size="md">
-              <ModalHeader className={styles.dialogHeader}>
-                <ModalTitle>Add Memory Verse</ModalTitle>
-                <ModalDescription className={styles.dialogDescription}>
-                  Capture a passage and we&apos;ll schedule it into your review
-                  rhythm automatically.
-                </ModalDescription>
-              </ModalHeader>
-
-              <ModalBody>
-                <motion.div
-                  className={styles.dialogHero}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
+          <div className={styles.headerActions}>
+            <Button
+              size="lg"
+              variant="secondary"
+              className={styles.reviewButton}
+              disabled={dueVerses.length === 0}
+              onClick={handleOpenReview}
+            >
+              <Play className={styles.reviewButtonIcon} />
+              Review{" "}
+              {needsReviewCount > 0 ? `${needsReviewCount} due` : "verses"}
+            </Button>
+            <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <ModalTrigger asChild>
+                <Button
+                  size="lg"
+                  className={styles.addButton}
+                  disabled={books.length === 0}
                 >
-                  <span className={styles.dialogHeroIcon}>
-                    <Sparkles aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className={styles.dialogHeroTitle}>
-                      Build your verse library
-                    </p>
-                    <p className={styles.dialogHeroSubtitle}>
-                      Keep passages close at hand and let spaced repetition do
-                      the heavy lifting.
-                    </p>
-                  </div>
-                </motion.div>
+                  <Plus className={styles.addButtonIcon} /> Add Verse
+                </Button>
+              </ModalTrigger>
+              <ModalContent size="md">
+                <ModalHeader className={styles.dialogHeader}>
+                  <ModalTitle>Add Memory Verse</ModalTitle>
+                  <ModalDescription className={styles.dialogDescription}>
+                    Capture a passage and we&apos;ll schedule it into your
+                    review rhythm automatically.
+                  </ModalDescription>
+                </ModalHeader>
 
-                <motion.div
-                  className={styles.dialogMetaRow}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
-                >
-                  <div className={styles.dialogMetaTile}>
-                    <Brain
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>In rotation</p>
-                      <p className={styles.dialogMetaValue}>
-                        {memoryVerses.length} verses
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.dialogMetaTile}>
-                    <Calendar
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>Ready today</p>
-                      <p className={styles.dialogMetaValue}>
-                        {needsReviewCount} for review
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.dialogMetaTile}>
-                    <BookOpen
-                      className={styles.dialogMetaIcon}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className={styles.dialogMetaLabel}>Translation</p>
-                      <p className={styles.dialogMetaValue}>
-                        {translationCode?.toUpperCase() ?? "Choose one"}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                <div className={styles.dialogDivider} />
-
-                <div className={styles.formStack}>
+                <ModalBody>
                   <motion.div
-                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                    className={styles.dialogHero}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.08,
-                    }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                   >
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Book</span>
-                      <Select
-                        value={createBookId ?? undefined}
-                        onValueChange={(value) => {
-                          setCreateBookId(value);
-                          setCreateChapter("1");
-                          setCreateVerseStart("1");
-                          setCreateVerseEnd("1");
-                        }}
-                      >
-                        <SelectTrigger className={styles.selectTrigger}>
-                          <SelectValue placeholder="Select book" />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={`${styles.selectContent} z-[9999]`}
-                        >
-                          {books.map((book) => (
-                            <SelectItem
-                              key={book.id}
-                              value={book.id}
-                              className={styles.selectItem}
-                            >
-                              {book.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className={styles.dialogHint}>
-                        {books.length > 0
-                          ? `${books.length} books available in ${
-                              translationCode?.toUpperCase() ?? "your library"
-                            }`
-                          : "Books will appear once a translation is loaded."}
+                    <span className={styles.dialogHeroIcon}>
+                      <Sparkles aria-hidden="true" />
+                    </span>
+                    <div>
+                      <p className={styles.dialogHeroTitle}>
+                        Build your verse library
                       </p>
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Chapter</span>
-                      <Select
-                        value={createChapter}
-                        onValueChange={(value) => {
-                          setCreateChapter(value);
-                          setCreateVerseStart("1");
-                          setCreateVerseEnd("1");
-                        }}
-                      >
-                        <SelectTrigger className={styles.selectTrigger}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent
-                          className={`${styles.selectContent} z-[9999]`}
-                        >
-                          {Array.from(
-                            { length: chapterCount },
-                            (_, index) => index + 1
-                          ).map((chapterNumber) => (
-                            <SelectItem
-                              key={chapterNumber}
-                              value={`${chapterNumber}`}
-                              className={styles.selectItem}
-                            >
-                              {chapterNumber}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className={styles.dialogHint}>
-                        {selectedBook
-                          ? `${selectedBook.chapters} chapters total`
-                          : "Pick a book to see chapter options."}
+                      <p className={styles.dialogHeroSubtitle}>
+                        Keep passages close at hand and let spaced repetition do
+                        the heavy lifting.
                       </p>
                     </div>
                   </motion.div>
+
                   <motion.div
-                    className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                    initial={{ opacity: 0, y: 10 }}
+                    className={styles.dialogMetaRow}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.28,
                       ease: "easeOut",
-                      delay: 0.12,
+                      delay: 0.05,
                     }}
                   >
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Verse start</span>
+                    <div className={styles.dialogMetaTile}>
+                      <Brain
+                        className={styles.dialogMetaIcon}
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className={styles.dialogMetaLabel}>In rotation</p>
+                        <p className={styles.dialogMetaValue}>
+                          {memoryVerses.length} verses
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.dialogMetaTile}>
+                      <Calendar
+                        className={styles.dialogMetaIcon}
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className={styles.dialogMetaLabel}>Ready today</p>
+                        <p className={styles.dialogMetaValue}>
+                          {needsReviewCount} for review
+                        </p>
+                      </div>
+                    </div>
+                    <div className={styles.dialogMetaTile}>
+                      <BookOpen
+                        className={styles.dialogMetaIcon}
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className={styles.dialogMetaLabel}>Translation</p>
+                        <p className={styles.dialogMetaValue}>
+                          {translationCode?.toUpperCase() ?? "Choose one"}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <div className={styles.dialogDivider} />
+
+                  <div className={styles.formStack}>
+                    <motion.div
+                      className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.28,
+                        ease: "easeOut",
+                        delay: 0.08,
+                      }}
+                    >
+                      <div className={styles.fieldGroup}>
+                        <span className={styles.fieldLabel}>Book</span>
+                        <Select
+                          value={createBookId ?? undefined}
+                          onValueChange={(value) => {
+                            setCreateBookId(value);
+                            setCreateChapter("1");
+                            setCreateVerseStart("1");
+                            setCreateVerseEnd("1");
+                          }}
+                        >
+                          <SelectTrigger className={styles.selectTrigger}>
+                            <SelectValue placeholder="Select book" />
+                          </SelectTrigger>
+                          <SelectContent
+                            className={`${styles.selectContent} z-[9999]`}
+                          >
+                            {books.map((book) => (
+                              <SelectItem
+                                key={book.id}
+                                value={book.id}
+                                className={styles.selectItem}
+                              >
+                                {book.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className={styles.dialogHint}>
+                          {books.length > 0
+                            ? `${books.length} books available in ${
+                                translationCode?.toUpperCase() ?? "your library"
+                              }`
+                            : "Books will appear once a translation is loaded."}
+                        </p>
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <span className={styles.fieldLabel}>Chapter</span>
+                        <Select
+                          value={createChapter}
+                          onValueChange={(value) => {
+                            setCreateChapter(value);
+                            setCreateVerseStart("1");
+                            setCreateVerseEnd("1");
+                          }}
+                        >
+                          <SelectTrigger className={styles.selectTrigger}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent
+                            className={`${styles.selectContent} z-[9999]`}
+                          >
+                            {Array.from(
+                              { length: chapterCount },
+                              (_, index) => index + 1
+                            ).map((chapterNumber) => (
+                              <SelectItem
+                                key={chapterNumber}
+                                value={`${chapterNumber}`}
+                                className={styles.selectItem}
+                              >
+                                {chapterNumber}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className={styles.dialogHint}>
+                          {selectedBook
+                            ? `${selectedBook.chapters} chapters total`
+                            : "Pick a book to see chapter options."}
+                        </p>
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.28,
+                        ease: "easeOut",
+                        delay: 0.12,
+                      }}
+                    >
+                      <div className={styles.fieldGroup}>
+                        <span className={styles.fieldLabel}>Verse start</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={createVerseStart}
+                          onChange={(event) =>
+                            setCreateVerseStart(event.target.value)
+                          }
+                          className={styles.input}
+                        />
+                        <p className={styles.dialogHint}>
+                          We&apos;ll fetch the verse text automatically.
+                        </p>
+                      </div>
+                      <div className={styles.fieldGroup}>
+                        <span className={styles.fieldLabel}>Verse end</span>
+                        <Input
+                          type="number"
+                          min={createVerseStart}
+                          value={createVerseEnd}
+                          onChange={(event) =>
+                            setCreateVerseEnd(event.target.value)
+                          }
+                          className={styles.input}
+                        />
+                        <p className={styles.dialogHint}>
+                          Use the same number to capture a single verse.
+                        </p>
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      className={styles.fieldGroup}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.28,
+                        ease: "easeOut",
+                        delay: 0.16,
+                      }}
+                    >
+                      <span className={styles.fieldLabel}>
+                        Reflection label
+                      </span>
                       <Input
-                        type="number"
-                        min={1}
-                        value={createVerseStart}
-                        onChange={(event) =>
-                          setCreateVerseStart(event.target.value)
-                        }
+                        placeholder="Optional descriptor to help you find this later"
+                        value={createLabel}
+                        onChange={(event) => setCreateLabel(event.target.value)}
                         className={styles.input}
                       />
                       <p className={styles.dialogHint}>
-                        We&apos;ll fetch the verse text automatically.
+                        Try something memorable like “Daily strength” or “Peace
+                        in storms”.
                       </p>
-                    </div>
-                    <div className={styles.fieldGroup}>
-                      <span className={styles.fieldLabel}>Verse end</span>
-                      <Input
-                        type="number"
-                        min={createVerseStart}
-                        value={createVerseEnd}
-                        onChange={(event) =>
-                          setCreateVerseEnd(event.target.value)
-                        }
-                        className={styles.input}
-                      />
-                      <p className={styles.dialogHint}>
-                        Use the same number to capture a single verse.
-                      </p>
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    className={styles.fieldGroup}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.28,
-                      ease: "easeOut",
-                      delay: 0.16,
-                    }}
-                  >
-                    <span className={styles.fieldLabel}>Reflection label</span>
-                    <Input
-                      placeholder="Optional descriptor to help you find this later"
-                      value={createLabel}
-                      onChange={(event) => setCreateLabel(event.target.value)}
-                      className={styles.input}
-                    />
-                    <p className={styles.dialogHint}>
-                      Try something memorable like “Daily strength” or “Peace in
-                      storms”.
-                    </p>
-                  </motion.div>
-                  <motion.p
-                    className={styles.dialogHint}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                  >
-                    Verses are scheduled automatically using spaced repetition.
-                  </motion.p>
-                  {createError ? (
+                    </motion.div>
                     <motion.p
-                      className={styles.errorMessage}
+                      className={styles.dialogHint}
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
                     >
-                      {createError}
+                      Verses are scheduled automatically using spaced
+                      repetition.
                     </motion.p>
-                  ) : null}
-                  <motion.div
-                    className={styles.saveButtonWrap}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
-                  >
-                    <Button
-                      className={styles.saveButton}
-                      onClick={handleCreate}
-                      disabled={isSavingCreate}
+                    {createError ? (
+                      <motion.p
+                        className={styles.errorMessage}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                      >
+                        {createError}
+                      </motion.p>
+                    ) : null}
+                    <motion.div
+                      className={styles.saveButtonWrap}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.32,
+                        ease: "easeOut",
+                        delay: 0.2,
+                      }}
                     >
-                      {isSavingCreate ? (
-                        <Loader2 className={styles.spinner} />
-                      ) : null}
-                      Save Memory Verse
-                    </Button>
-                    <p className={styles.dialogTip}>
-                      Tip: add labels so you can theme verses around topics or
-                      seasons.
-                    </p>
-                  </motion.div>
-                </div>
-              </ModalBody>
-            </ModalContent>
-          </Modal>
+                      <Button
+                        className={styles.saveButton}
+                        onClick={handleCreate}
+                        disabled={isSavingCreate}
+                      >
+                        {isSavingCreate ? (
+                          <Loader2 className={styles.spinner} />
+                        ) : null}
+                        Save Memory Verse
+                      </Button>
+                      <p className={styles.dialogTip}>
+                        Tip: add labels so you can theme verses around topics or
+                        seasons.
+                      </p>
+                    </motion.div>
+                  </div>
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+          </div>
         </div>
+
+        <Modal open={isReviewOpen} onOpenChange={handleReviewOpenChange}>
+          <ModalContent size="lg">
+            <ModalHeader className={styles.reviewHeader}>
+              <ModalTitle>Daily Review</ModalTitle>
+              <ModalDescription className={styles.reviewDescription}>
+                {reviewProgressHeadline}
+              </ModalDescription>
+            </ModalHeader>
+            <ModalBody>
+              {activeReview ? (
+                <div className={styles.reviewContent}>
+                  <div className={styles.reviewMeta}>
+                    <span className={styles.reviewReference}>
+                      {activeReviewReference}
+                    </span>
+                    <span className={styles.reviewBook}>
+                      {activeReviewBook}
+                    </span>
+                  </div>
+                  <blockquote
+                    className={`${styles.reviewVerse} scripture-text`}
+                  >
+                    “{activeReviewText || "Verse text not available yet."}”
+                  </blockquote>
+                  <div className={styles.reviewActions}>
+                    <Button
+                      variant="outline"
+                      className={styles.reviewActionAgain}
+                      disabled={isReviewSubmitting}
+                      onClick={() => handleReviewAction("again")}
+                    >
+                      <RotateCcw className={styles.reviewActionIcon} />
+                      <div className={styles.reviewActionCopy}>
+                        <span>Again</span>
+                        <span className={styles.reviewActionMeta}>
+                          {reviewPreviewLabels?.again ?? "Reset for tomorrow"}
+                        </span>
+                      </div>
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className={styles.reviewActionGood}
+                      disabled={isReviewSubmitting}
+                      onClick={() => handleReviewAction("good")}
+                    >
+                      <ThumbsUp className={styles.reviewActionIcon} />
+                      <div className={styles.reviewActionCopy}>
+                        <span>Good</span>
+                        <span className={styles.reviewActionMeta}>
+                          {reviewPreviewLabels?.good ?? "Keeps rhythm steady"}
+                        </span>
+                      </div>
+                    </Button>
+                    <Button
+                      className={styles.reviewActionEasy}
+                      disabled={isReviewSubmitting}
+                      onClick={() => handleReviewAction("easy")}
+                    >
+                      <PartyPopper className={styles.reviewActionIcon} />
+                      <div className={styles.reviewActionCopy}>
+                        <span>Easy</span>
+                        <span className={styles.reviewActionMeta}>
+                          {reviewPreviewLabels?.easy ??
+                            "Pushes the interval out"}
+                        </span>
+                      </div>
+                    </Button>
+                  </div>
+                  {isReviewSubmitting ? (
+                    <div className={styles.reviewLoading}>
+                      <Loader2 className={styles.reviewLoadingSpinner} />
+                      <span>Updating schedule…</span>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={styles.reviewComplete}>
+                  <div className={styles.reviewCompleteBadge}>
+                    <Sparkles aria-hidden="true" />
+                  </div>
+                  <h3 className={styles.reviewCompleteTitle}>
+                    You&apos;re all caught up!
+                  </h3>
+                  <p className={styles.reviewCompleteCopy}>
+                    We&apos;ll surface your next review as soon as it&apos;s
+                    due.
+                  </p>
+                  <Button
+                    className={styles.reviewCompleteButton}
+                    onClick={() => handleReviewOpenChange(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
+            </ModalBody>
+          </ModalContent>
+        </Modal>
 
         <div className={styles.statsGrid}>
           <Card className={styles.statCard}>
