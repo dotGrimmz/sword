@@ -458,7 +458,7 @@ export async function PATCH(request: Request) {
     .eq("user_id", user.id)
     .single();
 
-  let current = existing;
+  let current: MemoryVerseRow | null = existing as MemoryVerseRow | null;
   let currentError = fetchError;
 
   if (currentError && isMissingColumnError(currentError)) {
@@ -468,7 +468,9 @@ export async function PATCH(request: Request) {
       .eq("id", validation.data.id)
       .eq("user_id", user.id)
       .single();
-    current = legacyFetch.data as MemoryVerseRow | null;
+    current = legacyFetch.data
+      ? { ...legacyFetch.data, label: null, tags: null }
+      : null;
     currentError = legacyFetch.error;
   }
 
