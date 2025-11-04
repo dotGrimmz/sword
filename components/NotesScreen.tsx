@@ -33,7 +33,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalTitle,
-  ModalTrigger,
 } from "./ui/modal";
 import { Input } from "./ui/input";
 import {
@@ -494,7 +493,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       });
       dispatchNotesUpdated({ source: "notes-screen" });
     },
-    [dispatchNotesUpdated, translationCode]
+    [translationCode]
   );
 
   const handleEdit = (note: UserNote) => {

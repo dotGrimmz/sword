@@ -23,8 +23,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
-const GITHUB_JSON_DIRECTORY =
-  "https://github.com/TehShrike/world-english-bible/tree/master/json";
 const RAW_GITHUB_JSON_BASE =
   "https://raw.githubusercontent.com/TehShrike/world-english-bible/master/json";
 

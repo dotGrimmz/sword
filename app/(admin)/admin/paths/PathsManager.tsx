@@ -227,7 +227,7 @@ export default function PathsManager({ initialPaths }: PathsManagerProps) {
         method: "DELETE",
       });
 
-      const data: { success: true } = await response.json();
+      const data: RawPathRecord & { error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Unable to delete path");
