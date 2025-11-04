@@ -468,7 +468,7 @@ export async function PATCH(request: Request) {
       .eq("id", validation.data.id)
       .eq("user_id", user.id)
       .single();
-    current = legacyFetch.data;
+    current = legacyFetch.data as MemoryVerseRow | null;
     currentError = legacyFetch.error;
   }
 
