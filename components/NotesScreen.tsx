@@ -55,6 +55,7 @@ import type { BibleBookSummary } from "@/types/bible";
 import type { UserNote } from "@/types/user";
 import { NOTES_UPDATED_EVENT, dispatchNotesUpdated } from "@/lib/events";
 import { AudioNotePanel, type AudioNotePayload } from "./notes/AudioNotePanel";
+import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
 import styles from "./NotesScreen.module.css";
 
 interface NotesScreenProps {
@@ -106,8 +107,12 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     useTranslationContext();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [notes, setNotes] = useState<UserNote[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const notesQuery = useDataQuery<UserNote[]>(
+    "user-notes",
+    getUserNotes,
+    { staleTime: 1000 * 60 * 5 },
+  );
+  const notes = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAudioNoteOpen, setIsAudioNoteOpen] = useState(false);
   const [createBookId, setCreateBookId] = useState<string | null>(null);
@@ -172,24 +177,14 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     });
   }, [createVerseStart]);
 
-  const loadNotes = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const fetched = await getUserNotes();
-      setNotes(fetched);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to load notes";
-      toast.error(message);
-      setNotes([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    void loadNotes();
-  }, [loadNotes]);
+  const {
+    refetch: refetchNotes,
+    setData: setNotesCache,
+    isError: notesError,
+    error: notesErrorValue,
+    isLoading: isNotesLoading,
+  } = notesQuery;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -203,14 +198,25 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         return;
       }
 
-      void loadNotes();
+      void refetchNotes();
     };
 
     window.addEventListener(NOTES_UPDATED_EVENT, handler);
     return () => {
       window.removeEventListener(NOTES_UPDATED_EVENT, handler);
     };
-  }, [loadNotes]);
+  }, [refetchNotes]);
+
+  useEffect(() => {
+    if (!notesError || !notesErrorValue) {
+      return;
+    }
+    const message =
+      notesErrorValue instanceof Error
+        ? notesErrorValue.message
+        : "Failed to load notes";
+    toast.error(message);
+  }, [notesError, notesErrorValue]);
 
   useEffect(() => {
     if (!translationCode) {
@@ -452,7 +458,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         body,
       });
 
-      setNotes((prev) => [newNote, ...prev]);
+      setNotesCache((prev) => [newNote, ...(prev ?? [])]);
       setVerseTexts((prev) => {
         const next = { ...prev };
         delete next[newNote.id];
@@ -485,7 +491,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         body: payload.body,
       });
 
-      setNotes((prev) => [newNote, ...prev]);
+      setNotesCache((prev) => [newNote, ...(prev ?? [])]);
       setVerseTexts((prev) => {
         const next = { ...prev };
         delete next[newNote.id];
@@ -493,7 +499,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       });
       dispatchNotesUpdated({ source: "notes-screen" });
     },
-    [translationCode]
+    [setNotesCache, translationCode]
   );
 
   const handleEdit = (note: UserNote) => {
@@ -519,8 +525,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
     try {
       const updated = await updateUserNote(editingNote.id, { body: nextBody });
-      setNotes((prev) =>
-        prev.map((note) => (note.id === updated.id ? updated : note))
+      setNotesCache((prev) =>
+        (prev ?? []).map((note) => (note.id === updated.id ? updated : note))
       );
       setEditingNote(null);
       toast.success("Note updated");
@@ -546,7 +552,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
     const previousNotes = notes;
 
-    setNotes((prev) => prev.filter((item) => item.id !== note.id));
+    setNotesCache((prev) => (prev ?? []).filter((item) => item.id !== note.id));
     setVerseTexts((prev) => {
       const next = { ...prev };
       delete next[note.id];
@@ -561,14 +567,14 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       const message =
         error instanceof Error ? error.message : "Could not delete note";
       toast.error(message);
-      setNotes(previousNotes);
+      setNotesCache(previousNotes);
     }
   };
 
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
   const chapterOptions = selectedBook ? selectedBook.chapters : 1;
 
-  const showLoadingState = isLoading || isLoadingTranslations || isLoadingBooks;
+  const showLoadingState = isNotesLoading || isLoadingTranslations || isLoadingBooks;
 
   return (
     <div className={styles.screen}>

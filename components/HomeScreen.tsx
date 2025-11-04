@@ -46,6 +46,7 @@ import {
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useProfile } from "@/components/ProfileContext";
+import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -94,14 +95,35 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [onNavigate]
   );
 
-  const { books, translationCode } = useTranslationContext();
+  const { books, translationCode, isLoadingBooks, isLoadingTranslations } =
+    useTranslationContext();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [notesCount, setNotesCount] = useState(0);
-  const [highlightsCount, setHighlightsCount] = useState(0);
-  const [memoryCount, setMemoryCount] = useState(0);
-  const [needsReviewCount, setNeedsReviewCount] = useState(0);
-  const [recentNotes, setRecentNotes] = useState<NotePreview[]>([]);
+  const notesQuery = useDataQuery<UserNote[]>(
+    "user-notes-preview",
+    () => getUserNotes(10),
+    { staleTime: 1000 * 60 * 5 },
+  );
+  const highlightsQuery = useDataQuery(
+    "user-highlights",
+    getUserHighlights,
+    { staleTime: 1000 * 60 * 5 },
+  );
+  const memoryQuery = useDataQuery(
+    "user-memory-verses",
+    getUserMemoryVerses,
+    { staleTime: 1000 * 60 * 5 },
+  );
+
+  const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
+  const highlightsData = useMemo(
+    () => highlightsQuery.data ?? [],
+    [highlightsQuery.data],
+  );
+  const memoryData = useMemo(
+    () => memoryQuery.data ?? [],
+    [memoryQuery.data],
+  );
+
   const [todaysVerse, setTodaysVerse] = useState<VerseSnapshot | null>(null);
 
   const bookIndex = useMemo(() => {
@@ -111,6 +133,42 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     }
     return index;
   }, [books]);
+
+  const notesCount = notesData.length;
+  const highlightsCount = highlightsData.length;
+  const memoryCount = memoryData.length;
+
+  const needsReviewCount = useMemo(() => {
+    const today = new Date();
+    return memoryData.filter((verse) => {
+      if (!verse.nextReviewDate) {
+        return false;
+      }
+      const nextReview = new Date(verse.nextReviewDate);
+      if (Number.isNaN(nextReview.getTime())) {
+        return false;
+      }
+      return nextReview <= today;
+    }).length;
+  }, [memoryData]);
+
+  const recentNotes = useMemo<NotePreview[]>(() => {
+    const sorted = [...notesData].sort((a, b) => {
+      const left = new Date(a.updatedAt ?? a.createdAt ?? 0);
+      const right = new Date(b.updatedAt ?? b.createdAt ?? 0);
+      return right.getTime() - left.getTime();
+    });
+
+    return sorted.slice(0, 3).map((note) => {
+      const book = note.bookId ? bookIndex.get(note.bookId) ?? null : null;
+      return {
+        id: note.id,
+        reference: buildReferenceLabel(book ?? undefined, note.chapter, note.verseStart, note.verseEnd),
+        excerpt: getExcerpt(note.body, 140),
+        updatedLabel: formatDate(note.updatedAt ?? note.createdAt ?? null),
+      } satisfies NotePreview;
+    });
+  }, [bookIndex, notesData]);
 
   const determineVerseSnapshot = useCallback(
     async (
@@ -179,94 +237,90 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [translationCode, bookIndex]
   );
 
-  const loadHomeData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [notes, highlights, memory] = await Promise.all([
-        getUserNotes(10),
-        getUserHighlights(),
-        getUserMemoryVerses(),
-      ]);
-
-      setNotesCount(notes.length);
-      setHighlightsCount(highlights.length);
-      setMemoryCount(memory.length);
-
-      const today = new Date();
-      const reviewCount = memory.filter((verse) => {
-        if (!verse.nextReviewDate) {
-          return false;
-        }
-        const nextReview = new Date(verse.nextReviewDate);
-        if (Number.isNaN(nextReview.getTime())) {
-          return false;
-        }
-        return nextReview <= today;
-      }).length;
-      setNeedsReviewCount(reviewCount);
-
-      const previews = notes.slice(0, 3).map<NotePreview>((note: UserNote) => {
-        const book = note.bookId ? bookIndex.get(note.bookId) : null;
-        return {
-          id: note.id,
-          reference: buildReferenceLabel(
-            book ?? undefined,
-            note.chapter,
-            note.verseStart,
-            note.verseEnd
-          ),
-          excerpt: getExcerpt(note.body, 140),
-          updatedLabel: formatDate(note.updatedAt ?? note.createdAt),
-        };
-      });
-      setRecentNotes(previews);
-
-      const highlightCandidate =
-        highlights.length > 0
-          ? {
-              bookId: highlights[0]!.bookId,
-              chapter: highlights[0]!.chapter,
-              verseStart: highlights[0]!.verseStart,
-              verseEnd: highlights[0]!.verseEnd,
-            }
-          : null;
-
-      const memoryCandidate = memory.length > 0 ? memory[0]! : null;
-
-      await determineVerseSnapshot(highlightCandidate, memoryCandidate);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to load dashboard data";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bookIndex, determineVerseSnapshot]);
-
-  useEffect(() => {
-    void loadHomeData();
-  }, [loadHomeData]);
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const handler: EventListener = () => {
-      void loadHomeData();
+    const handleNotesUpdated = (event: Event) => {
+      const custom = event as CustomEvent<{ source?: string }>;
+      if (custom.detail?.source === "home-screen") return;
+      void notesQuery.refetch();
     };
 
-    window.addEventListener(NOTES_UPDATED_EVENT, handler);
-    window.addEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
-    window.addEventListener(MEMORY_UPDATED_EVENT, handler);
-    return () => {
-      window.removeEventListener(NOTES_UPDATED_EVENT, handler);
-      window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handler);
-      window.removeEventListener(MEMORY_UPDATED_EVENT, handler);
+    const handleHighlightsUpdated = (event: Event) => {
+      const custom = event as CustomEvent<{ source?: string }>;
+      if (custom.detail?.source === "home-screen") return;
+      void highlightsQuery.refetch();
     };
-  }, [loadHomeData]);
+
+    const handleMemoryUpdated = (event: Event) => {
+      const custom = event as CustomEvent<{ source?: string }>;
+      if (custom.detail?.source === "home-screen") return;
+      void memoryQuery.refetch();
+    };
+
+    window.addEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
+    window.addEventListener(HIGHLIGHTS_UPDATED_EVENT, handleHighlightsUpdated);
+    window.addEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
+
+    return () => {
+      window.removeEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
+      window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handleHighlightsUpdated);
+      window.removeEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
+    };
+  }, [highlightsQuery, memoryQuery, notesQuery]);
+
+  useEffect(() => {
+    if (!translationCode) {
+      setTodaysVerse(null);
+      return;
+    }
+
+    const highlightCandidate =
+      highlightsData.length > 0
+        ? {
+            bookId: highlightsData[0]!.bookId,
+            chapter: highlightsData[0]!.chapter,
+            verseStart: highlightsData[0]!.verseStart,
+            verseEnd: highlightsData[0]!.verseEnd,
+          }
+        : null;
+
+    const memoryCandidate = memoryData.length > 0 ? memoryData[0]! : null;
+
+    void determineVerseSnapshot(highlightCandidate, memoryCandidate);
+  }, [determineVerseSnapshot, highlightsData, memoryData, translationCode]);
+
+  useEffect(() => {
+    if (notesQuery.isError && notesQuery.error) {
+      const message =
+        notesQuery.error instanceof Error
+          ? notesQuery.error.message
+          : "Failed to load notes";
+      toast.error(message);
+    }
+  }, [notesQuery.error, notesQuery.isError]);
+
+  useEffect(() => {
+    if (highlightsQuery.isError && highlightsQuery.error) {
+      const message =
+        highlightsQuery.error instanceof Error
+          ? highlightsQuery.error.message
+          : "Failed to load highlights";
+      toast.error(message);
+    }
+  }, [highlightsQuery.error, highlightsQuery.isError]);
+
+  useEffect(() => {
+    if (memoryQuery.isError && memoryQuery.error) {
+      const message =
+        memoryQuery.error instanceof Error
+          ? memoryQuery.error.message
+          : "Failed to load memory verses";
+      toast.error(message);
+    }
+  }, [memoryQuery.error, memoryQuery.isError]);
 
   type QuickAction = {
     icon?: typeof BookOpen;
@@ -376,9 +430,22 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     ];
   }, [notesCount, highlightsCount, memoryCount]);
 
+  const notesPriming = notesQuery.isLoading && notesQuery.data === undefined;
+  const highlightsPriming =
+    highlightsQuery.isLoading && highlightsQuery.data === undefined;
+  const memoryPriming =
+    memoryQuery.isLoading && memoryQuery.data === undefined;
+
+  const showLoading =
+    isLoadingBooks ||
+    isLoadingTranslations ||
+    notesPriming ||
+    highlightsPriming ||
+    memoryPriming;
+
   return (
     <div className={styles.page}>
-      {isLoading ? (
+      {showLoading ? (
         <LoadingScreen subtitle="We're gathering your notes, highlights, and memory verses." />
       ) : (
         <div className={styles.stack}>

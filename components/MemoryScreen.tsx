@@ -52,6 +52,7 @@ import type { BibleBookSummary } from "@/types/bible";
 import type { UserMemoryVerse } from "@/types/user";
 import { MEMORY_UPDATED_EVENT, dispatchMemoryUpdated } from "@/lib/events";
 import styles from "./MemoryScreen.module.css";
+import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
 
 interface MemoryScreenProps {
   onNavigate?: (screen: string) => void;
@@ -86,8 +87,16 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const { books, translationCode, isLoadingTranslations, isLoadingBooks } =
     useTranslationContext();
 
-  const [memoryVerses, setMemoryVerses] = useState<UserMemoryVerse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const memoryQuery = useDataQuery(
+    "user-memory-verses",
+    getUserMemoryVerses,
+    { staleTime: 1000 * 60 * 5 },
+  );
+  const memoryVerses = useMemo(
+    () => memoryQuery.data ?? [],
+    [memoryQuery.data],
+  );
+  const { setData: setMemoryCache, refetch: refetchMemory } = memoryQuery;
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -148,25 +157,6 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
     });
   }, [createVerseStart]);
 
-  const loadMemoryVerses = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getUserMemoryVerses();
-      setMemoryVerses(data);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to load memory verses";
-      toast.error(message);
-      setMemoryVerses([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadMemoryVerses();
-  }, [loadMemoryVerses]);
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -177,14 +167,24 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
       if (custom.detail?.source === "memory-screen") {
         return;
       }
-      void loadMemoryVerses();
+      void refetchMemory();
     };
 
     window.addEventListener(MEMORY_UPDATED_EVENT, handler);
     return () => {
       window.removeEventListener(MEMORY_UPDATED_EVENT, handler);
     };
-  }, [loadMemoryVerses]);
+  }, [refetchMemory]);
+
+  useEffect(() => {
+    if (memoryQuery.isError && memoryQuery.error) {
+      const message =
+        memoryQuery.error instanceof Error
+          ? memoryQuery.error.message
+          : "Failed to load memory verses";
+      toast.error(message);
+    }
+  }, [memoryQuery.error, memoryQuery.isError]);
 
   useEffect(() => {
     if (!translationCode) {
@@ -328,7 +328,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
         label: createLabel.trim() || null,
       });
 
-      setMemoryVerses((prev) => [created, ...prev]);
+      setMemoryCache((prev) => [created, ...(prev ?? [])]);
       setVerseTexts((prev) => {
         const next = { ...prev };
         delete next[created.id];
@@ -348,7 +348,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
   const handleDelete = async (verse: UserMemoryVerse) => {
     const previous = memoryVerses;
-    setMemoryVerses((prev) => prev.filter((item) => item.id !== verse.id));
+    setMemoryCache((prev) => (prev ?? []).filter((item) => item.id !== verse.id));
     setVerseTexts((prev) => {
       const next = { ...prev };
       delete next[verse.id];
@@ -365,14 +365,17 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
           ? error.message
           : "Unable to remove memory verse";
       toast.error(message);
-      setMemoryVerses(previous);
+      setMemoryCache(() => previous);
     }
   };
 
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
   const chapterCount = selectedBook?.chapters ?? 1;
 
-  const busy = isLoading || isLoadingTranslations || isLoadingBooks;
+  const busy =
+    isLoadingTranslations ||
+    isLoadingBooks ||
+    memoryQuery.isLoading;
 
   return (
     <div className={styles.screen}>

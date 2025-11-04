@@ -15,6 +15,7 @@ import {
   getTranslations,
 } from "@/lib/api/bible";
 import type { BibleBookSummary, BibleTranslationSummary } from "@/types/bible";
+import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
 
 type TranslationContextValue = {
   translations: BibleTranslationSummary[];
@@ -46,13 +47,7 @@ interface TranslationProviderProps {
 }
 
 export function TranslationProvider({ children }: TranslationProviderProps) {
-  const [translations, setTranslations] = useState<BibleTranslationSummary[]>([]);
-  const [translationCode, setTranslationCode] = useState<string | null>(null);
-  const [books, setBooks] = useState<BibleBookSummary[]>([]);
-  const [translationsError, setTranslationsError] = useState<string | null>(null);
-  const [booksError, setBooksError] = useState<string | null>(null);
-  const [isLoadingTranslations, setIsLoadingTranslations] = useState(true);
-  const [isLoadingBooks, setIsLoadingBooks] = useState(false);
+  const [translationCode, setTranslationCode] = useState<string | null>(() => getInitialStoredTranslation());
 
   const selectTranslation = useCallback((code: string) => {
     setTranslationCode(code);
@@ -61,70 +56,75 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     }
   }, []);
 
-  const loadBooks = useCallback(
-    async (code: string) => {
-      setIsLoadingBooks(true);
-      setBooksError(null);
-      try {
-        const fetchedBooks = await getBooksForTranslation(code);
-        setBooks(fetchedBooks);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to load books";
-        setBooksError(message);
-        setBooks([]);
-      } finally {
-        setIsLoadingBooks(false);
-      }
+  const {
+    data: translationsData = [],
+    isLoading: isLoadingTranslations,
+    error: translationsErrorValue,
+    refetch: refetchTranslations,
+  } = useDataQuery<BibleTranslationSummary[]>("translations", getTranslations, {
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const translations = translationsData;
+
+  const translationsError = translationsErrorValue
+    ? translationsErrorValue instanceof Error
+      ? translationsErrorValue.message
+      : String(translationsErrorValue)
+    : null;
+
+  const {
+    data: booksData = [],
+    isLoading: isLoadingBooks,
+    error: booksErrorValue,
+    refetch: refetchBooksQuery,
+  } = useDataQuery<BibleBookSummary[]>(
+    `books-${translationCode ?? "none"}`,
+    () => getBooksForTranslation(translationCode as string),
+    {
+      staleTime: 1000 * 60 * 5,
+      enabled: Boolean(translationCode),
     },
-    []
   );
 
-  const loadTranslations = useCallback(async () => {
-    setIsLoadingTranslations(true);
-    setTranslationsError(null);
-    try {
-      const fetchedTranslations = await getTranslations();
-      setTranslations(fetchedTranslations);
+  const books = useMemo(() => (translationCode ? booksData : []), [booksData, translationCode]);
 
-      if (fetchedTranslations.length === 0) {
-        setTranslationCode(null);
-        setBooks([]);
-        return;
+  const booksError = booksErrorValue
+    ? booksErrorValue instanceof Error
+      ? booksErrorValue.message
+      : String(booksErrorValue)
+    : null;
+
+  const refreshTranslations = useCallback(async () => {
+    await refetchTranslations();
+  }, [refetchTranslations]);
+
+  useEffect(() => {
+    if (translations.length === 0) {
+      setTranslationCode(null);
+      return;
+    }
+
+    setTranslationCode((existing) => {
+      if (existing && translations.some((item) => item.code === existing)) {
+        return existing;
       }
 
       const stored = getInitialStoredTranslation();
-      const initialSelection = stored && fetchedTranslations.some((item) => item.code === stored)
-        ? stored
-        : fetchedTranslations[0]?.code ?? null;
-
-      if (initialSelection) {
-        setTranslationCode((existing) => existing ?? initialSelection);
+      if (stored && translations.some((item) => item.code === stored)) {
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(STORAGE_KEY, initialSelection);
+          window.localStorage.setItem(STORAGE_KEY, stored);
         }
+        return stored;
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load translations";
-      setTranslationsError(message);
-      setTranslations([]);
-      setTranslationCode(null);
-      setBooks([]);
-    } finally {
-      setIsLoadingTranslations(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    void loadTranslations();
-  }, [loadTranslations]);
-
-  useEffect(() => {
-    if (!translationCode) {
-      setBooks([]);
-      return;
-    }
-    void loadBooks(translationCode);
-  }, [translationCode, loadBooks]);
+      const fallback = translations[0]?.code ?? null;
+      if (fallback && typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_KEY, fallback);
+      }
+      return fallback;
+    });
+  }, [translations]);
 
   const translation = useMemo(
     () => translations.find((item) => item.code === translationCode) ?? null,
@@ -135,8 +135,8 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     if (!translationCode) {
       return;
     }
-    await loadBooks(translationCode);
-  }, [translationCode, loadBooks]);
+    await refetchBooksQuery();
+  }, [refetchBooksQuery, translationCode]);
 
   const contextValue = useMemo<TranslationContextValue>(() => ({
     translations,
@@ -147,7 +147,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     isLoadingBooks,
     error: translationsError ?? booksError,
     selectTranslation,
-    refreshTranslations: loadTranslations,
+    refreshTranslations,
     refreshBooks,
   }), [
     translations,
@@ -159,7 +159,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     translationsError,
     booksError,
     selectTranslation,
-    loadTranslations,
+    refreshTranslations,
     refreshBooks,
   ]);
 
