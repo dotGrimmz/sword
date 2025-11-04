@@ -28,4 +28,6 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default withPWA(nextConfig);
+const applyPWA = withPWA as (config: NextConfig) => NextConfig;
+
+export default applyPWA(nextConfig);
