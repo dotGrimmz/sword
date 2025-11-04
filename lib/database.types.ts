@@ -183,6 +183,8 @@ export type Database = {
           chapter: number | null;
           verse_start: number | null;
           verse_end: number | null;
+          label: string | null;
+          tags: string[] | null;
           ease: number | null;
           interval_days: number | null;
           next_review_date: string | null;
@@ -197,6 +199,8 @@ export type Database = {
           chapter?: number | null;
           verse_start?: number | null;
           verse_end?: number | null;
+          label?: string | null;
+          tags?: string[] | null;
           ease?: number | null;
           interval_days?: number | null;
           next_review_date?: string | null;
@@ -211,6 +215,8 @@ export type Database = {
           chapter?: number | null;
           verse_start?: number | null;
           verse_end?: number | null;
+          label?: string | null;
+          tags?: string[] | null;
           ease?: number | null;
           interval_days?: number | null;
           next_review_date?: string | null;

@@ -534,12 +534,9 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
           rating,
         });
 
-        setMemoryCache((prev) => {
-          if (!prev) {
-            return prev;
-          }
-          return prev.map((item) => (item.id === updated.id ? updated : item));
-        });
+        setMemoryCache((prev) =>
+          prev ? prev.map((item) => (item.id === updated.id ? updated : item)) : []
+        );
 
         dispatchMemoryUpdated({ source: "memory-screen" });
 

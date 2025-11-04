@@ -5,7 +5,6 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/database.types";
 import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
 import {
   INITIAL_EASE,
@@ -15,35 +14,29 @@ import {
   type ReviewRating,
 } from "@/lib/memory/scheduling";
 
-type MemoryVerseRow = Pick<
-  Database["public"]["Tables"]["user_memory_verses"]["Row"],
-  | "id"
-  | "user_id"
-  | "translation_id"
-  | "book_id"
-  | "chapter"
-  | "verse_start"
-  | "verse_end"
-  | "label"
-  | "tags"
-  | "ease"
-  | "interval_days"
-  | "next_review_date"
-  | "created_at"
-  | "updated_at"
->;
+type MemoryVerseRow = {
+  id: string;
+  user_id: string;
+  translation_id: string | null;
+  book_id: string | null;
+  chapter: number | null;
+  verse_start: number | null;
+  verse_end: number | null;
+  label?: string | null;
+  tags?: string[] | null;
+  ease: number | null;
+  interval_days: number | null;
+  next_review_date: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
 
 const selectColumns =
   "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, label, tags, ease, interval_days, next_review_date, created_at, updated_at" as const;
 const legacySelectColumns =
   "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, ease, interval_days, next_review_date, created_at, updated_at" as const;
 
-type MemoryVerseSelectableRow = Omit<MemoryVerseRow, "label" | "tags"> & {
-  label?: string | null;
-  tags?: string[] | null;
-};
-
-const mapMemoryVerse = (row: MemoryVerseSelectableRow) => ({
+const mapMemoryVerse = (row: MemoryVerseRow) => ({
   id: row.id,
   bookId: row.book_id,
   chapter: row.chapter,
@@ -210,7 +203,7 @@ export async function GET(request: Request) {
   }
 
   if (!error) {
-    const verses = (data ?? []).map(mapMemoryVerse);
+    const verses = (data ?? []).map((row) => mapMemoryVerse(row as MemoryVerseRow));
     return NextResponse.json(verses);
   }
 
@@ -227,7 +220,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const verses = (legacy.data ?? []).map(mapMemoryVerse);
+  const verses = (legacy.data ?? []).map((row) => mapMemoryVerse(row as MemoryVerseRow));
 
   return NextResponse.json(verses);
 }
@@ -287,7 +280,7 @@ export async function POST(request: Request) {
     .single();
 
   if (!error && data) {
-    return NextResponse.json(mapMemoryVerse(data), { status: 201 });
+    return NextResponse.json(mapMemoryVerse(data as MemoryVerseRow), { status: 201 });
   }
 
   if (!isMissingColumnError(error)) {
@@ -325,7 +318,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json(mapMemoryVerse(fallback.data), { status: 201 });
+  return NextResponse.json(mapMemoryVerse(fallback.data as MemoryVerseRow), { status: 201 });
 }
 
 export async function DELETE(request: Request) {
@@ -465,7 +458,7 @@ export async function PATCH(request: Request) {
     .eq("user_id", user.id)
     .single();
 
-  let current = existing;
+  let current: MemoryVerseRow | null = existing as MemoryVerseRow | null;
   let currentError = fetchError;
 
   if (currentError && isMissingColumnError(currentError)) {
@@ -475,7 +468,9 @@ export async function PATCH(request: Request) {
       .eq("id", validation.data.id)
       .eq("user_id", user.id)
       .single();
-    current = legacyFetch.data;
+    current = legacyFetch.data
+      ? { ...legacyFetch.data, label: null, tags: null }
+      : null;
     currentError = legacyFetch.error;
   }
 
@@ -488,8 +483,8 @@ export async function PATCH(request: Request) {
 
   const schedule = calculateNextReview(
     {
-      ease: current.ease,
-      intervalDays: current.interval_days,
+      ease: (current as MemoryVerseRow).ease,
+      intervalDays: (current as MemoryVerseRow).interval_days,
     },
     validation.data.rating
   );
@@ -508,7 +503,7 @@ export async function PATCH(request: Request) {
     .single();
 
   if (!updateError && updated) {
-    return NextResponse.json(mapMemoryVerse(updated));
+    return NextResponse.json(mapMemoryVerse(updated as MemoryVerseRow));
   }
 
   if (!isMissingColumnError(updateError)) {
@@ -544,5 +539,5 @@ export async function PATCH(request: Request) {
     );
   }
 
-  return NextResponse.json(mapMemoryVerse(fallback.data));
+  return NextResponse.json(mapMemoryVerse(fallback.data as MemoryVerseRow));
 }
