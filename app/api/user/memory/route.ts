@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getAccessTokenFromRequest, unauthorizedResponse } from "@/lib/auth/context";
+import {
+  getAccessTokenFromRequest,
+  unauthorizedResponse,
+} from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
@@ -64,7 +67,9 @@ type MemoryVersePayload = {
   tags: string[] | null;
 };
 
-const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { error: string } => {
+const validatePayload = (
+  payload: unknown
+): { data: MemoryVersePayload } | { error: string } => {
   if (!payload || typeof payload !== "object") {
     return { error: "Payload must be an object" };
   }
@@ -82,12 +87,20 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
   }
 
   const parsedChapter = toOptionalInteger(source.chapter);
-  if (parsedChapter === undefined || parsedChapter === null || parsedChapter < 1) {
+  if (
+    parsedChapter === undefined ||
+    parsedChapter === null ||
+    parsedChapter < 1
+  ) {
     return { error: "chapter must be a positive integer" };
   }
 
   const parsedVerseStart = toOptionalInteger(source.verseStart);
-  if (parsedVerseStart === undefined || parsedVerseStart === null || parsedVerseStart < 1) {
+  if (
+    parsedVerseStart === undefined ||
+    parsedVerseStart === null ||
+    parsedVerseStart < 1
+  ) {
     return { error: "verseStart must be a positive integer" };
   }
 
@@ -97,7 +110,10 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
   if (!hasVerseEnd || parsedVerseEndValue === null) {
     parsedVerseEnd = parsedVerseStart;
   } else {
-    if (parsedVerseEndValue === undefined || parsedVerseEndValue < parsedVerseStart) {
+    if (
+      parsedVerseEndValue === undefined ||
+      parsedVerseEndValue < parsedVerseStart
+    ) {
       return { error: "verseEnd must be greater than or equal to verseStart" };
     }
     parsedVerseEnd = parsedVerseEndValue;
@@ -139,12 +155,10 @@ const validatePayload = (payload: unknown): { data: MemoryVersePayload } | { err
       verseStart: parsedVerseStart,
       verseEnd: parsedVerseEnd,
       label,
-	      tags,
-	    },
-	  };
-	};
-
-type ReviewRating = "again" | "good" | "easy";
+      tags,
+    },
+  };
+};
 
 const isMissingColumnError = (error: unknown) => {
   if (!error || typeof error !== "object") {
@@ -154,7 +168,11 @@ const isMissingColumnError = (error: unknown) => {
   if (candidate.code === "42703") {
     return true;
   }
-  if (candidate.message && candidate.message.toLowerCase().includes("column") && candidate.message.toLowerCase().includes("does not exist")) {
+  if (
+    candidate.message &&
+    candidate.message.toLowerCase().includes("column") &&
+    candidate.message.toLowerCase().includes("does not exist")
+  ) {
     return true;
   }
   return false;
@@ -219,7 +237,10 @@ export async function POST(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Body must be valid JSON" },
+      { status: 400 }
+    );
   }
 
   const validation = validatePayload(payload);
@@ -258,7 +279,9 @@ export async function POST(request: Request) {
       tags: validation.data.tags,
       ease: INITIAL_EASE,
       interval_days: INITIAL_INTERVAL_DAYS,
-      next_review_date: new Date(Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      next_review_date: new Date(
+        Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString(),
     })
     .select(selectColumns)
     .single();
@@ -285,14 +308,19 @@ export async function POST(request: Request) {
       verse_end: validation.data.verseEnd,
       ease: INITIAL_EASE,
       interval_days: INITIAL_INTERVAL_DAYS,
-      next_review_date: new Date(Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      next_review_date: new Date(
+        Date.now() + INITIAL_INTERVAL_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString(),
     })
     .select(legacySelectColumns)
     .single();
 
   if (fallback.error || !fallback.data) {
     return NextResponse.json(
-      { error: "Failed to create memory verse", message: fallback.error?.message ?? "" },
+      {
+        error: "Failed to create memory verse",
+        message: fallback.error?.message ?? "",
+      },
       { status: 500 }
     );
   }
@@ -322,11 +350,17 @@ export async function DELETE(request: Request) {
   const id = url.searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json({ error: "Memory verse id is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Memory verse id is required" },
+      { status: 400 }
+    );
   }
 
   if (!isUuid(id)) {
-    return NextResponse.json({ error: "Memory verse id must be a UUID" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Memory verse id must be a UUID" },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabase
@@ -344,7 +378,10 @@ export async function DELETE(request: Request) {
   }
 
   if (!data || data.length === 0) {
-    return NextResponse.json({ error: "Memory verse not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Memory verse not found" },
+      { status: 404 }
+    );
   }
 
   return NextResponse.json({ success: true });
@@ -355,7 +392,9 @@ type ReviewPayload = {
   rating: ReviewRating;
 };
 
-const parseReviewPayload = (payload: unknown): { data: ReviewPayload } | { error: string } => {
+const parseReviewPayload = (
+  payload: unknown
+): { data: ReviewPayload } | { error: string } => {
   if (!payload || typeof payload !== "object") {
     return { error: "Payload must be an object" };
   }
@@ -390,7 +429,10 @@ export async function PATCH(request: Request) {
   try {
     payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Body must be valid JSON" },
+      { status: 400 }
+    );
   }
 
   const validation = parseReviewPayload(payload);
@@ -438,7 +480,10 @@ export async function PATCH(request: Request) {
   }
 
   if (currentError || !current) {
-    return NextResponse.json({ error: "Memory verse not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Memory verse not found" },
+      { status: 404 }
+    );
   }
 
   const schedule = calculateNextReview(
@@ -468,7 +513,10 @@ export async function PATCH(request: Request) {
 
   if (!isMissingColumnError(updateError)) {
     return NextResponse.json(
-      { error: "Failed to update memory verse", message: updateError?.message ?? "" },
+      {
+        error: "Failed to update memory verse",
+        message: updateError?.message ?? "",
+      },
       { status: 500 }
     );
   }
@@ -488,7 +536,10 @@ export async function PATCH(request: Request) {
 
   if (fallback.error || !fallback.data) {
     return NextResponse.json(
-      { error: "Failed to update memory verse", message: fallback.error?.message ?? "" },
+      {
+        error: "Failed to update memory verse",
+        message: fallback.error?.message ?? "",
+      },
       { status: 500 }
     );
   }
