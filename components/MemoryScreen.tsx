@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
+import { TranslationSwitcher } from "./TranslationSwitcher";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -119,12 +120,25 @@ const formatIntervalLabel = (days: number | null | undefined) => {
 export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   void onNavigate;
 
-  const { books, translationCode, isLoadingTranslations, isLoadingBooks } =
-    useTranslationContext();
+  const {
+    books,
+    translation,
+    translationCode,
+    isLoadingTranslations,
+    isLoadingBooks,
+  } = useTranslationContext();
 
-  const memoryQuery = useDataQuery("user-memory-verses", getUserMemoryVerses, {
-    staleTime: 1000 * 60 * 5,
-  });
+  const translationKey = translationCode ?? "none";
+  const fetchEnabled = Boolean(translationCode);
+
+  const memoryQuery = useDataQuery(
+    `user-memory-verses-${translationKey}`,
+    () => getUserMemoryVerses(translationCode ?? undefined),
+    {
+      staleTime: 1000 * 60 * 5,
+      enabled: fetchEnabled,
+    }
+  );
   const memoryVerses = useMemo(
     () => memoryQuery.data ?? [],
     [memoryQuery.data]
@@ -151,6 +165,12 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   useEffect(() => {
     verseTextsRef.current = verseTexts;
   }, [verseTexts]);
+
+  useEffect(() => {
+    setVerseTexts({});
+    verseTextsRef.current = {};
+    pendingPassages.current.clear();
+  }, [translationCode]);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -425,6 +445,13 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   }, [memoryVerses]);
 
   const handleCreate = async () => {
+    if (!translationCode) {
+      setCreateError("Select a translation before adding memory verses.");
+      return;
+    }
+
+    const activeTranslationId = translation?.id ?? translationCode;
+
     if (!createBookId) {
       setCreateError("Choose a book for this verse.");
       return;
@@ -454,6 +481,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
     try {
       const created = await createUserMemoryVerse({
+        translationId: activeTranslationId,
         bookId: createBookId,
         chapter: chapterValue,
         verseStart: verseStartValue,
@@ -566,7 +594,11 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
   const chapterCount = selectedBook?.chapters ?? 1;
 
-  const busy = isLoadingTranslations || isLoadingBooks || memoryQuery.isLoading;
+  const busy =
+    isLoadingTranslations ||
+    isLoadingBooks ||
+    !fetchEnabled ||
+    memoryQuery.isLoading;
 
   return (
     <div className={styles.screen}>
@@ -579,11 +611,16 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
             </p>
           </div>
           <div className={styles.headerActions}>
+            <TranslationSwitcher
+              className={styles.translationControl}
+              size="compact"
+              hideLabel
+            />
             <Button
               size="lg"
               variant="secondary"
               className={styles.reviewButton}
-              disabled={dueVerses.length === 0}
+              disabled={!translationCode || dueVerses.length === 0}
               onClick={handleOpenReview}
             >
               <Play className={styles.reviewButtonIcon} />
@@ -595,7 +632,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                 <Button
                   size="lg"
                   className={styles.addButton}
-                  disabled={books.length === 0}
+                  disabled={books.length === 0 || !translationCode}
                 >
                   <Plus className={styles.addButtonIcon} /> Add Verse
                 </Button>
@@ -672,7 +709,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                       <div>
                         <p className={styles.dialogMetaLabel}>Translation</p>
                         <p className={styles.dialogMetaValue}>
-                          {translationCode?.toUpperCase() ?? "Choose one"}
+                          {translation?.name ?? translationCode?.toUpperCase() ?? "Choose one"}
                         </p>
                       </div>
                     </div>
@@ -722,7 +759,7 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                         <p className={styles.dialogHint}>
                           {books.length > 0
                             ? `${books.length} books available in ${
-                                translationCode?.toUpperCase() ?? "your library"
+                                translation?.name ?? translationCode?.toUpperCase() ?? "your library"
                               }`
                             : "Books will appear once a translation is loaded."}
                         </p>

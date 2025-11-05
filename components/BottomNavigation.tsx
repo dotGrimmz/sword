@@ -12,6 +12,7 @@ import { useDataCacheContext } from "@/lib/data-cache/DataCacheProvider";
 import { getUserNotes } from "@/lib/api/notes";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserMemoryVerses } from "@/lib/api/memory";
+import { useTranslationContext } from "./TranslationContext";
 
 interface BottomNavigationProps {
   currentScreen: string;
@@ -20,30 +21,56 @@ interface BottomNavigationProps {
 
 export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigationProps) {
   const dataCache = useDataCacheContext();
+  const { translationCode } = useTranslationContext();
+  const translationKey = translationCode ?? "none";
 
   const prefetchScreen = useCallback(
     (screen: string) => {
       const staleTime = 1000 * 60 * 5;
       switch (screen) {
         case "home":
-          void dataCache.fetch("user-notes-preview", () => getUserNotes(10), { staleTime });
-          void dataCache.fetch("user-highlights", getUserHighlights, { staleTime });
-          void dataCache.fetch("user-memory-verses", getUserMemoryVerses, { staleTime });
+          void dataCache.fetch(
+            `user-notes-preview-${translationKey}`,
+            () => getUserNotes(10, translationCode ?? undefined),
+            { staleTime },
+          );
+          void dataCache.fetch(
+            `user-highlights-${translationKey}`,
+            () => getUserHighlights(translationCode ?? undefined),
+            { staleTime },
+          );
+          void dataCache.fetch(
+            `user-memory-verses-${translationKey}`,
+            () => getUserMemoryVerses(translationCode ?? undefined),
+            { staleTime },
+          );
           break;
         case "notes":
-          void dataCache.fetch("user-notes", getUserNotes, { staleTime });
+          void dataCache.fetch(
+            `user-notes-${translationKey}`,
+            () => getUserNotes(undefined, translationCode ?? undefined),
+            { staleTime },
+          );
           break;
         case "highlights":
-          void dataCache.fetch("user-highlights", getUserHighlights, { staleTime });
+          void dataCache.fetch(
+            `user-highlights-${translationKey}`,
+            () => getUserHighlights(translationCode ?? undefined),
+            { staleTime },
+          );
           break;
         case "memory":
-          void dataCache.fetch("user-memory-verses", getUserMemoryVerses, { staleTime });
+          void dataCache.fetch(
+            `user-memory-verses-${translationKey}`,
+            () => getUserMemoryVerses(translationCode ?? undefined),
+            { staleTime },
+          );
           break;
         default:
           break;
       }
     },
-    [dataCache]
+    [dataCache, translationCode, translationKey]
   );
 
   const navItems = [

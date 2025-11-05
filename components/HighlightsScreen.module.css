@@ -65,6 +65,10 @@
   gap: 1rem;
 }
 
+.translationControl {
+  min-width: 160px;
+}
+
 .toolbarIcon {
   width: 1rem;
   height: 1rem;

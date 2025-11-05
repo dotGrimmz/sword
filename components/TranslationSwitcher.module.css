@@ -1,0 +1,87 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.selectTrigger {
+  min-width: 200px;
+}
+
+.compact .selectTrigger {
+  min-width: 160px;
+  height: 36px;
+}
+
+.selectValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.activeValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activeCode {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: hsl(var(--primary));
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.activeName {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.optionName {
+  font-weight: 500;
+}
+
+.optionCode {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.loadingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background-color: currentColor;
+  animation: translationSwitcherPulse 1s ease-in-out infinite;
+}
+
+@keyframes translationSwitcherPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}

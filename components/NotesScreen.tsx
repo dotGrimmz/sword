@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
+import { TranslationSwitcher } from "./TranslationSwitcher";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -103,14 +104,22 @@ const normaliseBody = (body: string) => body.trim();
 export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   void onNavigate;
 
-  const { books, translationCode, isLoadingBooks, isLoadingTranslations } =
-    useTranslationContext();
+  const {
+    books,
+    translation,
+    translationCode,
+    isLoadingBooks,
+    isLoadingTranslations,
+  } = useTranslationContext();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const translationKey = translationCode ?? "none";
+  const fetchEnabled = Boolean(translationCode);
+
   const notesQuery = useDataQuery<UserNote[]>(
-    "user-notes",
-    getUserNotes,
-    { staleTime: 1000 * 60 * 5 },
+    `user-notes-${translationKey}`,
+    () => getUserNotes(undefined, translationCode ?? undefined),
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
   );
   const notes = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -135,6 +144,12 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   useEffect(() => {
     verseTextsRef.current = verseTexts;
   }, [verseTexts]);
+
+  useEffect(() => {
+    setVerseTexts({});
+    verseTextsRef.current = {};
+    pendingVerseFetches.current.clear();
+  }, [translationCode]);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -449,8 +464,10 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     setCreateError(null);
 
     try {
+      const activeTranslationId = translation?.id ?? translationCode;
+
       const newNote = await createUserNote({
-        translationId: translationCode,
+        translationId: activeTranslationId,
         bookId: createBookId,
         chapter: chapterValue,
         verseStart: verseStartValue,
@@ -482,8 +499,10 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         throw new Error("Select a translation before creating notes.");
       }
 
+      const activeTranslationId = translation?.id ?? translationCode;
+
       const newNote = await createUserNote({
-        translationId: translationCode,
+        translationId: activeTranslationId,
         bookId: payload.bookId,
         chapter: payload.chapter,
         verseStart: payload.verseStart,
@@ -499,7 +518,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       });
       dispatchNotesUpdated({ source: "notes-screen" });
     },
-    [setNotesCache, translationCode]
+    [setNotesCache, translation?.id, translationCode]
   );
 
   const handleEdit = (note: UserNote) => {
@@ -574,7 +593,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
   const chapterOptions = selectedBook ? selectedBook.chapters : 1;
 
-  const showLoadingState = isNotesLoading || isLoadingTranslations || isLoadingBooks;
+  const showLoadingState =
+    isNotesLoading || isLoadingTranslations || isLoadingBooks || !fetchEnabled;
 
   return (
     <div className={styles.screen}>
@@ -585,10 +605,15 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
           <div className={styles.headerActions}>
+            <TranslationSwitcher
+              className={styles.translationControl}
+              size="compact"
+              hideLabel
+            />
             <Button
               size="lg"
               variant="outline"
-              disabled={books.length === 0}
+              disabled={books.length === 0 || !translationCode}
               onClick={() => setIsAudioNoteOpen(true)}
             >
               🎙 Record Note
@@ -596,7 +621,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             <Button
               size="lg"
               className={styles.addButton}
-              disabled={books.length === 0}
+              disabled={books.length === 0 || !translationCode}
               onClick={() => setIsCreateOpen(true)}
             >
               <Plus className={styles.addButtonIcon} />
@@ -761,7 +786,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                   <p className={styles.dialogHint}>
                     {books.length > 0
                       ? `${books.length} books available in ${
-                          translationCode?.toUpperCase() ?? "your library"
+                          translation?.name ?? translationCode?.toUpperCase() ?? "your library"
                         }`
                       : "Books will appear once a translation is loaded."}
                   </p>

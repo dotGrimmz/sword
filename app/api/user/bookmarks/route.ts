@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 import { getAccessTokenFromRequest, unauthorizedResponse } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
-import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
+import { fetchTranslationByCode } from "@/lib/bible/queries";
+import { isUuid, toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
 
 type BookmarkRow = {
   id: string;
+  translation_id: string | null;
   book_id: string | null;
   chapter: number | null;
   verse: number | null;
@@ -15,6 +17,7 @@ type BookmarkRow = {
 
 const mapBookmark = (row: BookmarkRow) => ({
   id: row.id,
+  translationId: row.translation_id,
   bookId: row.book_id,
   chapter: row.chapter,
   verse: row.verse,
@@ -23,6 +26,7 @@ const mapBookmark = (row: BookmarkRow) => ({
 });
 
 type BookmarkPayload = {
+  translationId: string | null;
   bookId: string;
   chapter: number;
   verse: number | null | undefined;
@@ -37,6 +41,11 @@ const validatePayload = (payload: unknown): { data: BookmarkPayload } | { error:
   }
 
   const source = payload as Record<string, unknown>;
+
+  const parsedTranslationId = toNullableString(source.translationId);
+  if (parsedTranslationId === undefined) {
+    return { error: "translationId must be a string" };
+  }
 
   if (!Object.prototype.hasOwnProperty.call(source, "bookId")) {
     return { error: "bookId is required" };
@@ -95,6 +104,7 @@ const validatePayload = (payload: unknown): { data: BookmarkPayload } | { error:
 
   return {
     data: {
+      translationId: parsedTranslationId ?? null,
       bookId: trimmedBookId,
       chapter: parsedChapter,
       verse: parsedVerse,
@@ -105,9 +115,11 @@ const validatePayload = (payload: unknown): { data: BookmarkPayload } | { error:
   };
 };
 
-const selectColumns = "id, book_id, chapter, verse, label, created_at" as const;
+const selectColumns =
+  "id, translation_id, book_id, chapter, verse, label, created_at" as const;
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
   const accessToken = getAccessTokenFromRequest(request);
 
   if (!accessToken) {
@@ -125,11 +137,44 @@ export async function GET(request: Request) {
     return unauthorizedResponse();
   }
 
-  const { data, error } = await supabase
+  const translationParam = url.searchParams.get("translation")?.trim() ?? "";
+  let translationFilterId: string | null = null;
+
+  if (translationParam.length > 0) {
+    if (isUuid(translationParam)) {
+      translationFilterId = translationParam;
+    } else {
+      const {
+        data: translation,
+        error: translationError,
+      } = await fetchTranslationByCode(supabase, translationParam);
+
+      if (translationError) {
+        return NextResponse.json(
+          { error: "Failed to resolve translation" },
+          { status: 500 }
+        );
+      }
+
+      if (!translation) {
+        return NextResponse.json([], { status: 200 });
+      }
+
+      translationFilterId = translation.id;
+    }
+  }
+
+  let query = supabase
     .from("user_bookmarks")
     .select(selectColumns)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false, nullsFirst: false });
+
+  if (translationFilterId) {
+    query = query.eq("translation_id", translationFilterId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json(
@@ -174,6 +219,42 @@ export async function POST(request: Request) {
     return unauthorizedResponse();
   }
 
+  let translationId = validation.data.translationId;
+
+  if (
+    typeof translationId === "string" &&
+    translationId.length > 0 &&
+    !isUuid(translationId)
+  ) {
+    const {
+      data: translation,
+      error: translationLookupError,
+    } = await fetchTranslationByCode(supabase, translationId);
+
+    if (translationLookupError) {
+      return NextResponse.json(
+        { error: "Failed to resolve translation" },
+        { status: 500 }
+      );
+    }
+
+    if (!translation) {
+      return NextResponse.json(
+        { error: "Translation not found" },
+        { status: 400 }
+      );
+    }
+
+    translationId = translation.id;
+  }
+
+  if (!translationId) {
+    return NextResponse.json(
+      { error: "translationId is required" },
+      { status: 400 }
+    );
+  }
+
   const {
     data: existingBookmark,
     error: fetchError,
@@ -181,6 +262,7 @@ export async function POST(request: Request) {
     .from("user_bookmarks")
     .select(selectColumns)
     .eq("user_id", user.id)
+    .eq("translation_id", translationId)
     .eq("book_id", validation.data.bookId)
     .eq("chapter", validation.data.chapter)
     .maybeSingle();
@@ -232,6 +314,7 @@ export async function POST(request: Request) {
     .from("user_bookmarks")
     .insert({
       user_id: user.id,
+      translation_id: translationId,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse: validation.data.verse ?? null,

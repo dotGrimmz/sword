@@ -17,12 +17,14 @@ import {
   Clock,
   Heart,
   Lightbulb,
+  Loader2,
   Settings,
   ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useTranslationContext } from "./TranslationContext";
+import { TranslationSwitcher } from "./TranslationSwitcher";
 import {
   Card,
   CardContent,
@@ -95,36 +97,42 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [onNavigate]
   );
 
-  const { books, translationCode, isLoadingBooks, isLoadingTranslations } =
-    useTranslationContext();
+  const {
+    books,
+    translation,
+    translationCode,
+    isLoadingBooks,
+    isLoadingTranslations,
+  } = useTranslationContext();
+
+  const translationKey = translationCode ?? "none";
+  const fetchEnabled = Boolean(translationCode);
 
   const notesQuery = useDataQuery<UserNote[]>(
-    "user-notes-preview",
-    () => getUserNotes(10),
-    { staleTime: 1000 * 60 * 5 },
+    `user-notes-preview-${translationKey}`,
+    () => getUserNotes(10, translationCode ?? undefined),
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
   const highlightsQuery = useDataQuery(
-    "user-highlights",
-    getUserHighlights,
-    { staleTime: 1000 * 60 * 5 },
+    `user-highlights-${translationKey}`,
+    () => getUserHighlights(translationCode ?? undefined),
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
   const memoryQuery = useDataQuery(
-    "user-memory-verses",
-    getUserMemoryVerses,
-    { staleTime: 1000 * 60 * 5 },
+    `user-memory-verses-${translationKey}`,
+    () => getUserMemoryVerses(translationCode ?? undefined),
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
     () => highlightsQuery.data ?? [],
-    [highlightsQuery.data],
+    [highlightsQuery.data]
   );
-  const memoryData = useMemo(
-    () => memoryQuery.data ?? [],
-    [memoryQuery.data],
-  );
+  const memoryData = useMemo(() => memoryQuery.data ?? [], [memoryQuery.data]);
 
   const [todaysVerse, setTodaysVerse] = useState<VerseSnapshot | null>(null);
+  const [isVerseLoading, setIsVerseLoading] = useState(true);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -163,7 +171,12 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       const book = note.bookId ? bookIndex.get(note.bookId) ?? null : null;
       return {
         id: note.id,
-        reference: buildReferenceLabel(book ?? undefined, note.chapter, note.verseStart, note.verseEnd),
+        reference: buildReferenceLabel(
+          book ?? undefined,
+          note.chapter,
+          note.verseStart,
+          note.verseEnd
+        ),
         excerpt: getExcerpt(note.body, 140),
         updatedLabel: formatDate(note.updatedAt ?? note.createdAt ?? null),
       } satisfies NotePreview;
@@ -182,33 +195,36 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     ) => {
       if (!translationCode) {
         setTodaysVerse(null);
+        setIsVerseLoading(false);
         return;
       }
 
-      const candidate =
-        highlight ??
-        (memory
-          ? {
-              bookId: memory.bookId,
-              chapter: memory.chapter ?? 1,
-              verseStart: memory.verseStart ?? 1,
-              verseEnd: memory.verseEnd ?? memory.verseStart ?? 1,
-            }
-          : null);
-
-      if (!candidate || !candidate.bookId) {
-        setTodaysVerse(null);
-        return;
-      }
-
-      const book = bookIndex.get(candidate.bookId);
-
-      if (!book) {
-        setTodaysVerse(null);
-        return;
-      }
+      setIsVerseLoading(true);
 
       try {
+        const candidate =
+          highlight ??
+          (memory
+            ? {
+                bookId: memory.bookId,
+                chapter: memory.chapter ?? 1,
+                verseStart: memory.verseStart ?? 1,
+                verseEnd: memory.verseEnd ?? memory.verseStart ?? 1,
+              }
+            : null);
+
+        if (!candidate || !candidate.bookId) {
+          setTodaysVerse(null);
+          return;
+        }
+
+        const book = bookIndex.get(candidate.bookId);
+
+        if (!book) {
+          setTodaysVerse(null);
+          return;
+        }
+
         const passage = await getPassage(
           translationCode,
           book.name,
@@ -232,6 +248,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       } catch (error) {
         console.error("Failed to load verse of the day", error);
         setTodaysVerse(null);
+      } finally {
+        setIsVerseLoading(false);
       }
     },
     [translationCode, bookIndex]
@@ -266,7 +284,10 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
 
     return () => {
       window.removeEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
-      window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handleHighlightsUpdated);
+      window.removeEventListener(
+        HIGHLIGHTS_UPDATED_EVENT,
+        handleHighlightsUpdated
+      );
       window.removeEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
     };
   }, [highlightsQuery, memoryQuery, notesQuery]);
@@ -274,6 +295,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   useEffect(() => {
     if (!translationCode) {
       setTodaysVerse(null);
+      setIsVerseLoading(false);
       return;
     }
 
@@ -342,7 +364,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         label: "Open Reader",
         screen: "reader",
         subtitle: translationCode
-          ? `${translationCode.toUpperCase()} active`
+          ? `${translation?.name ?? translationCode.toUpperCase()} active`
           : "Choose a translation",
         detail: "Return to the passage you were studying.",
       },
@@ -403,7 +425,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     });
 
     return actions;
-  }, [translationCode, highlightsCount, notesCount, needsReviewCount, isAdmin]);
+  }, [
+    translation?.name,
+    translationCode,
+    highlightsCount,
+    notesCount,
+    needsReviewCount,
+    isAdmin,
+  ]);
 
   const progressData = useMemo(() => {
     const total = notesCount + highlightsCount + memoryCount;
@@ -430,11 +459,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     ];
   }, [notesCount, highlightsCount, memoryCount]);
 
-  const notesPriming = notesQuery.isLoading && notesQuery.data === undefined;
+  const notesPriming =
+    fetchEnabled && notesQuery.isLoading && notesQuery.data === undefined;
   const highlightsPriming =
-    highlightsQuery.isLoading && highlightsQuery.data === undefined;
+    fetchEnabled &&
+    highlightsQuery.isLoading &&
+    highlightsQuery.data === undefined;
   const memoryPriming =
-    memoryQuery.isLoading && memoryQuery.data === undefined;
+    fetchEnabled && memoryQuery.isLoading && memoryQuery.data === undefined;
 
   const showLoading =
     isLoadingBooks ||
@@ -449,14 +481,23 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         <LoadingScreen subtitle="We're gathering your notes, highlights, and memory verses." />
       ) : (
         <div className={styles.stack}>
-          <div className={styles.welcomeBlock}>
-            <h1 className={styles.welcomeTitle}>Welcome back</h1>
-            <p className={styles.welcomeSubtitle}>
-              Stay rooted in Scripture today
-            </p>
+          <div className={styles.headerStrip}>
+            <div className={styles.welcomeBlock}>
+              <h1 className={styles.welcomeTitle}>Welcome back</h1>
+              <p className={styles.welcomeSubtitle}>
+                Stay rooted in Scripture today
+              </p>
+            </div>
+
+            <TranslationSwitcher
+              className={styles.translationSwitcher}
+              selectClassName={styles.translationSwitcherTrigger}
+              hideLabel
+              size="compact"
+            />
           </div>
 
-          {todaysVerse ? (
+          {isVerseLoading || todaysVerse ? (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -472,12 +513,24 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                   </div>
                 </CardHeader>
                 <CardContent className={styles.verseContent}>
-                  <blockquote className={styles.verseQuote}>
-                    “{todaysVerse.text}”
-                  </blockquote>
-                  <cite className={styles.verseReference}>
-                    — {todaysVerse.reference}
-                  </cite>
+                  {isVerseLoading || !todaysVerse ? (
+                    <div className={styles.verseLoader}>
+                      <Loader2
+                        className={styles.verseLoaderIcon}
+                        aria-hidden="true"
+                      />
+                      <span>Preparing today&apos;s verse…</span>
+                    </div>
+                  ) : (
+                    <>
+                      <blockquote className={styles.verseQuote}>
+                        “{todaysVerse.text}”
+                      </blockquote>
+                      <cite className={styles.verseReference}>
+                        — {todaysVerse.reference}
+                      </cite>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

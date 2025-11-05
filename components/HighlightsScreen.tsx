@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
+import { TranslationSwitcher } from "./TranslationSwitcher";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -153,17 +154,21 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
   const {
     books,
+    translation,
     translationCode,
     isLoadingBooks,
     isLoadingTranslations,
   } = useTranslationContext();
 
+  const translationKey = translationCode ?? "none";
+  const fetchEnabled = Boolean(translationCode);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const highlightsQuery = useDataQuery(
-    "user-highlights",
-    getUserHighlights,
-    { staleTime: 1000 * 60 * 5 },
+    `user-highlights-${translationKey}`,
+    () => getUserHighlights(translationCode ?? undefined),
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
   );
   const highlights = useMemo(
     () => highlightsQuery.data ?? [],
@@ -180,6 +185,12 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   useEffect(() => {
     verseTextsRef.current = verseTexts;
   }, [verseTexts]);
+
+  useEffect(() => {
+    setVerseTexts({});
+    verseTextsRef.current = {};
+    pendingPassages.current.clear();
+  }, [translationCode]);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -408,7 +419,15 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
     try {
       await deleteUserHighlight(highlight.id);
+      const translationIdentifier =
+        highlight.translationId ?? translation?.id ?? translationCode ?? null;
+
+      if (!translationIdentifier) {
+        throw new Error("Translation unavailable for this highlight.");
+      }
+
       const recreated = await createUserHighlight({
+        translationId: translationIdentifier,
         bookId: highlight.bookId,
         chapter: highlight.chapter,
         verseStart: highlight.verseStart,
@@ -434,7 +453,8 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     }
 
     try {
-      const exportText = formatHighlightsPlaintext(derivedHighlights, translationCode);
+      const translationLabel = translation?.name ?? translationCode ?? undefined;
+      const exportText = formatHighlightsPlaintext(derivedHighlights, translationLabel);
       const blob = new Blob([exportText], {
         type: "text/plain;charset=utf-8",
       });
@@ -452,7 +472,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
       const message = error instanceof Error ? error.message : "Unable to export highlights";
       toast.error(message);
     }
-  }, [derivedHighlights, translationCode]);
+  }, [derivedHighlights, translation?.name, translationCode]);
 
   const renderHighlightCard = (highlight: HighlightViewModel) => {
     const colorClass = cardColorClasses[highlight.color] ?? fallbackCardColorClass;
@@ -519,6 +539,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   const busy =
     isLoadingTranslations ||
     isLoadingBooks ||
+    !fetchEnabled ||
     highlightsQuery.isLoading;
 
   return (
@@ -531,6 +552,11 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
               {filteredHighlights.length} shown • {highlights.length} total saved
             </p>
           </div>
+          <TranslationSwitcher
+            className={styles.translationControl}
+            size="compact"
+            hideLabel
+          />
           <Button variant="ghost" size="sm" onClick={handleExportHighlights}>
             <Share className={styles.toolbarIcon} />
           </Button>

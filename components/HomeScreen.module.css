@@ -16,12 +16,27 @@
   overflow: hidden;
 }
 
+.headerStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .welcomeBlock {
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 10px;
   flex-shrink: 0;
+}
+
+.translationSwitcher {
+  min-width: 160px;
+  align-self: center;
+}
+
+.translationSwitcherTrigger {
+  min-width: 160px;
 }
 
 .welcomeTitle {
@@ -35,6 +50,23 @@
   margin: 0;
   font-size: 15px;
   color: hsl(var(--muted-foreground));
+}
+
+@media (min-width: 768px) {
+  .headerStrip {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .welcomeBlock {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .translationSwitcher {
+    align-self: flex-end;
+  }
 }
 
 .verseCard {
@@ -88,6 +120,27 @@
   color: hsl(var(--primary));
   padding-bottom: .5rem;
   padding-left: .5rem;
+}
+
+.verseLoader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  color: hsl(var(--muted-foreground));
+}
+
+.verseLoaderIcon {
+  width: 20px;
+  height: 20px;
+  color: hsl(var(--accent));
+  animation: verseLoaderSpin 0.8s linear infinite;
+}
+
+@keyframes verseLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .quickSection {

@@ -73,10 +73,43 @@
 }
 
 .selectorGroup {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
   gap: 0.75rem;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+}
+
+.selectorItem {
+  min-width: 0;
+}
+
+.selectorItemTranslation {
+  grid-column: span 2;
+}
+
+.selectorItemBook,
+.selectorItemChapter {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .selectorGroup {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .selectorItemTranslation {
+    grid-column: span 4;
+  }
+
+  .selectorItemBook {
+    grid-column: span 3;
+  }
+
+  .selectorItemChapter {
+    grid-column: span 1;
+  }
 }
 
 .selectTriggerBase {
@@ -84,16 +117,10 @@
   background-color: var(--input-background);
 }
 
-.translationSelect {
-  width: 11rem;
-}
-
-.bookSelect {
-  width: 10rem;
-}
-
+.translationSelect,
+.bookSelect,
 .chapterSelect {
-  width: 6rem;
+  width: 100%;
 }
 
 .selectContent {
@@ -124,6 +151,7 @@
 .navIcon {
   width: 1rem;
   height: 1rem;
+  color: inherit;
 }
 
 .navIconLeft {
@@ -145,10 +173,30 @@
   padding: 0.55rem 0.95rem;
   font-size: 0.85rem;
   border-radius: calc(var(--radius) - 0.25rem);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--accent) 55%, transparent) 0%,
+    color-mix(in srgb, var(--secondary) 38%, transparent) 100%
+  );
+  color: hsl(var(--primary-foreground));
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 12px 24px rgba(15, 118, 230, 0.16);
+  transition: transform 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
-.navControlButtonIconOnly {
-  padding-inline: 0.85rem;
+.navControlButton:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(15, 118, 230, 0.24);
+  filter: brightness(1.05);
+}
+
+.navControlButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--surface) 70%, var(--muted) 30%);
+  color: color-mix(in srgb, var(--muted-foreground) 70%, white 30%);
+  border-color: color-mix(in srgb, var(--border) 60%, transparent);
+  box-shadow: none;
 }
 
 .navControlsBottom {

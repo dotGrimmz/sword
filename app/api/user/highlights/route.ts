@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 import { getAccessTokenFromRequest, unauthorizedResponse } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
-import { toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
+import { fetchTranslationByCode } from "@/lib/bible/queries";
+import { isUuid, toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
 
 const mapHighlight = (row: {
   id: string;
+  translation_id: string | null;
   book_id: string | null;
   chapter: number;
   verse_start: number;
@@ -15,6 +17,7 @@ const mapHighlight = (row: {
   updated_at: string | null;
 }) => ({
   id: row.id,
+  translationId: row.translation_id,
   bookId: row.book_id,
   chapter: row.chapter,
   verseStart: row.verse_start,
@@ -25,6 +28,7 @@ const mapHighlight = (row: {
 });
 
 type CreateHighlightPayload = {
+  translationId: string | null;
   bookId: string | null;
   chapter: number;
   verseStart: number;
@@ -37,7 +41,13 @@ const validatePayload = (payload: unknown): { data: CreateHighlightPayload } | {
     return { error: "Payload must be an object" };
   }
 
-  const { bookId, chapter, verseStart, verseEnd, color } = payload as Record<string, unknown>;
+  const { translationId, bookId, chapter, verseStart, verseEnd, color } =
+    payload as Record<string, unknown>;
+
+  const parsedTranslationId = toNullableString(translationId);
+  if (parsedTranslationId === undefined) {
+    return { error: "translationId must be a string" };
+  }
 
   const parsedBookId = toNullableString(bookId);
   if (parsedBookId === undefined) {
@@ -71,6 +81,7 @@ const validatePayload = (payload: unknown): { data: CreateHighlightPayload } | {
 
   return {
     data: {
+      translationId: parsedTranslationId ?? null,
       bookId: parsedBookId ?? null,
       chapter: parsedChapter,
       verseStart: parsedVerseStart,
@@ -81,6 +92,7 @@ const validatePayload = (payload: unknown): { data: CreateHighlightPayload } | {
 };
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
   const accessToken = getAccessTokenFromRequest(request);
 
   if (!accessToken) {
@@ -98,11 +110,44 @@ export async function GET(request: Request) {
     return unauthorizedResponse();
   }
 
-  const { data, error } = await supabase
+  const translationParam = url.searchParams.get("translation")?.trim() ?? "";
+  let translationFilterId: string | null = null;
+
+  if (translationParam.length > 0) {
+    if (isUuid(translationParam)) {
+      translationFilterId = translationParam;
+    } else {
+      const {
+        data: translation,
+        error: translationError,
+      } = await fetchTranslationByCode(supabase, translationParam);
+
+      if (translationError) {
+        return NextResponse.json(
+          { error: "Failed to resolve translation" },
+          { status: 500 }
+        );
+      }
+
+      if (!translation) {
+        return NextResponse.json([], { status: 200 });
+      }
+
+      translationFilterId = translation.id;
+    }
+  }
+
+  let query = supabase
     .from("user_highlights")
-    .select("id, book_id, chapter, verse_start, verse_end, color, created_at, updated_at")
+    .select("id, translation_id, book_id, chapter, verse_start, verse_end, color, created_at, updated_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false, nullsFirst: false });
+
+  if (translationFilterId) {
+    query = query.eq("translation_id", translationFilterId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json(
@@ -147,17 +192,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
+  let translationId = validation.data.translationId;
+
+  if (
+    typeof translationId === "string" &&
+    translationId.length > 0 &&
+    !isUuid(translationId)
+  ) {
+    const {
+      data: translation,
+      error: translationLookupError,
+    } = await fetchTranslationByCode(supabase, translationId);
+
+    if (translationLookupError) {
+      return NextResponse.json(
+        { error: "Failed to resolve translation" },
+        { status: 500 }
+      );
+    }
+
+    if (!translation) {
+      return NextResponse.json(
+        { error: "Translation not found" },
+        { status: 400 }
+      );
+    }
+
+    translationId = translation.id;
+  }
+
+  if (!translationId) {
+    return NextResponse.json(
+      { error: "translationId is required" },
+      { status: 400 }
+    );
+  }
+
   const { data, error } = await supabase
     .from("user_highlights")
     .insert({
       user_id: user.id,
+      translation_id: translationId,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse_start: validation.data.verseStart,
       verse_end: validation.data.verseEnd,
       color: validation.data.color,
     })
-    .select("id, book_id, chapter, verse_start, verse_end, color, created_at, updated_at")
+    .select("id, translation_id, book_id, chapter, verse_start, verse_end, color, created_at, updated_at")
     .single();
 
   if (error) {

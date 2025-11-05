@@ -6,11 +6,18 @@ import type {
   UserNote,
 } from "@/types/user";
 
-export const getUserNotes = async (limit?: number) => {
+export const getUserNotes = async (
+  limit?: number,
+  translationCode?: string
+) => {
   const params = new URLSearchParams();
 
   if (typeof limit === "number") {
     params.set("limit", `${limit}`);
+  }
+
+  if (translationCode) {
+    params.set("translation", translationCode);
   }
 
   const query = params.toString();
