@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -11,7 +11,6 @@ import {
   Heart,
   Loader2,
   MessageSquare,
-  Settings,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
@@ -51,14 +50,10 @@ import type { UserBookmark, UserHighlight } from "@/types/user";
 import { dispatchHighlightsUpdated, dispatchNotesUpdated } from "@/lib/events";
 import styles from "./BibleReaderScreen.module.css";
 
-interface BibleReaderScreenProps {
-  onNavigate?: (screen: string) => void;
-}
-
 const HIGHLIGHT_COLOR = "yellow" as const;
 const READER_STORAGE_KEY = "sword-reader-state";
 
-export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
+export function BibleReaderScreen() {
   const {
     translations,
     translationCode,
@@ -67,13 +62,6 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     isLoadingTranslations,
     isLoadingBooks,
   } = useTranslationContext();
-
-  const handleNavigate = useCallback(
-    (screen: string) => {
-      onNavigate?.(screen);
-    },
-    [onNavigate]
-  );
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
   const [chapter, setChapter] = useState(1);
@@ -551,79 +539,96 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       <div className={styles.toolbar}>
         <div className={styles.toolbarRow}>
           <div className={styles.selectorGroup}>
-            <Select
-              value={translationCode ?? undefined}
-              onValueChange={(value) => selectTranslation(value)}
+            <div
+              className={clsx(
+                styles.selectorItem,
+                styles.selectorItemTranslation
+              )}
             >
-              <SelectTrigger
-                className={clsx(
-                  styles.selectTriggerBase,
-                  styles.translationSelect
-                )}
+              <Select
+                value={translationCode ?? undefined}
+                onValueChange={(value) => selectTranslation(value)}
               >
-                <SelectValue placeholder="Translation" />
-              </SelectTrigger>
-              <SelectContent className={styles.selectContent}>
-                {translations.map((translation) => (
-                  <SelectItem key={translation.code} value={translation.code}>
-                    {translation.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={clsx(
+                    styles.selectTriggerBase,
+                    styles.translationSelect
+                  )}
+                >
+                  <SelectValue placeholder="Translation" />
+                </SelectTrigger>
+                <SelectContent className={styles.selectContent}>
+                  {translations.map((translation) => (
+                    <SelectItem key={translation.code} value={translation.code}>
+                      {translation.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select
-              value={selectedBookId ?? undefined}
-              onValueChange={(value) => {
-                setSelectedBookId(value);
-                setChapter(1);
-              }}
-              disabled={books.length === 0}
-            >
-              <SelectTrigger
-                className={clsx(styles.selectTriggerBase, styles.bookSelect)}
+            <div className={clsx(styles.selectorItem, styles.selectorItemBook)}>
+              <Select
+                value={selectedBookId ?? undefined}
+                onValueChange={(value) => {
+                  setSelectedBookId(value);
+                  setChapter(1);
+                }}
+                disabled={books.length === 0}
               >
-                <SelectValue placeholder="Book" />
-              </SelectTrigger>
-              <SelectContent className={styles.selectContent}>
-                {books.map((book) => (
-                  <SelectItem
-                    // className={styles.selectItem}
-                    key={book.id}
-                    value={book.id}
-                  >
-                    {book.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={clsx(styles.selectTriggerBase, styles.bookSelect)}
+                >
+                  <SelectValue placeholder="Book" />
+                </SelectTrigger>
+                <SelectContent className={styles.selectContent}>
+                  {books.map((book) => (
+                    <SelectItem key={book.id} value={book.id}>
+                      {book.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select
-              value={`${chapter}`}
-              onValueChange={(value) => setChapter(Number.parseInt(value, 10))}
-              disabled={!selectedBook}
+            <div
+              className={clsx(
+                styles.selectorItem,
+                styles.selectorItemChapter
+              )}
             >
-              <SelectTrigger
-                className={clsx(styles.selectTriggerBase, styles.chapterSelect)}
+              <Select
+                value={`${chapter}`}
+                onValueChange={(value) =>
+                  setChapter(Number.parseInt(value, 10))
+                }
+                disabled={!selectedBook}
               >
-                <SelectValue placeholder="Chapter" />
-              </SelectTrigger>
-              <SelectContent className={styles.selectContent}>
-                {selectedBook
-                  ? Array.from(
-                      { length: selectedBook.chapters },
-                      (_, index) => index + 1
-                    ).map((chapterNumber) => (
-                      <SelectItem
-                        key={chapterNumber}
-                        value={`${chapterNumber}`}
-                      >
-                        {chapterNumber}
-                      </SelectItem>
-                    ))
-                  : null}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  className={clsx(
+                    styles.selectTriggerBase,
+                    styles.chapterSelect
+                  )}
+                >
+                  <SelectValue placeholder="Chapter" />
+                </SelectTrigger>
+                <SelectContent className={styles.selectContent}>
+                  {selectedBook
+                    ? Array.from(
+                        { length: selectedBook.chapters },
+                        (_, index) => index + 1
+                      ).map((chapterNumber) => (
+                        <SelectItem
+                          key={chapterNumber}
+                          value={`${chapterNumber}`}
+                        >
+                          {chapterNumber}
+                        </SelectItem>
+                      ))
+                    : null}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className={styles.navControls}>
@@ -650,14 +655,6 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
               <ChevronRight
                 className={clsx(styles.navIcon, styles.navIconRight)}
               />
-            </Button>
-            <Button
-              variant="ghost"
-              size="nav"
-              onClick={() => handleNavigate("settings")}
-              className={clsx(styles.navControlButton, styles.navControlButtonIconOnly)}
-            >
-              <Settings className={styles.navIcon} />
             </Button>
           </div>
         </div>
@@ -824,14 +821,6 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
             <ChevronRight
               className={clsx(styles.navIcon, styles.navIconRight)}
             />
-          </Button>
-          <Button
-            variant="ghost"
-            size="nav"
-            onClick={() => handleNavigate("settings")}
-            className={clsx(styles.navControlButton, styles.navControlButtonIconOnly)}
-          >
-            <Settings className={styles.navIcon} />
           </Button>
         </div>
       </div>
