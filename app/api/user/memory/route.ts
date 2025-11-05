@@ -233,7 +233,9 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false, nullsFirst: false });
 
   if (translationFilterId) {
-    query = query.eq("translation_id", translationFilterId);
+    query = query.or(
+      `translation_id.eq.${translationFilterId},translation_id.is.null`
+    );
   }
 
   const { data, error } = await query;
@@ -257,7 +259,9 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false, nullsFirst: false });
 
   if (translationFilterId) {
-    legacyQuery = legacyQuery.eq("translation_id", translationFilterId);
+    legacyQuery = legacyQuery.or(
+      `translation_id.eq.${translationFilterId},translation_id.is.null`
+    );
   }
 
   const legacy = await legacyQuery;

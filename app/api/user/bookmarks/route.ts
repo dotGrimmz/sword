@@ -171,7 +171,9 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false, nullsFirst: false });
 
   if (translationFilterId) {
-    query = query.eq("translation_id", translationFilterId);
+    query = query.or(
+      `translation_id.eq.${translationFilterId},translation_id.is.null`
+    );
   }
 
   const { data, error } = await query;
@@ -262,7 +264,7 @@ export async function POST(request: Request) {
     .from("user_bookmarks")
     .select(selectColumns)
     .eq("user_id", user.id)
-    .eq("translation_id", translationId)
+    .or(`translation_id.eq.${translationId},translation_id.is.null`)
     .eq("book_id", validation.data.bookId)
     .eq("chapter", validation.data.chapter)
     .maybeSingle();
