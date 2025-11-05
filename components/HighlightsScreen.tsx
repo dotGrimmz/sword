@@ -557,8 +557,14 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             size="compact"
             hideLabel
           />
-          <Button variant="ghost" size="sm" onClick={handleExportHighlights}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExportHighlights}
+            className={styles.exportButton}
+          >
             <Share className={styles.toolbarIcon} />
+            <span>Export</span>
           </Button>
         </div>
 
