@@ -111,7 +111,34 @@ export async function GET(request: Request) {
     return unauthorizedResponse();
   }
 
-  const { data, error } = await supabase
+  const translationParam = url.searchParams.get("translation")?.trim() ?? "";
+  let translationFilterId: string | null = null;
+
+  if (translationParam.length > 0) {
+    if (isUuid(translationParam)) {
+      translationFilterId = translationParam;
+    } else {
+      const {
+        data: translation,
+        error: translationError,
+      } = await fetchTranslationByCode(supabase, translationParam);
+
+      if (translationError) {
+        return NextResponse.json(
+          { error: "Failed to resolve translation" },
+          { status: 500 }
+        );
+      }
+
+      if (!translation) {
+        return NextResponse.json([], { status: 200 });
+      }
+
+      translationFilterId = translation.id;
+    }
+  }
+
+  let query = supabase
     .from("user_notes")
     .select(
       "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
@@ -120,6 +147,12 @@ export async function GET(request: Request) {
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false, nullsFirst: false })
     .limit(limit);
+
+  if (translationFilterId) {
+    query = query.eq("translation_id", translationFilterId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     return NextResponse.json(

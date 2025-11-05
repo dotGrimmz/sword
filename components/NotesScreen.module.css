@@ -32,6 +32,10 @@
   justify-content: flex-end;
 }
 
+.translationControl {
+  min-width: 160px;
+}
+
 .headerTitleWrap {
   display: flex;
   flex-direction: column;

@@ -8,7 +8,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("bible_translations")
-    .select("code, name, language, version")
+    .select("id, code, name, language, version")
     .order("code", { ascending: true });
 
   if (error) {

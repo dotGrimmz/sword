@@ -5,7 +5,8 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
-import { isUuid, toOptionalInteger } from "@/lib/shared/parsers";
+import { fetchTranslationByCode } from "@/lib/bible/queries";
+import { isUuid, toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
 import {
   INITIAL_EASE,
   INITIAL_INTERVAL_DAYS,
@@ -38,6 +39,7 @@ const legacySelectColumns =
 
 const mapMemoryVerse = (row: MemoryVerseRow) => ({
   id: row.id,
+  translationId: row.translation_id,
   bookId: row.book_id,
   chapter: row.chapter,
   verseStart: row.verse_start,
@@ -52,6 +54,7 @@ const mapMemoryVerse = (row: MemoryVerseRow) => ({
 });
 
 type MemoryVersePayload = {
+  translationId: string | null;
   bookId: string;
   chapter: number;
   verseStart: number;
@@ -68,6 +71,11 @@ const validatePayload = (
   }
 
   const source = payload as Record<string, unknown>;
+
+  const parsedTranslationId = toNullableString(source.translationId);
+  if (parsedTranslationId === undefined) {
+    return { error: "translationId must be a string" };
+  }
 
   const rawBookId = source.bookId;
   if (typeof rawBookId !== "string" || rawBookId.trim().length === 0) {
@@ -143,6 +151,7 @@ const validatePayload = (
 
   return {
     data: {
+      translationId: parsedTranslationId ?? null,
       bookId,
       chapter: parsedChapter,
       verseStart: parsedVerseStart,
@@ -172,6 +181,7 @@ const isMissingColumnError = (error: unknown) => {
 };
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
   const accessToken = getAccessTokenFromRequest(request);
 
   if (!accessToken) {
@@ -186,14 +196,47 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return unauthorizedResponse();
+   return unauthorizedResponse();
   }
 
-  const { data, error } = await supabase
+  const translationParam = url.searchParams.get("translation")?.trim() ?? "";
+  let translationFilterId: string | null = null;
+
+  if (translationParam.length > 0) {
+    if (isUuid(translationParam)) {
+      translationFilterId = translationParam;
+    } else {
+      const {
+        data: translation,
+        error: translationError,
+      } = await fetchTranslationByCode(supabase, translationParam);
+
+      if (translationError) {
+        return NextResponse.json(
+          { error: "Failed to resolve translation" },
+          { status: 500 }
+        );
+      }
+
+      if (!translation) {
+        return NextResponse.json([], { status: 200 });
+      }
+
+      translationFilterId = translation.id;
+    }
+  }
+
+  let query = supabase
     .from("user_memory_verses")
     .select(selectColumns)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false, nullsFirst: false });
+
+  if (translationFilterId) {
+    query = query.eq("translation_id", translationFilterId);
+  }
+
+  const { data, error } = await query;
 
   if (error && !isMissingColumnError(error)) {
     return NextResponse.json(
@@ -207,11 +250,17 @@ export async function GET(request: Request) {
     return NextResponse.json(verses);
   }
 
-  const legacy = await supabase
+  let legacyQuery = supabase
     .from("user_memory_verses")
     .select(legacySelectColumns)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false, nullsFirst: false });
+
+  if (translationFilterId) {
+    legacyQuery = legacyQuery.eq("translation_id", translationFilterId);
+  }
+
+  const legacy = await legacyQuery;
 
   if (legacy.error) {
     return NextResponse.json(
@@ -259,11 +308,47 @@ export async function POST(request: Request) {
     return unauthorizedResponse();
   }
 
+  let translationId = validation.data.translationId;
+
+  if (
+    typeof translationId === "string" &&
+    translationId.length > 0 &&
+    !isUuid(translationId)
+  ) {
+    const {
+      data: translation,
+      error: translationLookupError,
+    } = await fetchTranslationByCode(supabase, translationId);
+
+    if (translationLookupError) {
+      return NextResponse.json(
+        { error: "Failed to resolve translation" },
+        { status: 500 }
+      );
+    }
+
+    if (!translation) {
+      return NextResponse.json(
+        { error: "Translation not found" },
+        { status: 400 }
+      );
+    }
+
+    translationId = translation.id;
+  }
+
+  if (!translationId) {
+    return NextResponse.json(
+      { error: "translationId is required" },
+      { status: 400 }
+    );
+  }
+
   const { data, error } = await supabase
     .from("user_memory_verses")
     .insert({
       user_id: user.id,
-      translation_id: null,
+      translation_id: translationId,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse_start: validation.data.verseStart,
@@ -294,7 +379,7 @@ export async function POST(request: Request) {
     .from("user_memory_verses")
     .insert({
       user_id: user.id,
-      translation_id: null,
+      translation_id: translationId,
       book_id: validation.data.bookId,
       chapter: validation.data.chapter,
       verse_start: validation.data.verseStart,

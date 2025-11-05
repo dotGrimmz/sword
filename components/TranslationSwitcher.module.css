@@ -1,0 +1,46 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.selectTrigger {
+  min-width: 200px;
+}
+
+.compact .selectTrigger {
+  min-width: 160px;
+  height: 36px;
+}
+
+.selectValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loadingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background-color: currentColor;
+  animation: translationSwitcherPulse 1s ease-in-out infinite;
+}
+
+@keyframes translationSwitcherPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}

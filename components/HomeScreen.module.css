@@ -24,6 +24,10 @@
   flex-shrink: 0;
 }
 
+.translationSwitcher {
+  align-self: center;
+}
+
 .welcomeTitle {
   margin: 0;
   font-size: 26px;
@@ -88,6 +92,27 @@
   color: hsl(var(--primary));
   padding-bottom: .5rem;
   padding-left: .5rem;
+}
+
+.verseLoader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  color: hsl(var(--muted-foreground));
+}
+
+.verseLoaderIcon {
+  width: 20px;
+  height: 20px;
+  color: hsl(var(--accent));
+  animation: verseLoaderSpin 0.8s linear infinite;
+}
+
+@keyframes verseLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .quickSection {

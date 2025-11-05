@@ -25,6 +25,7 @@ export type UpdateUserNotePayload = {
 
 export type UserHighlight = {
   id: string;
+  translationId: string | null;
   bookId: string | null;
   chapter: number;
   verseStart: number;
@@ -36,6 +37,7 @@ export type UserHighlight = {
 
 export type UserMemoryVerse = {
   id: string;
+  translationId: string | null;
   bookId: string | null;
   chapter: number | null;
   verseStart: number | null;
@@ -51,6 +53,7 @@ export type UserMemoryVerse = {
 
 export type UserBookmark = {
   id: string;
+  translationId: string | null;
   bookId: string | null;
   chapter: number | null;
   verse: number | null;

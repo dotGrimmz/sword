@@ -3,6 +3,7 @@ import { apiFetch } from "./fetch";
 import type { UserMemoryVerse } from "@/types/user";
 
 export type CreateMemoryVerseInput = {
+  translationId?: string | null;
   bookId: string;
   chapter: number;
   verseStart: number;
@@ -11,8 +12,19 @@ export type CreateMemoryVerseInput = {
   tags?: string[] | null;
 };
 
-export const getUserMemoryVerses = async () =>
-  apiFetch<UserMemoryVerse[]>("/api/user/memory");
+export const getUserMemoryVerses = async (translationCode?: string) => {
+  const params = new URLSearchParams();
+
+  if (translationCode) {
+    params.set("translation", translationCode);
+  }
+
+  const query = params.toString();
+  const resource =
+    query.length > 0 ? `/api/user/memory?${query}` : "/api/user/memory";
+
+  return apiFetch<UserMemoryVerse[]>(resource);
+};
 
 export type ReviewMemoryVerseInput = {
   id: string;
@@ -27,6 +39,7 @@ export const createUserMemoryVerse = async (payload: CreateMemoryVerseInput) =>
     },
     body: JSON.stringify({
       ...payload,
+      translationId: payload.translationId ?? null,
       verseEnd: payload.verseEnd ?? payload.verseStart,
       label: payload.label ?? null,
       tags: payload.tags ?? null,

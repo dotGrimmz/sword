@@ -1,13 +1,12 @@
 export type BibleTranslationSummary = {
+  id: string;
   code: string;
   name: string;
   language: string | null;
   version: string | null;
 };
 
-export type BibleTranslation = BibleTranslationSummary & {
-  id: string;
-};
+export type BibleTranslation = BibleTranslationSummary;
 
 export type BibleBookSummary = {
   id: string;

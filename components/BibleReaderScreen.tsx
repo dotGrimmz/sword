@@ -106,6 +106,11 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     return index;
   }, [translations]);
 
+  const activeTranslation = translationCode
+    ? translationsByCode.get(translationCode) ?? null
+    : null;
+  const activeTranslationId = activeTranslation?.id ?? null;
+
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
     for (const book of books) {
@@ -239,10 +244,16 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   }, [translationCode, selectedBook, chapter]);
 
   useEffect(() => {
+    if (!translationCode) {
+      setHighlights([]);
+      setIsLoadingHighlights(false);
+      return;
+    }
+
     const loadHighlights = async () => {
       setIsLoadingHighlights(true);
       try {
-        const data = await getUserHighlights();
+        const data = await getUserHighlights(translationCode);
         setHighlights(data);
       } catch (error) {
         const message =
@@ -255,13 +266,19 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     };
 
     void loadHighlights();
-  }, []);
+  }, [translationCode]);
 
   useEffect(() => {
+    if (!translationCode) {
+      setBookmarks([]);
+      setIsLoadingBookmarks(false);
+      return;
+    }
+
     const loadBookmarks = async () => {
       setIsLoadingBookmarks(true);
       try {
-        const data = await getUserBookmarks();
+        const data = await getUserBookmarks(translationCode);
         setBookmarks(data);
       } catch (error) {
         const message =
@@ -274,7 +291,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     };
 
     void loadBookmarks();
-  }, []);
+  }, [translationCode]);
 
   const highlightsForChapter = useMemo(() => {
     if (!selectedBookId) {
@@ -316,6 +333,11 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
       return;
     }
 
+    if (!translationCode) {
+      toast.error("Select a translation before highlighting.");
+      return;
+    }
+
     setHighlightingVerse(verseNumber);
     const existingHighlight = highlightsByVerse.get(verseNumber);
 
@@ -340,7 +362,9 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     }
 
     try {
+      const translationIdentifier = activeTranslationId ?? translationCode;
       const newHighlight = await createUserHighlight({
+        translationId: translationIdentifier,
         bookId: selectedBookId,
         chapter,
         verseStart: verseNumber,
@@ -362,6 +386,11 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
   const handleToggleBookmark = async (verseNumber: number) => {
     if (!selectedBookId) {
       toast.error("Pick a book before bookmarking.");
+      return;
+    }
+
+    if (!translationCode) {
+      toast.error("Select a translation before bookmarking.");
       return;
     }
 
@@ -388,6 +417,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
     try {
       const bookmark = await upsertUserBookmark({
+        translationId: activeTranslationId ?? translationCode,
         bookId: selectedBookId,
         chapter,
         verse: verseNumber,
@@ -434,7 +464,7 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
 
     try {
       await createUserNote({
-        translationId: translationCode,
+        translationId: activeTranslationId ?? translationCode,
         bookId: selectedBookId,
         chapter,
         verseStart: noteVerse,
@@ -496,9 +526,8 @@ export function BibleReaderScreen({ onNavigate }: BibleReaderScreenProps) {
     isLoadingHighlights ||
     isLoadingBookmarks;
 
-  const translationLabel = translationCode
-    ? translationsByCode.get(translationCode)?.name ?? translationCode
-    : "Select translation";
+  const translationLabel =
+    activeTranslation?.name ?? translationCode ?? "Select translation";
 
   useEffect(() => {
     if (typeof window === "undefined") {
