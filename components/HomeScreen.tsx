@@ -111,28 +111,25 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   const notesQuery = useDataQuery<UserNote[]>(
     `user-notes-preview-${translationKey}`,
     () => getUserNotes(10, translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
   const highlightsQuery = useDataQuery(
     `user-highlights-${translationKey}`,
     () => getUserHighlights(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
   const memoryQuery = useDataQuery(
     `user-memory-verses-${translationKey}`,
     () => getUserMemoryVerses(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
+    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
   );
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
     () => highlightsQuery.data ?? [],
-    [highlightsQuery.data],
+    [highlightsQuery.data]
   );
-  const memoryData = useMemo(
-    () => memoryQuery.data ?? [],
-    [memoryQuery.data],
-  );
+  const memoryData = useMemo(() => memoryQuery.data ?? [], [memoryQuery.data]);
 
   const [todaysVerse, setTodaysVerse] = useState<VerseSnapshot | null>(null);
   const [isVerseLoading, setIsVerseLoading] = useState(true);
@@ -174,7 +171,12 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       const book = note.bookId ? bookIndex.get(note.bookId) ?? null : null;
       return {
         id: note.id,
-        reference: buildReferenceLabel(book ?? undefined, note.chapter, note.verseStart, note.verseEnd),
+        reference: buildReferenceLabel(
+          book ?? undefined,
+          note.chapter,
+          note.verseStart,
+          note.verseEnd
+        ),
         excerpt: getExcerpt(note.body, 140),
         updatedLabel: formatDate(note.updatedAt ?? note.createdAt ?? null),
       } satisfies NotePreview;
@@ -282,7 +284,10 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
 
     return () => {
       window.removeEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
-      window.removeEventListener(HIGHLIGHTS_UPDATED_EVENT, handleHighlightsUpdated);
+      window.removeEventListener(
+        HIGHLIGHTS_UPDATED_EVENT,
+        handleHighlightsUpdated
+      );
       window.removeEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
     };
   }, [highlightsQuery, memoryQuery, notesQuery]);
@@ -420,7 +425,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     });
 
     return actions;
-  }, [translation?.name, translationCode, highlightsCount, notesCount, needsReviewCount, isAdmin]);
+  }, [
+    translation?.name,
+    translationCode,
+    highlightsCount,
+    notesCount,
+    needsReviewCount,
+    isAdmin,
+  ]);
 
   const progressData = useMemo(() => {
     const total = notesCount + highlightsCount + memoryCount;
@@ -450,7 +462,9 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   const notesPriming =
     fetchEnabled && notesQuery.isLoading && notesQuery.data === undefined;
   const highlightsPriming =
-    fetchEnabled && highlightsQuery.isLoading && highlightsQuery.data === undefined;
+    fetchEnabled &&
+    highlightsQuery.isLoading &&
+    highlightsQuery.data === undefined;
   const memoryPriming =
     fetchEnabled && memoryQuery.isLoading && memoryQuery.data === undefined;
 
@@ -467,17 +481,21 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         <LoadingScreen subtitle="We're gathering your notes, highlights, and memory verses." />
       ) : (
         <div className={styles.stack}>
-          <div className={styles.welcomeBlock}>
-            <h1 className={styles.welcomeTitle}>Welcome back</h1>
-            <p className={styles.welcomeSubtitle}>
-              Stay rooted in Scripture today
-            </p>
-          </div>
+          <div className={styles.headerStrip}>
+            <div className={styles.welcomeBlock}>
+              <h1 className={styles.welcomeTitle}>Welcome back</h1>
+              <p className={styles.welcomeSubtitle}>
+                Stay rooted in Scripture today
+              </p>
+            </div>
 
-          <TranslationSwitcher
-            className={styles.translationSwitcher}
-            size="compact"
-          />
+            <TranslationSwitcher
+              className={styles.translationSwitcher}
+              selectClassName={styles.translationSwitcherTrigger}
+              hideLabel
+              size="compact"
+            />
+          </div>
 
           {isVerseLoading || todaysVerse ? (
             <motion.div

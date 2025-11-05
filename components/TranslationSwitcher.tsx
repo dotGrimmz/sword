@@ -31,6 +31,7 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
   const {
     translations,
     translationCode,
+    translation,
     isLoadingTranslations,
     selectTranslation,
   } = useTranslationContext();
@@ -43,6 +44,8 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
     : translations.length === 0
     ? "No translations"
     : "Select translation";
+
+  const active = translation ?? translations.find((item) => item.code === translationCode) ?? null;
 
   return (
     <div
@@ -62,14 +65,29 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
           className={cn(styles.selectTrigger, selectClassName)}
           aria-label="Choose Bible translation"
         >
-          <SelectValue placeholder={placeholder} className={styles.selectValue}>
-            {isLoadingTranslations && <span className={styles.loadingDot} />}
+          <SelectValue
+            placeholder={placeholder}
+            className={styles.selectValue}
+          >
+            {isLoadingTranslations ? (
+              <span className={styles.loadingDot} />
+            ) : active ? (
+              <span className={styles.activeValue}>
+                <span className={styles.activeCode}>
+                  {active.code.toUpperCase()}
+                </span>
+                <span className={styles.activeName}>{active.name}</span>
+              </span>
+            ) : null}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {translations.map((translation) => (
-            <SelectItem key={translation.code} value={translation.code}>
-              {translation.name}
+          {translations.map((item) => (
+            <SelectItem key={item.code} value={item.code}>
+              <span className={styles.optionRow}>
+                <span className={styles.optionName}>{item.name}</span>
+                <span className={styles.optionCode}>{item.code.toUpperCase()}</span>
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

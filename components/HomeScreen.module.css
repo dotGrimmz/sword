@@ -16,6 +16,12 @@
   overflow: hidden;
 }
 
+.headerStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .welcomeBlock {
   text-align: center;
   display: flex;
@@ -25,7 +31,12 @@
 }
 
 .translationSwitcher {
+  min-width: 160px;
   align-self: center;
+}
+
+.translationSwitcherTrigger {
+  min-width: 160px;
 }
 
 .welcomeTitle {
@@ -39,6 +50,23 @@
   margin: 0;
   font-size: 15px;
   color: hsl(var(--muted-foreground));
+}
+
+@media (min-width: 768px) {
+  .headerStrip {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .welcomeBlock {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .translationSwitcher {
+    align-self: flex-end;
+  }
 }
 
 .verseCard {
