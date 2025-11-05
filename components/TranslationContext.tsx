@@ -14,8 +14,15 @@ import {
   getBooksForTranslation,
   getTranslations,
 } from "@/lib/api/bible";
+import { getUserNotes } from "@/lib/api/notes";
+import { getUserHighlights } from "@/lib/api/highlights";
+import { getUserMemoryVerses } from "@/lib/api/memory";
+import { getUserBookmarks } from "@/lib/api/bookmarks";
 import type { BibleBookSummary, BibleTranslationSummary } from "@/types/bible";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import {
+  useDataCacheContext,
+  useDataQuery,
+} from "@/lib/data-cache/DataCacheProvider";
 
 type TranslationContextValue = {
   translations: BibleTranslationSummary[];
@@ -48,6 +55,7 @@ interface TranslationProviderProps {
 
 export function TranslationProvider({ children }: TranslationProviderProps) {
   const [translationCode, setTranslationCode] = useState<string | null>(() => getInitialStoredTranslation());
+  const dataCache = useDataCacheContext();
 
   const selectTranslation = useCallback((code: string) => {
     setTranslationCode(code);
@@ -130,6 +138,40 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     () => translations.find((item) => item.code === translationCode) ?? null,
     [translations, translationCode]
   );
+
+  useEffect(() => {
+    if (!translationCode) {
+      return;
+    }
+
+    const staleTime = 1000 * 60 * 5;
+
+    void dataCache.fetch(
+      `user-notes-preview-${translationCode}`,
+      () => getUserNotes(10, translationCode),
+      { staleTime }
+    );
+    void dataCache.fetch(
+      `user-notes-${translationCode}`,
+      () => getUserNotes(undefined, translationCode),
+      { staleTime }
+    );
+    void dataCache.fetch(
+      `user-highlights-${translationCode}`,
+      () => getUserHighlights(translationCode),
+      { staleTime }
+    );
+    void dataCache.fetch(
+      `user-memory-verses-${translationCode}`,
+      () => getUserMemoryVerses(translationCode),
+      { staleTime }
+    );
+    void dataCache.fetch(
+      `user-bookmarks-${translationCode}`,
+      () => getUserBookmarks(translationCode),
+      { staleTime }
+    );
+  }, [dataCache, translationCode]);
 
   const refreshBooks = useCallback(async () => {
     if (!translationCode) {

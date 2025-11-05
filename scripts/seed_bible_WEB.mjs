@@ -2,9 +2,8 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://zuurfduimfwclfpptyyz.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1dXJmZHVpbWZ3Y2xmcHB0eXl6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTY3Mjg5OCwiZXhwIjoyMDc1MjQ4ODk4fQ.Xc-M0J-2zztFwcVogV5BvPc4khAE2frq0cLFaKdNu_4";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_URL;
 if (!SUPABASE_URL) {
   console.error(
     "❌ Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) environment variable."
@@ -75,7 +74,7 @@ const MAX_FETCH_RETRIES = 6;
 const BASE_RETRY_DELAY_MS = 1500;
 const CHAPTER_FETCH_DELAY_MS = 1000;
 const API_BIBLE_BASE_URL = "https://api.scripture.api.bible/v1/";
-const API_BIBLE_KEY = "VH2tPQtPmtxeKOEeMxYrJ";
+const API_BIBLE_KEY = "";
 
 const missingCodes = requestedCodes.filter(
   (code) => !translationsToSeed.some((translation) => translation.code === code)
@@ -584,12 +583,11 @@ const fetchBookEntriesFromGithubJson = async (translation, book) => {
     for (const verse of verses) {
       const verseNumber = Number(verse.verse);
       const text =
-        typeof verse.text === "string" ? verse.text.replace(/\s+/g, " ").trim() : "";
+        typeof verse.text === "string"
+          ? verse.text.replace(/\s+/g, " ").trim()
+          : "";
 
-      if (
-        Number.isFinite(verseNumber) &&
-        text.length > 0
-      ) {
+      if (Number.isFinite(verseNumber) && text.length > 0) {
         entries.push({
           chapterNumber,
           verseNumber,

@@ -31,21 +31,19 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
   const {
     translations,
     translationCode,
-    translation,
     isLoadingTranslations,
     selectTranslation,
   } = useTranslationContext();
 
-  const isDisabled =
-    isLoadingTranslations || translations.length === 0 || !selectTranslation;
+  const isDisabled = translations.length === 0 || !selectTranslation;
 
   const placeholder = isLoadingTranslations
-    ? "Loading…"
+    ? "Loading translations…"
     : translations.length === 0
     ? "No translations"
     : "Select translation";
 
-  const active = translation ?? translations.find((item) => item.code === translationCode) ?? null;
+  const selectValue = translationCode ?? "__none__";
 
   return (
     <div
@@ -57,37 +55,23 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
     >
       {!hideLabel ? <span className={styles.label}>{label}</span> : null}
       <Select
-        value={translationCode ?? undefined}
-        onValueChange={(value) => selectTranslation(value)}
+        value={selectValue}
+        onValueChange={(value) => selectTranslation(value === "__none__" ? "" : value)}
         disabled={isDisabled}
       >
         <SelectTrigger
           className={cn(styles.selectTrigger, selectClassName)}
           aria-label="Choose Bible translation"
         >
-          <SelectValue
-            placeholder={placeholder}
-            className={styles.selectValue}
-          >
-            {isLoadingTranslations ? (
-              <span className={styles.loadingDot} />
-            ) : active ? (
-              <span className={styles.activeValue}>
-                <span className={styles.activeCode}>
-                  {active.code.toUpperCase()}
-                </span>
-                <span className={styles.activeName}>{active.name}</span>
-              </span>
-            ) : null}
-          </SelectValue>
+          <SelectValue placeholder={placeholder} className={styles.selectValue} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="__none__" disabled>
+            Select translation
+          </SelectItem>
           {translations.map((item) => (
             <SelectItem key={item.code} value={item.code}>
-              <span className={styles.optionRow}>
-                <span className={styles.optionName}>{item.name}</span>
-                <span className={styles.optionCode}>{item.code.toUpperCase()}</span>
-              </span>
+              {`${item.code.toUpperCase()} · ${item.name}`}
             </SelectItem>
           ))}
         </SelectContent>
