@@ -498,6 +498,9 @@
   background-color: var(--primary);
   color: var(--primary-foreground);
   transition: background-color 0.2s ease, transform 0.2s ease;
+  padding-inline: 1.8rem;
+  height: 48px;
+  font-size: 1rem;
 }
 
 .saveButton:disabled {
