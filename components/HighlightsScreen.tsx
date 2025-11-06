@@ -559,12 +559,12 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
           />
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleExportHighlights}
             className={styles.exportButton}
+            aria-label="Export highlights"
           >
             <Share className={styles.toolbarIcon} />
-            <span>Export</span>
           </Button>
         </div>
 

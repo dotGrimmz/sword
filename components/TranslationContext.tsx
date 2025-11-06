@@ -54,7 +54,7 @@ interface TranslationProviderProps {
 }
 
 export function TranslationProvider({ children }: TranslationProviderProps) {
-  const [translationCode, setTranslationCode] = useState<string | null>(() => getInitialStoredTranslation());
+  const [translationCode, setTranslationCode] = useState<string | null>(null);
   const dataCache = useDataCacheContext();
 
   const selectTranslation = useCallback((code: string) => {
@@ -180,30 +180,43 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     await refetchBooksQuery();
   }, [refetchBooksQuery, translationCode]);
 
-  const contextValue = useMemo<TranslationContextValue>(() => ({
-    translations,
-    translation,
-    translationCode,
-    books,
-    isLoadingTranslations,
-    isLoadingBooks,
-    error: translationsError ?? booksError,
-    selectTranslation,
-    refreshTranslations,
-    refreshBooks,
-  }), [
-    translations,
-    translation,
-    translationCode,
-    books,
-    isLoadingTranslations,
-    isLoadingBooks,
-    translationsError,
-    booksError,
-    selectTranslation,
-    refreshTranslations,
-    refreshBooks,
-  ]);
+  const contextValue = useMemo<TranslationContextValue>(
+    () => ({
+      translations,
+      translation,
+      translationCode,
+      books,
+      isLoadingTranslations,
+      isLoadingBooks,
+      error: translationsError ?? booksError,
+      selectTranslation,
+      refreshTranslations,
+      refreshBooks,
+    }),
+    [
+      translations,
+      translation,
+      translationCode,
+      books,
+      isLoadingTranslations,
+      isLoadingBooks,
+      translationsError,
+      booksError,
+      selectTranslation,
+      refreshTranslations,
+      refreshBooks,
+    ]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const stored = getInitialStoredTranslation();
+    if (stored) {
+      setTranslationCode(stored);
+    }
+  }, []);
 
   return (
     <TranslationContext.Provider value={contextValue}>
