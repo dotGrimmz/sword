@@ -546,8 +546,13 @@ export function BibleReaderScreen() {
               )}
             >
               <Select
-                value={translationCode ?? undefined}
-                onValueChange={(value) => selectTranslation(value)}
+                value={translationCode ?? "__none__"}
+                onValueChange={(value) => {
+                  if (value === "__none__") {
+                    return;
+                  }
+                  selectTranslation(value);
+                }}
               >
                 <SelectTrigger
                   className={clsx(
@@ -558,6 +563,9 @@ export function BibleReaderScreen() {
                   <SelectValue placeholder="Translation" />
                 </SelectTrigger>
                 <SelectContent className={styles.selectContent}>
+                  <SelectItem value="__none__" disabled>
+                    Translation
+                  </SelectItem>
                   {translations.map((translation) => (
                     <SelectItem key={translation.code} value={translation.code}>
                       {translation.name}
