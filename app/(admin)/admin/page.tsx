@@ -1,12 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, BookMarked, ListChecks, Route } from "lucide-react";
+import { ArrowLeft, CalendarDays, Users2 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  fetchPaths,
-  fetchSources,
-  fetchTopics,
-} from "@/lib/api/apologetics";
+import { fetchHostProfiles, fetchPreReads } from "@/lib/api/pre-reads";
 
 import styles from "./AdminPage.module.css";
 
@@ -14,39 +10,30 @@ export const dynamic = "force-dynamic";
 
 const cards = [
   {
-    name: "Topics",
-    description: "Core objections, claims, and curated evidence.",
-    href: "/admin/topics",
-    icon: BookMarked,
-    toneClass: "toneTopics",
+    name: "Pre-Reads",
+    description: "Daily study schedule, polls, and visibility.",
+    href: "/admin/pre-read",
+    icon: CalendarDays,
+    toneClass: "tonePreReads",
   },
   {
-    name: "Paths",
-    description: "Learning journeys that sequence multiple topics.",
-    href: "/admin/paths",
-    icon: Route,
-    toneClass: "tonePaths",
-  },
-  {
-    name: "Sources",
-    description: "Supporting references and recommended reading.",
-    href: "/admin/sources",
-    icon: ListChecks,
-    toneClass: "toneSources",
+    name: "Hosts",
+    description: "Manage livestream hosts and metadata.",
+    href: "/admin/hosts",
+    icon: Users2,
+    toneClass: "toneHosts",
   },
 ];
 
 export default async function AdminOverviewPage() {
-  const [topics, paths, sources] = await Promise.all([
-    fetchTopics(),
-    fetchPaths(),
-    fetchSources(),
+  const [preReads, hosts] = await Promise.all([
+    fetchPreReads(),
+    fetchHostProfiles(),
   ]);
 
   const counts = {
-    Topics: topics.length,
-    Paths: paths.length,
-    Sources: sources.length,
+    "Pre-Reads": preReads.length,
+    Hosts: hosts.length,
   };
 
   return (
@@ -59,11 +46,10 @@ export default async function AdminOverviewPage() {
           </Link>
         </div>
         <p className={styles.eyebrow}>Admin Console</p>
-        <h1 className={styles.title}>Apologetics Management</h1>
+        <h1 className={styles.title}>Pre-Read Management</h1>
         <p className={styles.description}>
-          Create, edit, and curate apologetics content for the SWORD community.
-          Use the panels below to manage topics, learning paths, and supporting
-          sources.
+          Plan daily studies and curate host metadata. Use the panels below to
+          schedule Pre-Reads and manage active hosts.
         </p>
       </header>
 
