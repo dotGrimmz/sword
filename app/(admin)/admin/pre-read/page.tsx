@@ -76,8 +76,8 @@ export default async function AdminPreReadListPage() {
           Plan and publish the daily Pre-Read experience. Assign hosts, control
           visibility windows, and keep members informed ahead of each study.
         </p>
-        <div className={pageStyles.sectionSpacer}>
-          <Button asChild>
+        <div className={listStyles.ctaWrapper}>
+          <Button asChild className={listStyles.ctaButton}>
             <Link href="/admin/pre-read/new">
               <CalendarPlus className="mr-2 h-4 w-4" aria-hidden="true" />
               Create Pre-Read

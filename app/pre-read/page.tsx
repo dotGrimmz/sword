@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
@@ -57,6 +59,10 @@ export default async function PreReadPage() {
   if (!preRead) {
     return (
       <main className={styles.page}>
+        <Link href="/dashboard" className={styles.backLink}>
+          <ArrowLeft className={styles.backIcon} aria-hidden="true" />
+          Back to Dashboard
+        </Link>
         <section className={styles.fallback}>
           <p className={styles.heroEyebrow}>Pre-Read</p>
           <h1 className={styles.fallbackTitle}>No Study Scheduled Today</h1>
@@ -90,6 +96,10 @@ export default async function PreReadPage() {
 
   return (
     <main className={styles.page}>
+      <Link href="/dashboard" className={styles.backLink}>
+        <ArrowLeft className={styles.backIcon} aria-hidden="true" />
+        Back to Dashboard
+      </Link>
       <section className={styles.heroCard}>
         <p className={styles.heroEyebrow}>Today&apos;s Passage</p>
         <div>

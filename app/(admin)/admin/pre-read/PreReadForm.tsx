@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import managerStyles from "../AdminManager.module.css";
 import type {
@@ -45,8 +44,7 @@ type FormState = {
   pollOptions: string[];
   hostProfileId: string;
   streamStartTime: string;
-  visibleFrom: string;
-  visibleUntil: string;
+  visibleDay: string;
   isCancelled: boolean;
   published: boolean;
 };
@@ -78,6 +76,35 @@ const toISOString = (value: string) => {
     return null;
   }
   return date.toISOString();
+};
+
+const toDateInputValue = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getTodayDateInput = () => toDateInputValue(new Date().toISOString());
+
+const getFullDayWindow = (dateValue: string) => {
+  if (!dateValue) {
+    return null;
+  }
+  const start = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(start.getTime())) {
+    return null;
+  }
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return {
+    from: start.toISOString(),
+    until: end.toISOString(),
+  };
 };
 
 const ensureLength = (list: string[], min: number, fill = "") => {
@@ -120,8 +147,8 @@ export default function PreReadForm({
         : ["", ""],
     hostProfileId: initialData?.host_profile_id ?? "",
     streamStartTime: toDateTimeLocal(initialData?.stream_start_time),
-    visibleFrom: toDateTimeLocal(initialData?.visible_from),
-    visibleUntil: toDateTimeLocal(initialData?.visible_until),
+    visibleDay:
+      toDateInputValue(initialData?.visible_from) || getTodayDateInput(),
     isCancelled: initialData?.is_cancelled ?? false,
     published: initialData?.published ?? false,
   }));
@@ -130,6 +157,12 @@ export default function PreReadForm({
   const hostSelectValue = form.hostProfileId
     ? form.hostProfileId
     : HOST_NONE_VALUE;
+  const resetVisibilityWindow = () => {
+    setForm((prev) => ({
+      ...prev,
+      visibleDay: getTodayDateInput(),
+    }));
+  };
 
   const handleFieldChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -339,6 +372,21 @@ export default function PreReadForm({
     [hostOptions]
   );
   console.log("hostOptions", hostOptions);
+  const currentStatus = form.isCancelled
+    ? "cancelled"
+    : form.published
+      ? "published"
+      : "draft";
+
+  const setStatus = (status: "draft" | "published" | "cancelled") => {
+    if (status === "draft") {
+      setForm((prev) => ({ ...prev, published: false, isCancelled: false }));
+    } else if (status === "published") {
+      setForm((prev) => ({ ...prev, published: true, isCancelled: false }));
+    } else {
+      setForm((prev) => ({ ...prev, published: false, isCancelled: true }));
+    }
+  };
 
   const parseVerseRange = (value: string) => {
     const normalized = value.trim();
@@ -381,18 +429,9 @@ export default function PreReadForm({
       return;
     }
 
-    const visibleFromISO = toISOString(form.visibleFrom);
-    const visibleUntilISO = toISOString(form.visibleUntil);
-
-    if (!visibleFromISO || !visibleUntilISO) {
-      toast.error("Visible from/until are required.");
-      return;
-    }
-
-    if (
-      new Date(visibleFromISO).getTime() >= new Date(visibleUntilISO).getTime()
-    ) {
-      toast.error("Visible until must be after visible from.");
+    const dayWindow = getFullDayWindow(form.visibleDay);
+    if (!dayWindow) {
+      toast.error("Visible day is required.");
       return;
     }
 
@@ -428,8 +467,8 @@ export default function PreReadForm({
       host_profile_id: form.hostProfileId || null,
       stream_start_time: toISOString(form.streamStartTime),
       is_cancelled: form.isCancelled,
-      visible_from: visibleFromISO,
-      visible_until: visibleUntilISO,
+      visible_from: dayWindow.from,
+      visible_until: dayWindow.until,
       published: form.published,
     };
 
@@ -510,6 +549,49 @@ export default function PreReadForm({
       </div>
 
       <form id="pre-read-form" className={styles.form} onSubmit={handleSubmit}>
+        <section className={styles.statusCard}>
+          <div>
+            <p className={styles.statusEyebrow}>Status</p>
+            <p className={styles.statusValue}>
+              {currentStatus === "draft"
+                ? "Draft"
+                : currentStatus === "published"
+                  ? "Published"
+                  : "Cancelled"}
+            </p>
+            <p className={styles.helper}>
+              Choose the current state for this Pre-Read. Published entries are
+              visible to members; cancelled entries stay hidden but remain in
+              history.
+            </p>
+          </div>
+          <div className={styles.statusToggles}>
+            <Button
+              type="button"
+              variant={currentStatus === "draft" ? "default" : "outline"}
+              className={styles.statusButton}
+              onClick={() => setStatus("draft")}
+            >
+              Draft
+            </Button>
+            <Button
+              type="button"
+              variant={currentStatus === "published" ? "default" : "outline"}
+              className={styles.statusButton}
+              onClick={() => setStatus("published")}
+            >
+              Published
+            </Button>
+            <Button
+              type="button"
+              variant={currentStatus === "cancelled" ? "default" : "outline"}
+              className={styles.statusButton}
+              onClick={() => setStatus("cancelled")}
+            >
+              Cancelled
+            </Button>
+          </div>
+        </section>
         <div className={styles.fieldGrid}>
           <div className={styles.field}>
             <Label className={styles.label}>Book</Label>
@@ -740,65 +822,32 @@ export default function PreReadForm({
           </div>
         </div>
 
-        <div className={styles.twoColumn}>
-          <div className={styles.field}>
-            <Label htmlFor="visible_from" className={styles.label}>
-              Visible From
-            </Label>
-            <Input
-              id="visible_from"
-              type="datetime-local"
-              className={styles.control}
-              value={form.visibleFrom}
-              onChange={(event) =>
-                handleFieldChange("visibleFrom", event.target.value)
-              }
-            />
-          </div>
-          <div className={styles.field}>
-            <Label htmlFor="visible_until" className={styles.label}>
-              Visible Until
-            </Label>
-            <Input
-              id="visible_until"
-              type="datetime-local"
-              className={styles.control}
-              value={form.visibleUntil}
-              onChange={(event) =>
-                handleFieldChange("visibleUntil", event.target.value)
-              }
-            />
-          </div>
-        </div>
-
-        <div className={styles.switchRow}>
-          <div className={styles.switchLabel}>
-            Published
-            <span className={styles.switchDescription}>
-              Controls whether members can see this Pre-Read.
-            </span>
-          </div>
-          <Switch
-            checked={form.published}
-            onCheckedChange={(value) =>
-              setForm((prev) => ({ ...prev, published: value }))
+        <div className={styles.field}>
+          <Label htmlFor="visible_day" className={styles.label}>
+            Visible Day
+          </Label>
+          <Input
+            id="visible_day"
+            type="date"
+            className={styles.control}
+            value={form.visibleDay}
+            onChange={(event) =>
+              handleFieldChange("visibleDay", event.target.value)
             }
           />
+          <p className={styles.helper}>
+            Members can view this Pre-Read for the entire selected day.
+          </p>
         </div>
-
-        <div className={styles.switchRow}>
-          <div className={styles.switchLabel}>
-            Cancelled
-            <span className={styles.switchDescription}>
-              Mark as cancelled instead of deleting to preserve history.
-            </span>
-          </div>
-          <Switch
-            checked={form.isCancelled}
-            onCheckedChange={(value) =>
-              setForm((prev) => ({ ...prev, isCancelled: value }))
-            }
-          />
+        <div className={styles.inlineActions}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={resetVisibilityWindow}
+          >
+            Reset to today
+          </Button>
         </div>
 
         <div className={styles.actions}>
@@ -810,12 +859,16 @@ export default function PreReadForm({
           >
             <Link href="/admin/pre-read">Discard changes</Link>
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className={styles.primaryButton}
+          >
             {isSubmitting
               ? "Saving..."
               : mode === "edit"
-              ? "Save Changes"
-              : "Create Pre-Read"}
+                ? "Save Changes"
+                : "Create Pre-Read"}
           </Button>
         </div>
       </form>
