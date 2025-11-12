@@ -38,7 +38,7 @@
   min-height: var(--nav-control-height, 56px);
   width: 100%;
   padding: var(--nav-control-padding-y, 8px) 0;
-  gap: var(--nav-control-gap, 4px);
+  gap: 0;
   position: relative;
   color: hsla(var(--muted-foreground), 1);
   font-size: var(--nav-control-font-size, 12px);
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .navIcon {
@@ -69,10 +69,6 @@
   width: 20px;
   height: 20px;
   filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.35));
-}
-
-.navLabel {
-  font-size: var(--nav-control-label-font-size, 11px);
 }
 
 .activeIndicator {

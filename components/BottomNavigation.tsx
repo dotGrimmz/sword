@@ -2,9 +2,8 @@
 
 import { useCallback } from "react";
 import { Button } from "./ui/button";
-import { Home, BookOpen, Heart, Brain, FileText } from "lucide-react";
+import { Home, BookOpen, Heart, Brain, FileText, Book } from "lucide-react";
 import { motion } from "motion/react";
-import Image from "next/image";
 
 import { cn } from "./ui/utils";
 import styles from "./BottomNavigation.module.css";
@@ -75,7 +74,8 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
 
   const navItems = [
     { id: "home", icon: Home, label: "Home" },
-    { id: "reader", icon: BookOpen, label: "Read" },
+    { id: "reader", icon: BookOpen, label: "Reader" },
+    { id: "pre-read", icon: Book, label: "Pre-Read" },
     { id: "highlights", icon: Heart, label: "Highlights" },
     { id: "memory", icon: Brain, label: "Memory" },
     { id: "notes", icon: FileText, label: "Notes" },
@@ -96,18 +96,12 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
                 onMouseEnter={() => prefetchScreen(item.id)}
                 onFocus={() => prefetchScreen(item.id)}
                 className={cn(styles.navButton, isActive && styles.navButtonActive)}
+                aria-label={item.label}
+                title={item.label}
               >
                 <div className={styles.iconWrapper}>
-                  {item.icon ? (
+                  {item.icon && (
                     <item.icon className={styles.navIcon} aria-hidden="true" />
-                  ) : (
-                    <Image
-                      src="/sword_logo.png"
-                      alt="Apologetics"
-                      width={20}
-                      height={20}
-                      className={cn(styles.navIcon, styles.navIconLogo)}
-                    />
                   )}
                   {isActive && (
                     <motion.div
@@ -118,7 +112,6 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
                     />
                   )}
                 </div>
-                <span className={styles.navLabel}>{item.label}</span>
               </Button>
             );
           })}

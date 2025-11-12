@@ -77,10 +77,25 @@
   margin: 0;
 }
 
-.heroSubtitle {
-  font-size: 1.1rem;
-  color: var(--muted-foreground);
-  margin: 0;
+.heroLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: hsl(var(--primary));
+  text-decoration: none;
+  align-self: flex-start;
+  transition: color 150ms ease;
+}
+
+.heroLink:hover {
+  color: color-mix(in oklab, var(--primary) 75%, var(--foreground));
+}
+
+.heroLinkIcon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .section {

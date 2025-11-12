@@ -1,6 +1,7 @@
 export const screenRoutes = {
   home: "/dashboard",
   reader: "/dashboard/reader",
+  "pre-read": "/pre-read",
   highlights: "/dashboard/highlights",
   memory: "/dashboard/memory",
   notes: "/dashboard/notes",

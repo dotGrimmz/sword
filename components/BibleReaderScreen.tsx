@@ -13,6 +13,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 
+import { useSearchParams } from "next/navigation";
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -52,6 +53,8 @@ import styles from "./BibleReaderScreen.module.css";
 
 const HIGHLIGHT_COLOR = "yellow" as const;
 const READER_STORAGE_KEY = "sword-reader-state";
+const normalizeBookInput = (value: string) =>
+  value.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim();
 
 export function BibleReaderScreen() {
   const {
@@ -112,6 +115,10 @@ export function BibleReaderScreen() {
     : null;
   const hasHydratedReaderState = useRef(false);
   const hydratedReaderStateRef = useRef<{ bookId: string | null; chapter: number | null } | null>(null);
+  const queryAppliedRef = useRef<string | null>(null);
+  const searchParams = useSearchParams();
+  const queryBookParam = searchParams?.get("book") ?? null;
+  const queryChapterParam = searchParams?.get("chapter") ?? null;
 
   useEffect(() => {
     if (hasHydratedReaderState.current) {
@@ -153,6 +160,67 @@ export function BibleReaderScreen() {
       hasHydratedReaderState.current = true;
     }
   }, []);
+
+  useEffect(() => {
+    if (!books.length) {
+      return;
+    }
+
+    const rawBook = queryBookParam?.trim();
+    const rawChapter = queryChapterParam?.trim();
+
+    if (!rawBook && !rawChapter) {
+      queryAppliedRef.current = null;
+      return;
+    }
+
+    if (!rawBook) {
+      return;
+    }
+
+    const normalizedBook = normalizeBookInput(rawBook);
+    const normalizedCollapsed = normalizedBook.replace(/ /g, "");
+    const queryKey = `${normalizedBook}|${rawChapter ?? ""}`;
+
+    if (queryAppliedRef.current === queryKey) {
+      return;
+    }
+
+    const matchingBook =
+      books.find((book) => {
+        const bookName = normalizeBookInput(book.name);
+        const bookAbbrev = book.abbreviation
+          ? normalizeBookInput(book.abbreviation)
+          : null;
+        const nameCollapsed = bookName.replace(/ /g, "");
+        const abbrevCollapsed = bookAbbrev
+          ? bookAbbrev.replace(/ /g, "")
+          : null;
+        return (
+          bookName === normalizedBook ||
+          nameCollapsed === normalizedCollapsed ||
+          (bookAbbrev && bookAbbrev === normalizedBook) ||
+          (abbrevCollapsed && abbrevCollapsed === normalizedCollapsed)
+        );
+      }) ?? null;
+
+    if (!matchingBook) {
+      return;
+    }
+
+    let requestedChapter = rawChapter ? Number.parseInt(rawChapter, 10) : 1;
+    if (!Number.isFinite(requestedChapter)) {
+      requestedChapter = 1;
+    }
+    requestedChapter = Math.min(
+      Math.max(1, requestedChapter),
+      matchingBook.chapters
+    );
+
+    setSelectedBookId(matchingBook.id);
+    setChapter(requestedChapter);
+    queryAppliedRef.current = queryKey;
+  }, [books, queryBookParam, queryChapterParam]);
 
   useEffect(() => {
     if (books.length === 0) {
