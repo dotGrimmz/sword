@@ -112,12 +112,6 @@ export default async function PreReadPage() {
             </p>
           ) : null}
         </div>
-        {preRead.host_profile ? (
-          <StreamHostCard
-            host={preRead.host_profile}
-            streamStartTime={preRead.stream_start_time}
-          />
-        ) : null}
       </section>
 
       <section className={styles.section}>
@@ -166,6 +160,19 @@ export default async function PreReadPage() {
       ) : null}
 
       <CommentsSection preReadId={preRead.id} className={styles.section} />
+
+      {preRead.host_profile ? (
+        <section className={`${styles.section} ${styles.hostSection}`}>
+          <div className={styles.sectionHeaderRow}>
+            <p className={styles.sectionEyebrow}>Today&apos;s Host</p>
+            <p className={styles.sectionHelper}>Live stream details & bio</p>
+          </div>
+          <StreamHostCard
+            host={preRead.host_profile}
+            streamStartTime={preRead.stream_start_time}
+          />
+        </section>
+      ) : null}
     </main>
   );
 }

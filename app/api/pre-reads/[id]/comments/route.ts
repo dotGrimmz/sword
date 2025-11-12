@@ -7,11 +7,7 @@ const COMMENT_SELECT = `
   content,
   created_at,
   parent_id,
-  user_id,
-  author:profiles!pre_read_comments_user_id_fkey (
-    username,
-    avatar_url
-  )
+  user_id
 `;
 
 type CommentPayload = {
@@ -20,24 +16,34 @@ type CommentPayload = {
   created_at: string;
   parent_id: string | null;
   user_id: string;
-  author: {
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
 };
 
 const mapComment = (
   comment: CommentPayload,
   currentUserId: string,
   isAdmin: boolean,
+  profileMap: Map<
+    string,
+    { username: string | null; avatar_url: string | null }
+  >,
 ) => ({
   ...comment,
   author: {
-    username: comment.author?.username ?? "Member",
-    avatar_url: comment.author?.avatar_url ?? null,
+    username: profileMap.get(comment.user_id)?.username ?? "Member",
+    avatar_url: profileMap.get(comment.user_id)?.avatar_url ?? null,
   },
   can_delete: isAdmin || comment.user_id === currentUserId,
 });
+
+const buildProfileMap = (
+  rows: Array<{ id: string; username: string | null; avatar_url: string | null }> | null,
+) => {
+  const map = new Map<string, { username: string | null; avatar_url: string | null }>();
+  for (const row of rows ?? []) {
+    map.set(row.id, { username: row.username, avatar_url: row.avatar_url });
+  }
+  return map;
+};
 
 export async function GET(
   _request: Request,
@@ -57,7 +63,7 @@ export async function GET(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("id, role, username, avatar_url")
     .eq("id", session.user.id)
     .maybeSingle();
 
@@ -76,9 +82,31 @@ export async function GET(
     );
   }
 
+  const authorIds = Array.from(new Set((data ?? []).map((row) => row.user_id)));
+  let profileMap = new Map<
+    string,
+    { username: string | null; avatar_url: string | null }
+  >();
+
+  if (authorIds.length > 0) {
+    const { data: authorProfiles, error: authorError } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .in("id", authorIds);
+
+    if (authorError) {
+      return NextResponse.json(
+        { error: authorError.message },
+        { status: 500 },
+      );
+    }
+
+    profileMap = buildProfileMap(authorProfiles);
+  }
+
   return NextResponse.json(
     (data ?? []).map((comment) =>
-      mapComment(comment, session.user.id, isAdmin),
+      mapComment(comment, session.user.id, isAdmin, profileMap),
     ),
   );
 }
@@ -149,7 +177,7 @@ export async function POST(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("id, role, username, avatar_url")
     .eq("id", session.user.id)
     .maybeSingle();
 
@@ -173,7 +201,12 @@ export async function POST(
     );
   }
 
-  return NextResponse.json(mapComment(data, session.user.id, isAdmin), {
-    status: 201,
-  });
+  const profileMap = buildProfileMap(profile ? [profile] : []);
+
+  return NextResponse.json(
+    mapComment(data, session.user.id, isAdmin, profileMap),
+    {
+      status: 201,
+    },
+  );
 }

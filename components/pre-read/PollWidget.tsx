@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -39,21 +39,61 @@ export function PollWidget({
     buildInitialSnapshot(initialSnapshot, options.length),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const snapshotTotals = snapshot.totals;
+
+  useEffect(() => {
+    setSnapshot(buildInitialSnapshot(initialSnapshot, options.length));
+  }, [initialSnapshot, options.length]);
+
+  const refreshSnapshot = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/pre-reads/${preReadId}/poll-responses`);
+      if (!response.ok) {
+        throw new Error("Unable to refresh poll.");
+      }
+      const data = (await response.json()) as PollSnapshot;
+      setSnapshot(data);
+    } catch (error) {
+      console.error("Failed to refresh poll snapshot", error);
+    }
+  }, [preReadId]);
+
+  const totals = useMemo(
+    () => options.map((_, index) => snapshotTotals[index] ?? 0),
+    [options, snapshotTotals],
+  );
+
+  const totalVotes = useMemo(
+    () => totals.reduce((sum, count) => sum + count, 0),
+    [totals],
+  );
 
   const percentages = useMemo(() => {
-    if (snapshot.totalVotes === 0) {
-      return Array.from({ length: options.length }, () => 0);
+    if (totalVotes === 0) {
+      return totals.map(() => 0);
     }
-    return snapshot.totals.map((count) =>
-      Math.round((count / snapshot.totalVotes) * 100),
-    );
-  }, [snapshot, options.length]);
+    return totals.map((count) => Math.round((count / totalVotes) * 100));
+  }, [totals, totalVotes]);
 
   const handleVote = async (optionIndex: number) => {
     if (isSubmitting) return;
 
+    if (snapshot.userVote === optionIndex) {
+      return;
+    }
+
+    const isChange = snapshot.userVote !== null;
+    if (isChange && !window.confirm("Change your vote to this option?")) {
+      return;
+    }
+
+    const pendingToast = toast.loading(
+      isChange ? "Updating your vote..." : "Submitting your vote...",
+    );
+
     setIsSubmitting(true);
     try {
+      const previousVote = snapshot.userVote;
       const response = await fetch(
         `/api/pre-reads/${preReadId}/poll-responses`,
         {
@@ -78,10 +118,16 @@ export function PollWidget({
 
       const data = (await response.json()) as PollSnapshot;
       setSnapshot(data);
-      toast.success("Thanks for voting!");
+      toast.success(previousVote === null ? "Vote submitted!" : "Vote updated.", {
+        id: pendingToast,
+      });
+      void refreshSnapshot();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Unexpected error submitting vote.",
+        error instanceof Error
+          ? error.message
+          : "Unexpected error submitting vote.",
+        { id: pendingToast },
       );
     } finally {
       setIsSubmitting(false);
@@ -96,18 +142,22 @@ export function PollWidget({
         <p className={styles.eyebrow}>Poll</p>
         <h3 className={styles.question}>{question}</h3>
         <p className={styles.meta}>
-          {snapshot.totalVotes} vote{snapshot.totalVotes === 1 ? "" : "s"}
+          {totalVotes} vote{totalVotes === 1 ? "" : "s"}
         </p>
       </header>
 
       <div className={styles.options}>
         {options.map((option, index) => {
           const isSelected = snapshot.userVote === index;
+          const optionVotes = totals[index] ?? 0;
           return (
             <div key={option} className={styles.option}>
               <div className={styles.optionHeader}>
                 <p>{option}</p>
-                <span>{percentages[index]}%</span>
+                <span>
+                  {percentages[index]}% · {optionVotes} vote
+                  {optionVotes === 1 ? "" : "s"}
+                </span>
               </div>
               <div className={styles.progress}>
                 <div

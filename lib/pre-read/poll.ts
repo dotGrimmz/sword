@@ -32,8 +32,10 @@ export async function fetchPollSnapshot({
   const adminClient = getServiceRoleClient();
   const totals = Array.from({ length: optionCount }, () => 0);
 
+  type PollResponseRow = { option_index: number | null };
+
   const { data: responses, error } = await adminClient
-    .from("pre_read_poll_responses")
+    .from<PollResponseRow>("pre_read_poll_responses")
     .select("option_index")
     .eq("pre_read_id", preReadId);
 

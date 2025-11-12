@@ -70,7 +70,7 @@ const CommentItem = ({
       .toUpperCase() ?? "M";
 
   return (
-    <div className={styles.item}>
+    <li className={styles.item}>
       <div className={styles.itemHeader}>
         <Avatar>
           {comment.author.avatar_url ? (
@@ -94,6 +94,7 @@ const CommentItem = ({
       <div className={styles.itemActions}>
         <button
           type="button"
+          className={styles.actionButton}
           onClick={() =>
             onReplyToggle(replyingTo === comment.id ? null : comment.id)
           }
@@ -101,7 +102,11 @@ const CommentItem = ({
           {replyingTo === comment.id ? "Cancel" : "Reply"}
         </button>
         {comment.can_delete ? (
-          <button type="button" onClick={() => onDelete(comment.id)}>
+          <button
+            type="button"
+            className={`${styles.actionButton} ${styles.deleteButton}`}
+            onClick={() => onDelete(comment.id)}
+          >
             Delete
           </button>
         ) : null}
@@ -114,7 +119,7 @@ const CommentItem = ({
             onChange={(event) => setReplyValue(event.target.value)}
             rows={2}
           />
-          <div className="flex gap-2">
+          <div className={styles.replyActions}>
             <Button
               type="button"
               size="sm"
@@ -134,7 +139,7 @@ const CommentItem = ({
         </div>
       ) : null}
       {replies.length > 0 ? (
-        <div className={styles.replyTrail}>
+        <ul className={styles.replyTrail}>
           {replies.map((reply) => (
             <CommentItem
               key={reply.id}
@@ -148,9 +153,9 @@ const CommentItem = ({
               setReplyValue={setReplyValue}
             />
           ))}
-        </div>
+        </ul>
       ) : null}
-    </div>
+    </li>
   );
 };
 
@@ -209,6 +214,7 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
 
     setSubmitting(true);
     try {
+      const isReply = Boolean(parentId);
       const response = await fetch(`/api/pre-reads/${preReadId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,6 +242,8 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
       } else {
         setNewComment("");
       }
+      toast.success(isReply ? "Reply posted." : "Comment posted.");
+      void fetchComments();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Unexpected error posting comment.",
@@ -303,7 +311,7 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
           onChange={(event) => setNewComment(event.target.value)}
           rows={3}
         />
-        <div className="flex justify-end">
+        <div className={styles.editorActions}>
           <Button
             type="button"
             onClick={() => postComment(newComment, null)}
@@ -314,13 +322,13 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
         </div>
       </div>
 
-      <div className={styles.list}>
+      <ul className={styles.list}>
         {loading ? (
-          <p className={styles.empty}>Loading comments…</p>
+          <li className={styles.empty}>Loading comments…</li>
         ) : grouped.roots.length === 0 ? (
-          <p className={styles.empty}>
+          <li className={styles.empty}>
             No comments yet. Be the first to share.
-          </p>
+          </li>
         ) : (
           grouped.roots.map((comment) => (
             <CommentItem
@@ -336,7 +344,7 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
             />
           ))
         )}
-      </div>
+      </ul>
     </section>
   );
 }
