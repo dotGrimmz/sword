@@ -35,7 +35,7 @@ export async function fetchPollSnapshot({
   type PollResponseRow = { option_index: number | null };
 
   const { data: responses, error } = await adminClient
-    .from<PollResponseRow>("pre_read_poll_responses")
+    .from("pre_read_poll_responses")
     .select("option_index")
     .eq("pre_read_id", preReadId);
 
@@ -43,7 +43,9 @@ export async function fetchPollSnapshot({
     throw new Error(error.message);
   }
 
-  for (const response of responses ?? []) {
+  const typedResponses = (responses ?? []) as PollResponseRow[];
+
+  for (const response of typedResponses) {
     if (
       typeof response.option_index === "number" &&
       response.option_index >= 0 &&
