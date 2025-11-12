@@ -1,0 +1,67 @@
+.panel {
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-glass-gradient);
+  box-shadow: 0 18px 50px color-mix(in oklab, var(--foreground) 8%, transparent);
+  padding: 1.5rem;
+}
+
+.ctaWrapper {
+  display: flex;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ctaWrapper {
+    justify-content: flex-start;
+  }
+}
+
+.ctaButton {
+  width: 100%;
+  justify-content: center;
+  border: none;
+  background: linear-gradient(
+    120deg,
+    color-mix(in oklab, var(--primary) 90%, transparent),
+    color-mix(in oklab, var(--primary) 55%, transparent)
+  );
+  box-shadow: 0 18px 40px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+
+@media (min-width: 640px) {
+  .ctaButton {
+    width: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.passageTitle {
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.passageMeta {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.passageSummary {
+  margin-top: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}

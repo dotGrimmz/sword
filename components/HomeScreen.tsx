@@ -14,6 +14,8 @@ import {
   BookOpen,
   Brain,
   Calendar,
+  CalendarDays,
+  ClipboardList,
   Clock,
   Heart,
   Lightbulb,
@@ -390,6 +392,13 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         detail: "Strengthen recall with gentle spaced reviews.",
       },
       {
+        icon: CalendarDays,
+        label: "Pre-Read",
+        href: "/pre-read",
+        subtitle: "Preview today's study",
+        detail: "Read the passage, reflection prompts, and poll.",
+      },
+      {
         renderIcon: () => (
           <Image
             src="/sword_logo.png"
@@ -407,13 +416,22 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     ];
 
     if (isAdmin) {
-      actions.splice(actions.length, 0, {
-        icon: ShieldCheck,
-        label: "Admin Console",
-        href: "/admin",
-        subtitle: "Manage Apologetics content.",
-        detail: "Publish, edit, and organize topics, paths, and sources.",
-      });
+      actions.push(
+        {
+          icon: ClipboardList,
+          label: "Pre-Read Admin",
+          href: "/admin/pre-read",
+          subtitle: "Create & publish daily sessions.",
+          detail: "Assign hosts, polls, and visibility windows.",
+        },
+        {
+          icon: ShieldCheck,
+          label: "Admin Console",
+          href: "/admin",
+          subtitle: "Manage Apologetics content.",
+          detail: "Publish, edit, and organize topics, paths, and sources.",
+        },
+      );
     }
 
     actions.push({
