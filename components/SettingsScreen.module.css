@@ -115,9 +115,13 @@
 }
 
 .formGrid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.formFieldFull {
+  grid-column: 1 / -1;
 }
 
 .formField {
@@ -145,6 +149,53 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 0.5rem;
+}
+
+.avatarField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.avatarFieldPreview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.avatarFieldImage {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  object-fit: cover;
+  display: block;
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+}
+
+.avatarFieldFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+
+.avatarFieldActions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 .sectionDescription {
@@ -354,8 +405,11 @@
 
 @media (min-width: 720px) {
   .formGrid {
-    display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .formFieldFull {
+    grid-column: 1 / -1;
   }
 }
 
