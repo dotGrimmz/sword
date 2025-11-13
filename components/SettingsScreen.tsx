@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -24,12 +24,24 @@ type ProfileFormState = {
   streamUrl: string;
 };
 
+type ProfileResponse = {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  stream_tagline: string | null;
+  stream_url: string | null;
+  theme: Theme | (string & {}) | null;
+  role: UserRole | (string & {});
+};
+
 const createEmptyProfileForm = (): ProfileFormState => ({
   displayName: "",
   avatarUrl: "",
   streamTagline: "",
   streamUrl: "",
 });
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -50,6 +62,8 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     useState<ProfileFormState>(() => createEmptyProfileForm());
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -81,30 +95,42 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           streamTagline: "",
           streamUrl: "",
         };
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select(
-            "theme, role, username, avatar_url, stream_tagline, stream_url"
-          )
-          .eq("id", user.id)
-          .maybeSingle();
 
-        if (profileError) {
-          console.error(profileError);
-        } else if (profile?.theme) {
-          setTheme(profile.theme as Theme);
+        try {
+          const response = await fetch("/api/profile", { cache: "no-store" });
+          if (response.ok) {
+            const profile = (await response.json()) as ProfileResponse;
+            if (profile.theme && typeof profile.theme === "string") {
+              setTheme(profile.theme as Theme);
+            }
+            if (profile.role && typeof profile.role === "string") {
+              setRole(profile.role as UserRole);
+            }
+            resolvedProfileForm = {
+              displayName: profile.username ?? fallbackForm.displayName,
+              avatarUrl: profile.avatar_url ?? fallbackForm.avatarUrl,
+              streamTagline: profile.stream_tagline ?? "",
+              streamUrl: profile.stream_url ?? "",
+            };
+          } else if (response.status === 404) {
+            resolvedProfileForm = fallbackForm;
+          } else {
+            let message = "Unable to load profile.";
+            try {
+              const payload = (await response.json()) as { error?: string };
+              if (payload?.error) {
+                message = payload.error;
+              }
+            } catch {
+              // ignore
+            }
+            console.error(message);
+            resolvedProfileForm = fallbackForm;
+          }
+        } catch (profileError) {
+          console.error("Failed to load profile preferences", profileError);
+          resolvedProfileForm = fallbackForm;
         }
-
-        if (profile?.role) {
-          setRole(profile.role as UserRole);
-        }
-
-        resolvedProfileForm = {
-          displayName: profile?.username ?? fallbackForm.displayName,
-          avatarUrl: profile?.avatar_url ?? fallbackForm.avatarUrl,
-          streamTagline: profile?.stream_tagline ?? "",
-          streamUrl: profile?.stream_url ?? "",
-        };
       }
 
       setProfileForm(resolvedProfileForm);
@@ -141,6 +167,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const profileDisplayName =
     profileForm.displayName.trim() || fallbackDisplayName;
   const profileAvatarUrl = profileForm.avatarUrl.trim() || fallbackAvatarUrl;
+  const hasStoredAvatar = profileForm.avatarUrl.trim().length > 0;
   const email = authUser?.email ?? "No email on file";
 
   const formatDateLabel = (value?: string | null) => {
@@ -192,47 +219,66 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
   const hasProfileChanges =
     profileForm.displayName !== initialProfileForm.displayName ||
-    profileForm.avatarUrl !== initialProfileForm.avatarUrl ||
     profileForm.streamTagline !== initialProfileForm.streamTagline ||
     profileForm.streamUrl !== initialProfileForm.streamUrl;
 
   const handleSaveProfile = async () => {
-    if (!authUser || !profileLoaded || !hasProfileChanges) {
+    if (!profileLoaded || !hasProfileChanges) {
       return;
     }
 
     setIsSavingProfile(true);
-    const sanitize = (value: string) => {
-      const trimmed = value.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    };
 
     try {
-      const updates = {
-        username: sanitize(profileForm.displayName),
-        avatar_url: sanitize(profileForm.avatarUrl),
-        stream_tagline: sanitize(profileForm.streamTagline),
-        stream_url: sanitize(profileForm.streamUrl),
-      };
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: profileForm.displayName.trim(),
+          streamTagline: profileForm.streamTagline.trim(),
+          streamUrl: profileForm.streamUrl.trim(),
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | ProfileResponse
+        | { error?: string }
+        | null;
 
-      const { error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", authUser.id);
-
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? (payload as { error?: string }).error ?? "Unable to update profile."
+            : "Unable to update profile.";
+        throw new Error(message);
       }
 
+      if (!payload || typeof payload !== "object") {
+        throw new Error("Unexpected response while updating profile.");
+      }
+
+      const profile = payload as ProfileResponse;
+
       const normalizedForm: ProfileFormState = {
-        displayName: updates.username ?? "",
-        avatarUrl: updates.avatar_url ?? "",
-        streamTagline: updates.stream_tagline ?? "",
-        streamUrl: updates.stream_url ?? "",
+        displayName: profile.username ?? "",
+        avatarUrl: profile.avatar_url ?? "",
+        streamTagline: profile.stream_tagline ?? "",
+        streamUrl: profile.stream_url ?? "",
       };
 
+      if (profile.theme && typeof profile.theme === "string") {
+        setTheme(profile.theme as Theme);
+      }
+      if (profile.role && typeof profile.role === "string") {
+        setRole(profile.role as UserRole);
+      }
+
       setProfileForm(normalizedForm);
-      setInitialProfileForm(normalizedForm);
+      setInitialProfileForm({
+        displayName: normalizedForm.displayName,
+        avatarUrl: normalizedForm.avatarUrl,
+        streamTagline: normalizedForm.streamTagline,
+        streamUrl: normalizedForm.streamUrl,
+      });
       toast.success("Profile updated");
     } catch (error) {
       const message =
@@ -244,7 +290,100 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       setIsSavingProfile(false);
     }
   };
-  console.log({ profileAvatarUrl });
+
+  const handleAvatarUploadClick = () => {
+    if (isUploadingAvatar) {
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      toast.error("Profile photos must be 5 MB or less.");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { avatar_url?: string; error?: string }
+        | null;
+
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? (payload as { error?: string }).error ??
+              "Unable to upload photo."
+            : "Unable to upload photo.";
+        throw new Error(message);
+      }
+
+      const nextUrl = payload?.avatar_url ?? "";
+      setProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
+      setInitialProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
+      toast.success("Photo updated.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Unable to upload photo.",
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (isUploadingAvatar) {
+      return;
+    }
+    setIsUploadingAvatar(true);
+    try {
+      const response = await fetch("/api/profile/avatar", {
+        method: "DELETE",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { avatar_url?: string; error?: string }
+        | null;
+
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? (payload as { error?: string }).error ??
+              "Unable to remove photo."
+            : "Unable to remove photo.";
+        throw new Error(message);
+      }
+
+      setProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
+      setInitialProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
+      toast.success("Photo removed.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Unable to remove photo.",
+      );
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
@@ -349,6 +488,66 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                 card.
               </p>
               <div className={styles.formGrid}>
+                <div className={`${styles.formField} ${styles.formFieldFull}`}>
+                  <Label
+                    htmlFor="profile_avatar_upload"
+                    className={styles.formLabel}
+                  >
+                    Profile photo
+                  </Label>
+                  <div className={styles.avatarField}>
+                    <div className={styles.avatarFieldPreview}>
+                      {profileAvatarUrl ? (
+                        <img
+                          src={profileAvatarUrl}
+                          alt={`${profileDisplayName} avatar`}
+                          className={styles.avatarFieldImage}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div
+                          className={`${styles.avatarFieldImage} ${styles.avatarFieldFallback}`}
+                        >
+                          <User aria-hidden="true" />
+                        </div>
+                      )}
+                      <div className={styles.avatarFieldActions}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAvatarUploadClick}
+                          disabled={isUploadingAvatar}
+                        >
+                          {isUploadingAvatar ? "Uploading..." : "Upload photo"}
+                        </Button>
+                        {hasStoredAvatar ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAvatarDelete}
+                            disabled={isUploadingAvatar}
+                          >
+                            Remove photo
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className={styles.formHelper}>
+                      PNG, JPG, GIF, or WebP up to 5 MB.
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      id="profile_avatar_upload"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className={styles.srOnly}
+                      onChange={handleAvatarFileChange}
+                    />
+                  </div>
+                </div>
                 <div className={styles.formField}>
                   <Label
                     htmlFor="profile_display_name"
@@ -371,24 +570,6 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                   />
                   <p className={styles.formHelper}>
                     Visible beside your comments and host summary.
-                  </p>
-                </div>
-                <div className={styles.formField}>
-                  <Label htmlFor="profile_avatar" className={styles.formLabel}>
-                    Profile image URL
-                  </Label>
-                  <Input
-                    id="profile_avatar"
-                    className={styles.formControl}
-                    placeholder="https://example.com/avatar.png"
-                    value={profileForm.avatarUrl}
-                    onChange={(event) =>
-                      handleProfileInputChange("avatarUrl", event.target.value)
-                    }
-                    disabled={isSavingProfile}
-                  />
-                  <p className={styles.formHelper}>
-                    Use a publicly accessible image link (PNG or JPG).
                   </p>
                 </div>
                 {isHostRole ? (
