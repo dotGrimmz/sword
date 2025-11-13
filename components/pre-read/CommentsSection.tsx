@@ -69,17 +69,19 @@ const CommentItem = ({
       .slice(0, 2)
       .toUpperCase() ?? "M";
 
+  console.log(comment.author.avatar_url);
   return (
     <li className={styles.item}>
       <div className={styles.itemHeader}>
-        <Avatar>
+        <Avatar className={styles.itemAvatar}>
           {comment.author.avatar_url ? (
             <AvatarImage
               src={comment.author.avatar_url}
               alt={comment.author.username ?? "Member"}
             />
           ) : null}
-          <AvatarFallback>{fallback}</AvatarFallback>
+
+          {/* <AvatarFallback>{fallback}</AvatarFallback> */}
         </Avatar>
         <div className={styles.itemMeta}>
           <p className={styles.itemName}>
@@ -159,7 +161,10 @@ const CommentItem = ({
   );
 };
 
-export function CommentsSection({ preReadId, className }: CommentsSectionProps) {
+export function CommentsSection({
+  preReadId,
+  className,
+}: CommentsSectionProps) {
   const [comments, setComments] = useState<CommentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
@@ -178,7 +183,9 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
       setComments(data);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Unexpected error loading comments.",
+        error instanceof Error
+          ? error.message
+          : "Unexpected error loading comments."
       );
     } finally {
       setLoading(false);
@@ -246,7 +253,9 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
       void fetchComments();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Unexpected error posting comment.",
+        error instanceof Error
+          ? error.message
+          : "Unexpected error posting comment."
       );
     } finally {
       setSubmitting(false);
@@ -279,7 +288,9 @@ export function CommentsSection({ preReadId, className }: CommentsSectionProps) 
       toast.success("Comment deleted.");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Unexpected error deleting comment.",
+        error instanceof Error
+          ? error.message
+          : "Unexpected error deleting comment."
       );
     }
   };

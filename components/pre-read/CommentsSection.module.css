@@ -78,6 +78,11 @@
   gap: 0.6rem;
 }
 
+.itemAvatar {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
 .itemMeta {
   display: flex;
   flex-direction: column;

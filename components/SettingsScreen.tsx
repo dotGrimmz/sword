@@ -6,6 +6,8 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import { User, Palette, Shield, LogOut, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme, themeOptions, type Theme } from "./ThemeContext";
@@ -14,6 +16,20 @@ import { useProfile, type UserRole } from "@/components/ProfileContext";
 import { clearCachedAccessToken } from "@/lib/api/session";
 import styles from "./SettingsScreen.module.css";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+type ProfileFormState = {
+  displayName: string;
+  avatarUrl: string;
+  streamTagline: string;
+  streamUrl: string;
+};
+
+const createEmptyProfileForm = (): ProfileFormState => ({
+  displayName: "",
+  avatarUrl: "",
+  streamTagline: "",
+  streamUrl: "",
+});
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -24,9 +40,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { setRole } = useProfile();
+  const { role, setRole } = useProfile();
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileForm, setProfileForm] = useState<ProfileFormState>(() =>
+    createEmptyProfileForm()
+  );
+  const [initialProfileForm, setInitialProfileForm] =
+    useState<ProfileFormState>(() => createEmptyProfileForm());
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -42,10 +65,27 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       const user = data.user ?? null;
       setAuthUser(user);
 
+      let resolvedProfileForm = createEmptyProfileForm();
+
       if (user) {
+        const fallbackForm: ProfileFormState = {
+          displayName:
+            (user.user_metadata?.full_name as string | undefined) ??
+            (user.user_metadata?.name as string | undefined) ??
+            user.email ??
+            "",
+          avatarUrl:
+            (user.user_metadata?.avatar_url as string | undefined) ??
+            (user.user_metadata?.picture as string | undefined) ??
+            "",
+          streamTagline: "",
+          streamUrl: "",
+        };
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("theme, role")
+          .select(
+            "theme, role, username, avatar_url, stream_tagline, stream_url"
+          )
           .eq("id", user.id)
           .maybeSingle();
 
@@ -58,8 +98,18 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         if (profile?.role) {
           setRole(profile.role as UserRole);
         }
+
+        resolvedProfileForm = {
+          displayName: profile?.username ?? fallbackForm.displayName,
+          avatarUrl: profile?.avatar_url ?? fallbackForm.avatarUrl,
+          streamTagline: profile?.stream_tagline ?? "",
+          streamUrl: profile?.stream_url ?? "",
+        };
       }
 
+      setProfileForm(resolvedProfileForm);
+      setInitialProfileForm(resolvedProfileForm);
+      setProfileLoaded(true);
       setIsLoadingProfile(false);
     };
 
@@ -79,15 +129,18 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     return current?.name ?? "Ocean Depths";
   }, [theme]);
 
-  const displayName =
+  const fallbackDisplayName =
     (authUser?.user_metadata?.full_name as string | undefined) ??
     (authUser?.user_metadata?.name as string | undefined) ??
     authUser?.email ??
     "Your profile";
-  const avatarUrl =
+  const fallbackAvatarUrl =
     (authUser?.user_metadata?.avatar_url as string | undefined) ??
     (authUser?.user_metadata?.picture as string | undefined) ??
     null;
+  const profileDisplayName =
+    profileForm.displayName.trim() || fallbackDisplayName;
+  const profileAvatarUrl = profileForm.avatarUrl.trim() || fallbackAvatarUrl;
   const email = authUser?.email ?? "No email on file";
 
   const formatDateLabel = (value?: string | null) => {
@@ -102,6 +155,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
   const memberSince = formatDateLabel(authUser?.created_at);
   const lastSignIn = formatDateLabel(authUser?.last_sign_in_at);
+  const isHostRole = role === "host" || role === "admin";
 
   const handleThemeChange = async (nextTheme: Theme) => {
     if (nextTheme === theme) {
@@ -129,6 +183,68 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     toast.success("Theme updated");
   };
 
+  const handleProfileInputChange = (
+    field: keyof ProfileFormState,
+    value: string
+  ) => {
+    setProfileForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const hasProfileChanges =
+    profileForm.displayName !== initialProfileForm.displayName ||
+    profileForm.avatarUrl !== initialProfileForm.avatarUrl ||
+    profileForm.streamTagline !== initialProfileForm.streamTagline ||
+    profileForm.streamUrl !== initialProfileForm.streamUrl;
+
+  const handleSaveProfile = async () => {
+    if (!authUser || !profileLoaded || !hasProfileChanges) {
+      return;
+    }
+
+    setIsSavingProfile(true);
+    const sanitize = (value: string) => {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    };
+
+    try {
+      const updates = {
+        username: sanitize(profileForm.displayName),
+        avatar_url: sanitize(profileForm.avatarUrl),
+        stream_tagline: sanitize(profileForm.streamTagline),
+        stream_url: sanitize(profileForm.streamUrl),
+      };
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", authUser.id);
+
+      if (error) {
+        throw error;
+      }
+
+      const normalizedForm: ProfileFormState = {
+        displayName: updates.username ?? "",
+        avatarUrl: updates.avatar_url ?? "",
+        streamTagline: updates.stream_tagline ?? "",
+        streamUrl: updates.stream_url ?? "",
+      };
+
+      setProfileForm(normalizedForm);
+      setInitialProfileForm(normalizedForm);
+      toast.success("Profile updated");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to update profile settings.";
+      toast.error(message);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+  console.log({ profileAvatarUrl });
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
@@ -139,14 +255,15 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <div className={`${styles.avatarWrap} ${styles.heroPulse}`}>
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt={`${displayName} avatar`}
+            {profileAvatarUrl ? (
+              <img
+                src={profileAvatarUrl}
+                alt={`${profileDisplayName} avatar`}
                 width={56}
                 height={56}
                 className={styles.avatarImage}
-                unoptimized
+                loading="lazy"
+                referrerPolicy="no-referrer"
               />
             ) : (
               <div className={styles.avatarFallback}>
@@ -184,7 +301,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                 <li className={styles.profileMetaItem}>
                   <span className={styles.metaLabel}>Name</span>
                   <span className={styles.metaValue}>
-                    {isLoadingProfile ? "…" : displayName}
+                    {isLoadingProfile ? "…" : profileDisplayName}
                   </span>
                 </li>
                 <li className={styles.profileMetaItem}>
@@ -217,7 +334,135 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.32, delay: 0.15 }}
+          transition={{ duration: 0.32, delay: 0.1 }}
+        >
+          <Card className={styles.sectionCard}>
+            <CardHeader className={styles.sectionHeader}>
+              <CardTitle className={styles.sectionTitle}>
+                <User className={styles.sectionIcon} aria-hidden="true" />
+                <span>Profile Preferences</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={styles.sectionContent}>
+              <p className={styles.sectionDescription}>
+                Control what others see next to your comments and live host
+                card.
+              </p>
+              <div className={styles.formGrid}>
+                <div className={styles.formField}>
+                  <Label
+                    htmlFor="profile_display_name"
+                    className={styles.formLabel}
+                  >
+                    Display name
+                  </Label>
+                  <Input
+                    id="profile_display_name"
+                    className={styles.formControl}
+                    placeholder="e.g. Jane Doe"
+                    value={profileForm.displayName}
+                    onChange={(event) =>
+                      handleProfileInputChange(
+                        "displayName",
+                        event.target.value
+                      )
+                    }
+                    disabled={isSavingProfile}
+                  />
+                  <p className={styles.formHelper}>
+                    Visible beside your comments and host summary.
+                  </p>
+                </div>
+                <div className={styles.formField}>
+                  <Label htmlFor="profile_avatar" className={styles.formLabel}>
+                    Profile image URL
+                  </Label>
+                  <Input
+                    id="profile_avatar"
+                    className={styles.formControl}
+                    placeholder="https://example.com/avatar.png"
+                    value={profileForm.avatarUrl}
+                    onChange={(event) =>
+                      handleProfileInputChange("avatarUrl", event.target.value)
+                    }
+                    disabled={isSavingProfile}
+                  />
+                  <p className={styles.formHelper}>
+                    Use a publicly accessible image link (PNG or JPG).
+                  </p>
+                </div>
+                {isHostRole ? (
+                  <>
+                    <div className={styles.formField}>
+                      <Label
+                        htmlFor="profile_stream_tagline"
+                        className={styles.formLabel}
+                      >
+                        Stream tagline
+                      </Label>
+                      <Input
+                        id="profile_stream_tagline"
+                        className={styles.formControl}
+                        placeholder="Short teaser for your stream"
+                        value={profileForm.streamTagline}
+                        onChange={(event) =>
+                          handleProfileInputChange(
+                            "streamTagline",
+                            event.target.value
+                          )
+                        }
+                        disabled={isSavingProfile}
+                      />
+                      <p className={styles.formHelper}>
+                        Appears under your name on the live host panel.
+                      </p>
+                    </div>
+                    <div className={styles.formField}>
+                      <Label
+                        htmlFor="profile_stream_url"
+                        className={styles.formLabel}
+                      >
+                        Stream URL
+                      </Label>
+                      <Input
+                        id="profile_stream_url"
+                        className={styles.formControl}
+                        placeholder="https://youtube.com/@yoursession"
+                        value={profileForm.streamUrl}
+                        onChange={(event) =>
+                          handleProfileInputChange(
+                            "streamUrl",
+                            event.target.value
+                          )
+                        }
+                        disabled={isSavingProfile}
+                      />
+                      <p className={styles.formHelper}>
+                        Members tap this link to join your broadcast.
+                      </p>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+              <div className={styles.formActions}>
+                <Button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  disabled={
+                    isSavingProfile || !profileLoaded || !hasProfileChanges
+                  }
+                >
+                  {isSavingProfile ? "Saving..." : "Save profile"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: 0.2 }}
         >
           <Card className={styles.sectionCard}>
             <CardHeader className={styles.sectionHeader}>
@@ -235,7 +480,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                   <motion.div
                     key={themeOption.value}
                     className={`${styles.themeOptionCard} ${
-                      theme === themeOption.value ? styles.themeOptionCardSelected : ""
+                      theme === themeOption.value
+                        ? styles.themeOptionCardSelected
+                        : ""
                     }`}
                     onClick={() => {
                       void handleThemeChange(themeOption.value);
@@ -250,7 +497,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                       aria-hidden="true"
                     />
                     <div className={styles.themeOptionCopy}>
-                      <div className={styles.themeOptionName}>{themeOption.name}</div>
+                      <div className={styles.themeOptionName}>
+                        {themeOption.name}
+                      </div>
                       <div className={styles.themeOptionDescription}>
                         {themeOption.description}
                       </div>
