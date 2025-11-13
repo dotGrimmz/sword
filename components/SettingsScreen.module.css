@@ -114,6 +114,39 @@
   gap: 16px;
 }
 
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.formLabel {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.formControl {
+  border-radius: 0.75rem;
+}
+
+.formHelper {
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
 .sectionDescription {
   margin: 0;
   font-size: 0.85rem;
@@ -317,6 +350,13 @@
   font-size: 0.75rem;
   padding: 0;
   color: color-mix(in oklab, var(--foreground) 95%, transparent);
+}
+
+@media (min-width: 720px) {
+  .formGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
 }
 
 @keyframes shimmerPulse {

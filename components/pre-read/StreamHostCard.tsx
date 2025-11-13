@@ -41,7 +41,6 @@ export function StreamHostCard({
       .toUpperCase() ?? "H";
 
   const startLabel = formatDateTime(streamStartTime);
-
   return (
     <div className={cn(styles.card, className)}>
       <div className={styles.header}>
