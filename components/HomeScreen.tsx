@@ -11,17 +11,16 @@ import {
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
+  Book,
   BookOpen,
   Brain,
   Calendar,
-  CalendarDays,
   ClipboardList,
   Clock,
   Heart,
   Lightbulb,
   Loader2,
   Settings,
-  ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -392,46 +391,22 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         detail: "Strengthen recall with gentle spaced reviews.",
       },
       {
-        icon: CalendarDays,
+        icon: Book,
         label: "Pre-Read",
         href: "/pre-read",
         subtitle: "Preview today's study",
         detail: "Read the passage, reflection prompts, and poll.",
       },
-      {
-        renderIcon: () => (
-          <Image
-            src="/sword_logo.png"
-            alt="SWORD logo"
-            width={36}
-            height={36}
-            className={styles.quickLogo}
-          />
-        ),
-        label: "Apologetics",
-        href: "/apologetics",
-        subtitle: "Engage tough questions with confidence.",
-        detail: "Explore evidence, counters, and curated sources.",
-      },
     ];
 
     if (isAdmin) {
-      actions.push(
-        {
-          icon: ClipboardList,
-          label: "Pre-Read Admin",
-          href: "/admin/pre-read",
-          subtitle: "Create & publish daily sessions.",
-          detail: "Assign hosts, polls, and visibility windows.",
-        },
-        {
-          icon: ShieldCheck,
-          label: "Admin Console",
-          href: "/admin",
-          subtitle: "Manage Apologetics content.",
-          detail: "Publish, edit, and organize topics, paths, and sources.",
-        },
-      );
+      actions.push({
+        icon: ClipboardList,
+        label: "Admin Console",
+        href: "/admin",
+        subtitle: "Manage Apologetics content.",
+        detail: "Publish, edit, and organize topics, paths, and sources.",
+      });
     }
 
     actions.push({

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
@@ -94,6 +94,10 @@ export default async function PreReadPage() {
     }
   }
 
+  const readerHref = `/dashboard/reader?book=${encodeURIComponent(
+    preRead.book,
+  )}&chapter=${preRead.chapter}`;
+
   return (
     <main className={styles.page}>
       <Link href="/dashboard" className={styles.backLink}>
@@ -106,12 +110,11 @@ export default async function PreReadPage() {
           <h1 className={styles.heroTitle}>
             {preRead.book} {preRead.chapter}
           </h1>
-          {preRead.verses_range ? (
-            <p className={styles.heroSubtitle}>
-              Verses {preRead.verses_range}
-            </p>
-          ) : null}
         </div>
+        <Link href={readerHref} className={styles.heroLink}>
+          Open in Reader
+          <ArrowUpRight className={styles.heroLinkIcon} aria-hidden="true" />
+        </Link>
       </section>
 
       <section className={styles.section}>
