@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Users2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, QrCode, Users2 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchHostProfiles, fetchPreReads } from "@/lib/api/pre-reads";
@@ -23,6 +23,13 @@ const cards = [
     icon: Users2,
     toneClass: "toneHosts",
   },
+  {
+    name: "Login QR",
+    description: "Share a QR code to the production login page.",
+    href: "/admin/qr-login",
+    icon: QrCode,
+    toneClass: "toneQr",
+  },
 ];
 
 export default async function AdminOverviewPage() {
@@ -34,6 +41,7 @@ export default async function AdminOverviewPage() {
   const counts = {
     "Pre-Reads": preReads.length,
     Hosts: hosts.length,
+    "Login QR": 1,
   };
 
   return (
