@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 
 import { cn } from "@/components/ui/utils";
+import { primeAccessToken } from "@/lib/api/session";
 import { createClient } from "@/lib/supabase/client";
 
 import styles from "./LoginScreen.module.css";
@@ -80,14 +81,14 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
         }
 
         if (isSignup) {
-          const { error: signUpError } = await supabase.auth.signUp({
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email,
             password,
             options: {
               data: username ? { username } : undefined,
               emailRedirectTo:
                 typeof window !== "undefined"
-                  ? `${window.location.origin}/auth/callback`
+                  ? `${window.location.origin}/auth/callback?next=/dashboard`
                   : undefined,
             },
           });
@@ -96,8 +97,15 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
             setError(signUpError.message);
             return;
           }
+
+          if (!signUpData.session) {
+            setError("Check your email to confirm your account before signing in.");
+            return;
+          }
+
+          primeAccessToken(signUpData.session.access_token);
         } else {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
           });
@@ -106,8 +114,11 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
             setError(signInError.message);
             return;
           }
+
+          primeAccessToken(signInData.session?.access_token ?? null);
         }
 
+        router.refresh();
         router.replace(redirectTo);
       } catch (submitError) {
         setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
@@ -128,7 +139,9 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
 
     try {
       const redirectToUrl =
-        typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback?next=/dashboard`
+          : undefined;
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
