@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { OfflineProvider } from "@/components/OfflineProvider";
-import { DataCacheProvider } from "@/lib/data-cache/DataCacheProvider";
+import { AppQueryProvider } from "@/lib/query/provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +41,7 @@ export default function RootLayout({
     <html lang="en" data-theme="realign">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <OfflineProvider>
-          <DataCacheProvider>{children}</DataCacheProvider>
+          <AppQueryProvider>{children}</AppQueryProvider>
         </OfflineProvider>
       </body>
     </html>

@@ -5,8 +5,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
@@ -34,7 +32,7 @@ import {
   deleteUserHighlight,
   getUserHighlights,
 } from "@/lib/api/highlights";
-import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import { buildReferenceLabel } from "@/lib/api/bible";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserHighlight } from "@/types/user";
 import {
@@ -42,7 +40,10 @@ import {
   dispatchHighlightsUpdated,
 } from "@/lib/events";
 import styles from "./HighlightsScreen.module.css";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import { usePassageTextsMap } from "@/lib/query/passages";
+import { useHighlightsPreferencesStore, type HighlightTab } from "@/lib/stores/highlights-preferences-store";
 
 interface HighlightsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -58,7 +59,6 @@ type HighlightViewModel = {
 };
 
 const availableFilterColors = ["blue", "yellow", "green", "pink", "purple"] as const;
-const HIGHLIGHTS_STORAGE_KEY = "sword-highlights-preferences";
 
 const cardColorClasses: Record<string, string> = {
   blue: styles.highlightCardBlue,
@@ -163,34 +163,38 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedColor, setSelectedColor] = useState<string>("all");
-  const highlightsQuery = useDataQuery(
-    `user-highlights-${translationKey}`,
-    () => getUserHighlights(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
-  );
+  const searchQuery = useHighlightsPreferencesStore((state) => state.searchQuery);
+  const selectedColor = useHighlightsPreferencesStore((state) => state.selectedColor);
+  const tabValue = useHighlightsPreferencesStore((state) => state.tabValue);
+  const setSearchQuery = useHighlightsPreferencesStore((state) => state.setSearchQuery);
+  const setSelectedColor = useHighlightsPreferencesStore((state) => state.setSelectedColor);
+  const setTabValue = useHighlightsPreferencesStore((state) => state.setTabValue);
+
+  const queryClient = useQueryClient();
+  const highlightsQueryKey = queryKeys.userHighlights(translationKey);
+
+  const highlightsQuery = useQuery({
+    queryKey: highlightsQueryKey,
+    queryFn: () => getUserHighlights(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
   const highlights = useMemo(
     () => highlightsQuery.data ?? [],
     [highlightsQuery.data],
   );
-  const { setData: setHighlightsCache, refetch: refetchHighlights } = highlightsQuery;
-  const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
-  const [tabValue, setTabValue] = useState("timeline");
 
-  const verseTextsRef = useRef(verseTexts);
-  const pendingPassages = useRef(new Set<string>());
-  const hasHydratedPreferences = useRef(false);
-
-  useEffect(() => {
-    verseTextsRef.current = verseTexts;
-  }, [verseTexts]);
-
-  useEffect(() => {
-    setVerseTexts({});
-    verseTextsRef.current = {};
-    pendingPassages.current.clear();
-  }, [translationCode]);
+  const setHighlightsCache = useCallback(
+    (
+      value:
+        | UserHighlight[]
+        | ((previous: UserHighlight[] | undefined) => UserHighlight[]),
+    ) => {
+      queryClient.setQueryData<UserHighlight[]>(highlightsQueryKey, value);
+    },
+    [highlightsQueryKey, queryClient],
+  );
+  const { refetch: refetchHighlights } = highlightsQuery;
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -199,51 +203,6 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     }
     return index;
   }, [books]);
-
-  useEffect(() => {
-    if (hasHydratedPreferences.current) {
-      return;
-    }
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const raw = window.localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
-      if (!raw) {
-        hasHydratedPreferences.current = true;
-        return;
-      }
-
-      const parsed = JSON.parse(raw) as {
-        searchQuery?: string;
-        selectedColor?: string;
-        tabValue?: string;
-      } | null;
-
-      if (typeof parsed?.searchQuery === "string") {
-        setSearchQuery(parsed.searchQuery);
-      }
-
-      if (
-        parsed?.selectedColor &&
-        (parsed.selectedColor === "all" ||
-          availableFilterColors.includes(
-            parsed.selectedColor as (typeof availableFilterColors)[number],
-          ))
-      ) {
-        setSelectedColor(parsed.selectedColor);
-      }
-
-      if (parsed?.tabValue && ["timeline", "books"].includes(parsed.tabValue)) {
-        setTabValue(parsed.tabValue);
-      }
-    } catch (error) {
-      console.warn("Failed to restore highlight preferences", error);
-    } finally {
-      hasHydratedPreferences.current = true;
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -275,68 +234,22 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
     }
   }, [highlightsQuery.error, highlightsQuery.isError]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    if (!hasHydratedPreferences.current) {
-      return;
-    }
-
-    const payload = JSON.stringify({
-      searchQuery,
-      selectedColor,
-      tabValue,
-    });
-
-    window.localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, payload);
-  }, [searchQuery, selectedColor, tabValue]);
-
-  useEffect(() => {
-    if (!translationCode) {
-      return;
-    }
-
-    for (const highlight of highlights) {
-      const key = highlight.id;
-      if (verseTextsRef.current[key] !== undefined) {
-        continue;
-      }
-
-      if (pendingPassages.current.has(key)) {
-        continue;
-      }
-
-      const book = highlight.bookId ? bookIndex.get(highlight.bookId) : null;
-
-      if (!book) {
-        setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        continue;
-      }
-
-      pendingPassages.current.add(key);
-
-      void getPassage(
-        translationCode,
-        book.name,
-        { chapter: highlight.chapter, verse: highlight.verseStart },
-        {
+  const passageRequests = useMemo(
+    () =>
+      highlights.map((highlight) => {
+        const book = highlight.bookId ? bookIndex.get(highlight.bookId) : undefined;
+        return {
+          id: highlight.id,
+          bookName: book?.name,
           chapter: highlight.chapter,
-          verse: highlight.verseEnd,
-        }
-      )
-        .then((response) => {
-          const text = response.verses.map((entry) => entry.text).join(" ");
-          setVerseTexts((prev) => ({ ...prev, [key]: text }));
-        })
-        .catch(() => {
-          setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        })
-        .finally(() => {
-          pendingPassages.current.delete(key);
-        });
-    }
-  }, [highlights, translationCode, bookIndex]);
+          verseStart: highlight.verseStart,
+          verseEnd: highlight.verseEnd,
+        };
+      }),
+    [bookIndex, highlights],
+  );
+
+  const verseTexts = usePassageTextsMap(translationCode, passageRequests);
 
   const derivedHighlights = useMemo<HighlightViewModel[]>(() => {
     return highlights.map((highlight) => {
@@ -628,7 +541,11 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             </p>
           </div>
         ) : (
-          <Tabs value={tabValue} onValueChange={setTabValue} className={styles.tabs}>
+          <Tabs
+            value={tabValue}
+            onValueChange={(value) => setTabValue(value as HighlightTab)}
+            className={styles.tabs}
+          >
             <TabsList data-active={tabValue} className={styles.tabsList}>
               <span className={styles.tabHighlight} aria-hidden="true" />
               <TabsTrigger value="timeline">Timeline</TabsTrigger>

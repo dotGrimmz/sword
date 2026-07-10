@@ -58,94 +58,119 @@
   animation: toolbarReveal 380ms ease-out both;
 }
 
-.toolbarRow {
+.headerRow {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-@media (min-width: 1024px) {
-  .toolbarRow {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.selectorGroup {
-  display: grid;
-  gap: 0.75rem;
-  width: 100%;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
-}
-
-.selectorItem {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   min-width: 0;
 }
 
-.selectorItemTranslation {
-  grid-column: span 2;
+.titleBlock {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.selectorItemBook,
-.selectorItemChapter {
+.titleSelect {
   width: 100%;
+  min-height: auto;
+  padding: 0 1.5rem 0 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: clamp(1.125rem, 5vw, 1.5rem);
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
 }
 
-@media (min-width: 1024px) {
-  .selectorGroup {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    align-items: center;
-  }
+.titleSelect :global([data-slot="select-value"]) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .selectorItemTranslation {
-    grid-column: span 4;
-  }
+.translationSwitcher {
+  flex-shrink: 0;
+}
 
-  .selectorItemBook {
-    grid-column: span 3;
-  }
+.chapterVerseRow {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+  gap: 0.75rem;
+  min-width: 0;
+}
 
-  .selectorItemChapter {
-    grid-column: span 1;
-  }
+.passageField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.passageLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  padding-left: 2px;
+}
+
+.passageSelect {
+  padding-left: 12px !important;
+  padding-right: 10px !important;
+}
+
+.passageSelect :global([data-slot="select-value"]) {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--primary);
+}
+
+.chapterSelect,
+.verseSelect {
+  width: 100%;
 }
 
 .selectTriggerBase {
-  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-  background-color: var(--input-background);
-}
-
-.translationSelect,
-.bookSelect,
-.chapterSelect {
   width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  background-color: var(--secondary);
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .selectContent {
   max-height: 18rem;
   z-index: 9999;
   cursor: pointer;
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.selectItem {
+  position: relative;
+  min-height: 40px;
+  padding: 10px 16px 10px 2rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.selectItem[data-state="checked"] {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .navControls {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  align-self: flex-end;
-}
-
-.selectItem {
-  position: relative;
-  padding-left: 2rem;
-  padding-right: 1rem;
-}
-
-@media (min-width: 1024px) {
-  .navControls {
-    align-self: auto;
-  }
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .navIcon {
@@ -172,38 +197,35 @@
   min-height: 40px;
   padding: 0.55rem 0.95rem;
   font-size: 0.85rem;
+  font-weight: 600;
   border-radius: calc(var(--radius) - 0.25rem);
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--accent) 55%, transparent) 0%,
-    color-mix(in srgb, var(--secondary) 38%, transparent) 100%
-  );
-  color: var(--primary-foreground);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  box-shadow: 0 12px 24px color-mix(in oklab, var(--primary) 16%, transparent);
-  transition: transform 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  background: var(--secondary);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transition: background 0.18s ease, transform 0.18s ease;
 }
 
 .navControlButton:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px color-mix(in oklab, var(--primary) 24%, transparent);
-  filter: brightness(1.05);
+  background: color-mix(in oklab, var(--secondary) 75%, var(--primary) 25%);
 }
 
 .navControlButton:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  background: color-mix(in srgb, var(--surface) 70%, var(--muted) 30%);
-  color: color-mix(in srgb, var(--muted-foreground) 70%, white 30%);
-  border-color: color-mix(in srgb, var(--border) 60%, transparent);
+  background: color-mix(in oklab, var(--muted) 60%, transparent);
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  border-color: var(--border);
   box-shadow: none;
 }
 
 .navControlsBottom {
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  flex-wrap: nowrap;
   margin-top: 1.5rem;
-  align-self: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .readerContent {

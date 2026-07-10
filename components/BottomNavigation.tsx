@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "./ui/button";
 import { BookOpen, FileText, Heart, LayoutDashboard } from "lucide-react";
 import { motion } from "motion/react";
@@ -8,7 +9,7 @@ import { motion } from "motion/react";
 import { cn } from "./ui/utils";
 import styles from "./BottomNavigation.module.css";
 import { dashboardScreens } from "@/components/app-navigation";
-import { useDataCacheContext } from "@/lib/data-cache/DataCacheProvider";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import { getUserNotes } from "@/lib/api/notes";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { useTranslationContext } from "./TranslationContext";
@@ -37,45 +38,44 @@ export function BottomNavigation({
   currentScreen,
   onNavigate,
 }: BottomNavigationProps) {
-  const dataCache = useDataCacheContext();
+  const queryClient = useQueryClient();
   const { translationCode } = useTranslationContext();
   const translationKey = translationCode ?? "none";
 
   const prefetchScreen = useCallback(
     (screen: string) => {
-      const staleTime = 1000 * 60 * 5;
       switch (screen) {
         case "home":
-          void dataCache.fetch(
-            `user-notes-preview-${translationKey}`,
-            () => getUserNotes(10, translationCode ?? undefined),
-            { staleTime }
-          );
-          void dataCache.fetch(
-            `user-highlights-${translationKey}`,
-            () => getUserHighlights(translationCode ?? undefined),
-            { staleTime }
-          );
+          void queryClient.prefetchQuery({
+            queryKey: queryKeys.userNotesPreview(translationKey),
+            queryFn: () => getUserNotes(10, translationCode ?? undefined),
+            staleTime: STALE_TIMES.user,
+          });
+          void queryClient.prefetchQuery({
+            queryKey: queryKeys.userHighlights(translationKey),
+            queryFn: () => getUserHighlights(translationCode ?? undefined),
+            staleTime: STALE_TIMES.user,
+          });
           break;
         case "notes":
-          void dataCache.fetch(
-            `user-notes-${translationKey}`,
-            () => getUserNotes(undefined, translationCode ?? undefined),
-            { staleTime }
-          );
+          void queryClient.prefetchQuery({
+            queryKey: queryKeys.userNotes(translationKey),
+            queryFn: () => getUserNotes(undefined, translationCode ?? undefined),
+            staleTime: STALE_TIMES.user,
+          });
           break;
         case "highlights":
-          void dataCache.fetch(
-            `user-highlights-${translationKey}`,
-            () => getUserHighlights(translationCode ?? undefined),
-            { staleTime }
-          );
+          void queryClient.prefetchQuery({
+            queryKey: queryKeys.userHighlights(translationKey),
+            queryFn: () => getUserHighlights(translationCode ?? undefined),
+            staleTime: STALE_TIMES.user,
+          });
           break;
         default:
           break;
       }
     },
-    [dataCache, translationCode, translationKey]
+    [queryClient, translationCode, translationKey],
   );
 
   return (

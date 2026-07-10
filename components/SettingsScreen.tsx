@@ -14,6 +14,9 @@ import { useTheme, themeOptions, type Theme } from "./ThemeContext";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, type UserRole } from "@/components/ProfileContext";
 import { clearCachedAccessToken } from "@/lib/api/session";
+import { getProfile, type ProfileResponse } from "@/lib/api/profile";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import styles from "./SettingsScreen.module.css";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -24,19 +27,23 @@ type ProfileFormState = {
   streamUrl: string;
 };
 
-type ProfileResponse = {
-  id: string;
-  username: string | null;
-  avatar_url: string | null;
-  stream_tagline: string | null;
-  stream_url: string | null;
-  theme: Theme | (string & {}) | null;
-  role: UserRole | (string & {});
-};
+const profileToForm = (profile: ProfileResponse): ProfileFormState => ({
+  displayName: profile.username ?? "",
+  avatarUrl: profile.avatar_url ?? "",
+  streamTagline: profile.stream_tagline ?? "",
+  streamUrl: profile.stream_url ?? "",
+});
 
-const createEmptyProfileForm = (): ProfileFormState => ({
-  displayName: "",
-  avatarUrl: "",
+const fallbackFormFromUser = (user: SupabaseUser): ProfileFormState => ({
+  displayName:
+    (user.user_metadata?.full_name as string | undefined) ??
+    (user.user_metadata?.name as string | undefined) ??
+    user.email ??
+    "",
+  avatarUrl:
+    (user.user_metadata?.avatar_url as string | undefined) ??
+    (user.user_metadata?.picture as string | undefined) ??
+    "",
   streamTagline: "",
   streamUrl: "",
 });
@@ -54,97 +61,111 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const { theme, setTheme } = useTheme();
   const { role, setRole } = useProfile();
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [profileForm, setProfileForm] = useState<ProfileFormState>(() =>
-    createEmptyProfileForm()
-  );
-  const [initialProfileForm, setInitialProfileForm] =
-    useState<ProfileFormState>(() => createEmptyProfileForm());
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [profileForm, setProfileForm] = useState<ProfileFormState>({
+    displayName: "",
+    avatarUrl: "",
+    streamTagline: "",
+    streamUrl: "",
+  });
+  const [initialProfileForm, setInitialProfileForm] = useState<ProfileFormState>({
+    displayName: "",
+    avatarUrl: "",
+    streamTagline: "",
+    streamUrl: "",
+  });
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
+  const queryClient = useQueryClient();
+  const profileQueryKey = queryKeys.profile();
+
+  const profileQuery = useQuery({
+    queryKey: profileQueryKey,
+    queryFn: getProfile,
+    staleTime: STALE_TIMES.profile,
+    enabled: Boolean(authUser),
+  });
+
+  const setProfileCache = (
+    value:
+      | ProfileResponse
+      | null
+      | ((
+          previous: ProfileResponse | null | undefined,
+        ) => ProfileResponse | null),
+  ) => {
+    queryClient.setQueryData<ProfileResponse | null>(profileQueryKey, value);
+  };
+
   useEffect(() => {
-    const loadProfile = async () => {
-      setIsLoadingProfile(true);
+    const loadAuthUser = async () => {
+      setIsLoadingAuth(true);
       const { data, error } = await supabase.auth.getUser();
       if (error) {
         toast.error(error.message);
         setAuthUser(null);
-        setIsLoadingProfile(false);
-        return;
+      } else {
+        setAuthUser(data.user ?? null);
       }
-      const user = data.user ?? null;
-      setAuthUser(user);
-
-      let resolvedProfileForm = createEmptyProfileForm();
-
-      if (user) {
-        const fallbackForm: ProfileFormState = {
-          displayName:
-            (user.user_metadata?.full_name as string | undefined) ??
-            (user.user_metadata?.name as string | undefined) ??
-            user.email ??
-            "",
-          avatarUrl:
-            (user.user_metadata?.avatar_url as string | undefined) ??
-            (user.user_metadata?.picture as string | undefined) ??
-            "",
-          streamTagline: "",
-          streamUrl: "",
-        };
-
-        try {
-          const response = await fetch("/api/profile", { cache: "no-store" });
-          if (response.ok) {
-            const profile = (await response.json()) as ProfileResponse;
-            if (
-              profile.theme &&
-              profile.theme !== "ocean" &&
-              themeOptions.some((option) => option.value === profile.theme)
-            ) {
-              setTheme(profile.theme as Theme);
-            }
-            if (profile.role && typeof profile.role === "string") {
-              setRole(profile.role as UserRole);
-            }
-            resolvedProfileForm = {
-              displayName: profile.username ?? fallbackForm.displayName,
-              avatarUrl: profile.avatar_url ?? fallbackForm.avatarUrl,
-              streamTagline: profile.stream_tagline ?? "",
-              streamUrl: profile.stream_url ?? "",
-            };
-          } else if (response.status === 404) {
-            resolvedProfileForm = fallbackForm;
-          } else {
-            let message = "Unable to load profile.";
-            try {
-              const payload = (await response.json()) as { error?: string };
-              if (payload?.error) {
-                message = payload.error;
-              }
-            } catch {
-              // ignore
-            }
-            console.error(message);
-            resolvedProfileForm = fallbackForm;
-          }
-        } catch (profileError) {
-          console.error("Failed to load profile preferences", profileError);
-          resolvedProfileForm = fallbackForm;
-        }
-      }
-
-      setProfileForm(resolvedProfileForm);
-      setInitialProfileForm(resolvedProfileForm);
-      setProfileLoaded(true);
-      setIsLoadingProfile(false);
+      setIsLoadingAuth(false);
     };
 
-    void loadProfile();
-  }, [supabase, setTheme, setRole]);
+    void loadAuthUser();
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!authUser) {
+      setProfileLoaded(false);
+      return;
+    }
+
+    if (profileQuery.isLoading && profileQuery.data === undefined) {
+      return;
+    }
+
+    const fallbackForm = fallbackFormFromUser(authUser);
+    const profile = profileQuery.data;
+
+    if (profile) {
+      if (
+        profile.theme &&
+        profile.theme !== "ocean" &&
+        themeOptions.some((option) => option.value === profile.theme)
+      ) {
+        setTheme(profile.theme as Theme);
+      }
+      if (profile.role && typeof profile.role === "string") {
+        setRole(profile.role as UserRole);
+      }
+
+      const resolvedProfileForm: ProfileFormState = {
+        displayName: profile.username ?? fallbackForm.displayName,
+        avatarUrl: profile.avatar_url ?? fallbackForm.avatarUrl,
+        streamTagline: profile.stream_tagline ?? "",
+        streamUrl: profile.stream_url ?? "",
+      };
+      setProfileForm(resolvedProfileForm);
+      setInitialProfileForm(resolvedProfileForm);
+    } else {
+      setProfileForm(fallbackForm);
+      setInitialProfileForm(fallbackForm);
+    }
+
+    setProfileLoaded(true);
+  }, [
+    authUser,
+    profileQuery.data,
+    profileQuery.isLoading,
+    setRole,
+    setTheme,
+  ]);
+
+  const isLoadingProfile =
+    isLoadingAuth || (Boolean(authUser) && profileQuery.isLoading && !profileLoaded);
 
   const themePreviewClassMap: Record<Theme, string> = {
     realign: styles.themePreviewRealign,
@@ -262,13 +283,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       }
 
       const profile = payload as ProfileResponse;
+      setProfileCache(profile);
 
-      const normalizedForm: ProfileFormState = {
-        displayName: profile.username ?? "",
-        avatarUrl: profile.avatar_url ?? "",
-        streamTagline: profile.stream_tagline ?? "",
-        streamUrl: profile.stream_url ?? "",
-      };
+      const normalizedForm = profileToForm(profile);
 
       if (
         profile.theme &&
@@ -349,6 +366,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       const nextUrl = payload?.avatar_url ?? "";
       setProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
+      setProfileCache((current) =>
+        current ? { ...current, avatar_url: nextUrl } : null,
+      );
       toast.success("Photo updated.");
     } catch (error) {
       toast.error(
@@ -383,6 +403,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
       setProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
+      setProfileCache((current) =>
+        current ? { ...current, avatar_url: null } : null,
+      );
       toast.success("Photo removed.");
     } catch (error) {
       toast.error(

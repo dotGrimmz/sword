@@ -42,7 +42,8 @@ import {
 } from "@/lib/events";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import type { BibleBookSummary } from "@/types/bible";
 
 interface HomeScreenProps {
@@ -103,16 +104,18 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const notesQuery = useDataQuery<UserNote[]>(
-    `user-notes-preview-${translationKey}`,
-    () => getUserNotes(10, translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
-  );
-  const highlightsQuery = useDataQuery(
-    `user-highlights-${translationKey}`,
-    () => getUserHighlights(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
-  );
+  const notesQuery = useQuery({
+    queryKey: queryKeys.userNotesPreview(translationKey),
+    queryFn: () => getUserNotes(10, translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
+  const highlightsQuery = useQuery({
+    queryKey: queryKeys.userHighlights(translationKey),
+    queryFn: () => getUserHighlights(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
@@ -348,18 +351,11 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     ];
   }, [notesCount, highlightsCount]);
 
-  const notesPriming =
-    fetchEnabled && notesQuery.isLoading && notesQuery.data === undefined;
-  const highlightsPriming =
-    fetchEnabled &&
-    highlightsQuery.isLoading &&
-    highlightsQuery.data === undefined;
-
   const showLoading =
     isLoadingBooks ||
     isLoadingTranslations ||
-    notesPriming ||
-    highlightsPriming;
+    notesQuery.isLoading ||
+    highlightsQuery.isLoading;
 
   return (
     <div className={styles.page}>

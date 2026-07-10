@@ -27,6 +27,29 @@
   gap: 6px;
 }
 
+.toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+}
+
+.toolbarTrigger {
+  min-width: 0 !important;
+  width: auto;
+  height: 32px !important;
+  padding: 0 8px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--primary) !important;
+  font-weight: 700;
+  font-size: 0.75rem;
+  box-shadow: none !important;
+}
+
 .selectContent {
   z-index: 9999;
   max-height: min(18rem, 60dvh);
