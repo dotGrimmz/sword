@@ -100,7 +100,11 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           const response = await fetch("/api/profile", { cache: "no-store" });
           if (response.ok) {
             const profile = (await response.json()) as ProfileResponse;
-            if (profile.theme && typeof profile.theme === "string") {
+            if (
+              profile.theme &&
+              profile.theme !== "ocean" &&
+              themeOptions.some((option) => option.value === profile.theme)
+            ) {
               setTheme(profile.theme as Theme);
             }
             if (profile.role && typeof profile.role === "string") {
@@ -143,6 +147,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   }, [supabase, setTheme, setRole]);
 
   const themePreviewClassMap: Record<Theme, string> = {
+    realign: styles.themePreviewRealign,
     ocean: styles.themePreviewOcean,
     sunset: styles.themePreviewSunset,
     forest: styles.themePreviewForest,
@@ -265,7 +270,11 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
         streamUrl: profile.stream_url ?? "",
       };
 
-      if (profile.theme && typeof profile.theme === "string") {
+      if (
+        profile.theme &&
+        profile.theme !== "ocean" &&
+        themeOptions.some((option) => option.value === profile.theme)
+      ) {
         setTheme(profile.theme as Theme);
       }
       if (profile.role && typeof profile.role === "string") {
@@ -411,7 +420,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
             )}
           </div>
           <div className={styles.headerText}>
-            <h1 className={styles.headerTitle}>Settings</h1>
+            <h1 className={styles.headerTitle}>Profile</h1>
             <p className={styles.headerSubtitle}>
               {isLoadingProfile ? "Loading profile…" : `Signed in as ${email}`}
             </p>

@@ -395,7 +395,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const statsCards = useMemo(
     () => [
       {
-        label: "Total notes",
+        label: "Total reflections",
         value: String(noteCount),
         context:
           noteCount === 0
@@ -601,7 +601,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       <div className={styles.header}>
         <div className={styles.headerBar}>
           <div className={styles.headerTitleWrap}>
-            <h1 className={styles.headerTitle}>Study Notes</h1>
+            <h1 className={styles.headerTitle}>Reflections</h1>
             <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
           <div className={styles.headerActions}>
@@ -653,7 +653,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         <div className={styles.searchWrap}>
           <Search className={styles.searchIcon} aria-hidden="true" />
           <Input
-            placeholder="Search your notes..."
+            placeholder="Search your reflections..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className={styles.searchInput}
@@ -720,7 +720,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                   aria-hidden="true"
                 />
                 <div>
-                  <p className={styles.dialogMetaLabel}>Saved notes</p>
+                  <p className={styles.dialogMetaLabel}>Saved reflections</p>
                   <p className={styles.dialogMetaValue}>{noteCount}</p>
                 </div>
               </div>
@@ -928,7 +928,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             </div>
             <h3 className={styles.emptyTitle}>Your study journal is ready</h3>
             <p className={styles.emptyCopy}>
-              Capture a reflection or prayer to begin building a notes archive
+              Capture a reflection or prayer to begin building your archive
               that surfaces alongside your studies.
             </p>
           </div>

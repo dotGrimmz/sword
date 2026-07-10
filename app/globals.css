@@ -18,6 +18,44 @@
 }
 
 :root,
+[data-theme="realign"] {
+  --background: #fff5f0;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #d91f26;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe8dc;
+  --secondary-foreground: #1a1a1a;
+  --muted: #ffe8dc;
+  --muted-foreground: #665c56;
+  --accent: #f28c00;
+  --accent-foreground: #ffffff;
+  --brand-gradient: linear-gradient(to right, #d91f26, #f28c00);
+  --destructive: #ba1a1a;
+  --destructive-foreground: #ffffff;
+  --border: rgba(26, 26, 26, 0.1);
+  --input: transparent;
+  --input-background: #ffe8dc;
+  --switch-background: #ffd9c8;
+  --ring: rgba(217, 31, 38, 0.3);
+  --chart-1: #d91f26;
+  --chart-2: #f28c00;
+  --chart-3: #b81820;
+  --chart-4: #ffd9c8;
+  --chart-5: #ffe8dc;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #d91f26;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ffe8dc;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: rgba(26, 26, 26, 0.1);
+  --sidebar-ring: rgba(242, 140, 0, 0.3);
+}
+
 [data-theme="ocean"] {
   --background: #f0f8ff;
   --foreground: #0f172a;
@@ -53,7 +91,6 @@
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: rgba(15, 23, 42, 0.1);
   --sidebar-ring: rgba(14, 165, 233, 0.3);
-
 }
 
 [data-theme="sunset"] {
@@ -214,6 +251,7 @@
 }
 
 :root,
+[data-theme="realign"],
 [data-theme="ocean"],
 [data-theme="sunset"],
 [data-theme="forest"],
@@ -221,23 +259,28 @@
 [data-theme="cherry"] {
   --canvas-gradient: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--background) 88%, transparent) 0%,
-    color-mix(in oklab, var(--secondary) 28%, transparent) 100%
+    var(--background) 0%,
+    color-mix(in oklab, var(--background) 70%, white) 100%
   );
   --surface-gradient: linear-gradient(
     140deg,
-    color-mix(in oklab, var(--card) 92%, transparent) 0%,
-    color-mix(in oklab, var(--secondary) 24%, transparent) 100%
+    var(--card) 0%,
+    var(--secondary) 100%
   );
   --surface-gradient-soft: linear-gradient(
     140deg,
-    color-mix(in oklab, var(--card) 96%, transparent) 0%,
-    color-mix(in oklab, var(--secondary) 14%, transparent) 100%
+    var(--card) 0%,
+    color-mix(in oklab, var(--secondary) 40%, transparent) 100%
   );
   --surface-glass-gradient: linear-gradient(
     160deg,
-    color-mix(in oklab, var(--card) 86%, transparent) 0%,
-    color-mix(in oklab, var(--secondary) 26%, transparent) 100%
+    color-mix(in oklab, var(--card) 90%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 80%, transparent) 100%
+  );
+  --brand-gradient: linear-gradient(
+    to right,
+    var(--primary),
+    var(--accent)
   );
 }
 

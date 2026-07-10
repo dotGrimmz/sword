@@ -1,11 +1,55 @@
+/** Primary dashboard routes shown in bottom nav and Today quick actions. */
+export const dashboardScreens = {
+  home: {
+    id: "home",
+    label: "Today",
+    route: "/dashboard",
+  },
+  reader: {
+    id: "reader",
+    label: "Scripture",
+    route: "/dashboard/reader",
+  },
+  notes: {
+    id: "notes",
+    label: "Reflections",
+    route: "/dashboard/notes",
+  },
+  highlights: {
+    id: "highlights",
+    label: "Marked",
+    route: "/dashboard/highlights",
+  },
+  settings: {
+    id: "settings",
+    label: "Profile",
+    route: "/dashboard/settings",
+  },
+} as const;
+
+export type DashboardScreenKey = keyof typeof dashboardScreens;
+
+/** Routes reachable from Today but not in bottom nav. */
+export const dashboardSecondaryScreens = {
+  "pre-read": {
+    id: "pre-read",
+    label: "Pre-Read",
+    route: "/pre-read",
+  },
+} as const;
+
+export type SecondaryScreenKey = keyof typeof dashboardSecondaryScreens;
+
 export const screenRoutes = {
   home: "/dashboard",
   reader: "/dashboard/reader",
-  "pre-read": "/pre-read",
-  highlights: "/dashboard/highlights",
-  memory: "/dashboard/memory",
   notes: "/dashboard/notes",
+  highlights: "/dashboard/highlights",
   settings: "/dashboard/settings",
+  "pre-read": "/pre-read",
+  /** Deprecated — redirects to Today. */
+  memory: "/dashboard",
+  /** Deprecated — removed from IA. */
   apologetics: "/apologetics",
 } as const;
 

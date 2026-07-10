@@ -17,63 +17,111 @@
 }
 
 .headerStrip {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
 }
 
-.welcomeBlock {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.headerToolbar {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+}
+
+.profileButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
   flex-shrink: 0;
 }
 
+.profileButton:hover {
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+
+.profileButton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.profileIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.welcomeBlock {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .translationSwitcher {
-  min-width: 160px;
-  align-self: center;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .translationSwitcherTrigger {
-  min-width: 160px;
+  min-width: 0 !important;
+  width: auto;
+  height: 32px !important;
+  padding: 0 8px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--primary) !important;
+  font-weight: 700;
+  font-size: 0.75rem;
+  box-shadow: none !important;
 }
 
 .welcomeTitle {
   margin: 0;
-  font-size: 26px;
+  font-size: clamp(1.125rem, 5vw, 1.5rem);
   font-weight: 700;
-  color: hsl(var(--primary));
+  color: var(--primary);
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
 .welcomeSubtitle {
   margin: 0;
-  font-size: 15px;
-  color: hsl(var(--muted-foreground));
+  font-size: clamp(0.8125rem, 3.2vw, 0.875rem);
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
 }
 
-@media (min-width: 768px) {
-  .headerStrip {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .welcomeBlock {
-    text-align: left;
-    align-items: flex-start;
-  }
-
-  .translationSwitcher {
-    align-self: flex-end;
-  }
+.welcomeTagline {
+  margin: -12px 0 0;
+  font-size: clamp(9px, 2.4vw, 10px);
+  letter-spacing: 0.06em;
+  line-height: 1.45;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  overflow-wrap: anywhere;
 }
 
 .verseCard {
-  border: 1px solid hsla(var(--accent), 0.35);
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
   background: var(--surface-gradient);
-  box-shadow: 0 20px 32px rgba(14, 165, 233, 0.12);
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--primary) 10%, transparent);
   flex-shrink: 0;
+  border-radius: 0.75rem;
 }
 
 .verseHeader {
@@ -89,13 +137,13 @@
 .verseIcon {
   width: 18px;
   height: 18px;
-  color: hsl(var(--accent));
-  padding-left: .5rem;
+  color: var(--primary);
+  padding-left: 0.5rem;
 }
 
 .verseTitle {
   font-size: 15px;
-  color: hsl(var(--accent));
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -107,17 +155,18 @@
 
 .verseQuote {
   margin: 0;
-  font-size: 17px;
+  font-size: 1.125rem;
   line-height: 1.7;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   font-style: italic;
-  padding-right: .5rem;
-  padding-left: .5rem;
+  font-family: "Merriweather", Georgia, serif;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
 }
 
 .verseReference {
   font-size: 14px;
-  color: hsl(var(--primary));
+  color: var(--primary);
   padding-bottom: .5rem;
   padding-left: .5rem;
 }
@@ -127,13 +176,13 @@
   align-items: center;
   gap: 10px;
   padding: 12px 8px;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
 }
 
 .verseLoaderIcon {
   width: 20px;
   height: 20px;
-  color: hsl(var(--accent));
+  color: var(--accent);
   animation: verseLoaderSpin 0.8s linear infinite;
 }
 
@@ -153,26 +202,27 @@
 .sectionTitle {
   margin: 0;
   font-size: 18px;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   font-weight: 600;
 }
 
 .quickGrid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: 1fr;
 }
 
 .quickCard {
   cursor: pointer;
-  border: 1px solid hsla(var(--border), 0.35);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   background: var(--surface-gradient-soft);
-  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 8px 20px color-mix(in oklab, var(--foreground) 6%, transparent);
   display: flex;
   flex-direction: column;
   height: 100%;
+  border-radius: 0.75rem;
 }
 
 .quickCard:hover {
@@ -202,7 +252,7 @@
 .quickIcon {
   width: 24px;
   height: 24px;
-  color: hsl(var(--primary));
+  color: var(--primary);
 }
 
 .quickCardContentCentered {
@@ -217,14 +267,9 @@
 }
 
 .quickCardDescription {
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-}
-
-.quickFootnote {
-  margin: 0;
-  font-size: 11px;
-  color: hsla(var(--muted-foreground), 0.85);
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--muted-foreground);
 }
 
 .quickIconWrapper {
@@ -234,7 +279,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(59, 130, 246, 0.12);
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
 }
 
 .quickLogo {
@@ -244,8 +289,9 @@
 
 .statsCard,
 .notesCard {
-  border: 1px solid hsla(var(--border), 0.45);
-  background: var(--surface-gradient);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: var(--card);
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--foreground) 5%, transparent);
 }
 
 .statsCard {
@@ -272,22 +318,23 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: hsl(var(--foreground));
-  padding: .5rem;
+  color: var(--foreground);
+  padding: 0.5rem;
 }
 
 .statsIcon {
   width: 16px;
   height: 16px;
-  color: hsl(var(--primary));
+  color: var(--primary);
 }
 
 .statsContent {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-left: .5rem;
-  padding-bottom: .5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.75rem;
+  padding-bottom: 0.5rem;
 }
 
 .progressRow {
@@ -299,15 +346,22 @@
 .progressMeta {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   font-size: 14px;
 }
 
 .progressLabel {
-  color: hsl(var(--foreground));
+  flex: 1;
+  min-width: 0;
+  color: var(--foreground);
 }
 
 .progressValue {
-  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  text-align: center;
+  color: var(--muted-foreground);
 }
 
 .progressBar {
@@ -365,18 +419,30 @@
   flex-direction: column;
   gap: 4px;
   font-size: 14px;
+  padding-left: 12px;
+  border-left: 2px solid var(--primary);
 }
 
 .noteMeta {
   margin: 0;
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
+}
+
+.ministryCredit {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
 }
 
 .noteExcerpt {
   margin: 0;
   font-size: 14px;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
 }
 
 .notePlaceholder {
@@ -418,14 +484,14 @@
   margin: 0;
   font-size: clamp(1.04rem, 2.5vw, 1.28rem);
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
 }
 
 .notePlaceholderCopy {
   margin: 0;
   font-size: 0.92rem;
   line-height: 1.6;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
 }
 
 @media (max-width: 520px) {
@@ -433,8 +499,16 @@
     gap: 20px;
   }
 
+  .headerStrip {
+    gap: 10px;
+  }
+
   .welcomeTitle {
-    font-size: 24px;
+    font-size: clamp(1.05rem, 4.8vw, 1.25rem);
+  }
+
+  .welcomeSubtitle {
+    font-size: 0.8125rem;
   }
 
   .verseQuote {
@@ -442,12 +516,12 @@
   }
 
   .quickGrid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .quickCard {
     transform: translateY(-2px);
     box-shadow: 0 18px 32px rgba(15, 23, 42, 0.18);
-    background-color: hsla(var(--card), 0.92);
+    background-color: color-mix(in oklab, var(--card) 92%, transparent);
   }
 }

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
 import type { UserRole } from "@/components/ProfileContext";
-import type { Theme } from "@/components/ThemeContext";
+import { resolveTheme } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminLayout({
@@ -28,7 +28,7 @@ export default async function AdminLayout({
     .maybeSingle();
 
   const role = (data?.role as UserRole | null) ?? null;
-  const theme = (data?.theme as Theme | null) ?? null;
+  const theme = data?.theme ? resolveTheme(data.theme) : null;
 
   if (role !== "admin") {
     redirect("/dashboard");

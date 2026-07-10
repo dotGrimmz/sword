@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/AppShell";
 import type { UserRole } from "@/components/ProfileContext";
-import type { Theme } from "@/components/ThemeContext";
+import { resolveTheme, type Theme } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Layout({ children }: { children: ReactNode }) {
@@ -22,7 +22,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
       .maybeSingle();
 
     if (data?.theme) {
-      initialTheme = data.theme as Theme;
+      // resolveTheme maps previous default "ocean" → realign
+      initialTheme = resolveTheme(data.theme);
     }
     if (data?.role) {
       initialRole = data.role as UserRole;

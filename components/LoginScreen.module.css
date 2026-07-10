@@ -2,28 +2,28 @@
   min-height: 100vh;
   margin: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 20px;
   padding: 48px clamp(16px, 4vw, 32px);
-  background: linear-gradient(180deg, #e0f2ff 0%, #f5f9ff 45%, #ffffff 100%);
+  background: var(--background);
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
 .card {
-  width: min(100%, 840px);
-  max-width: 840px;
-  border-radius: 32px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
-  backdrop-filter: blur(16px);
+  width: min(100%, 420px);
+  border-radius: 28px;
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+  box-shadow: 0 24px 48px color-mix(in oklab, var(--foreground) 10%, transparent);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 40px;
-  padding: 48px 48px 44px;
+  align-items: stretch;
+  gap: 18px;
+  padding: 40px 28px 32px;
   box-sizing: border-box;
 }
 
@@ -31,20 +31,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-align: center;
 }
 
 .logoBadge {
-  width: 68px;
-  height: 68px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: linear-gradient(140deg, rgba(14, 165, 233, 0.16), rgba(59, 130, 246, 0.4));
+  background: color-mix(in oklab, var(--secondary) 80%, white);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0f172a;
-  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.55);
+  border: 1px solid color-mix(in oklab, var(--primary) 18%, transparent);
 }
 
 .logoImage {
@@ -55,89 +55,33 @@
 
 .heading {
   margin: 0;
-  font-size: 30px;
+  font-size: 1.75rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #0f172a;
+  letter-spacing: 0.08em;
+  color: var(--foreground);
 }
 
 .subheading {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: #475569;
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--accent);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-}
-
-.content {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.inner {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-.formCard {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 30px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  box-shadow: 0 26px 50px rgba(15, 23, 42, 0.18);
-  backdrop-filter: blur(16px);
-  box-sizing: border-box;
-}
-
-.formHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
-}
-
-.formIconCircle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(12, 74, 110, 0.28));
-  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.4);
-}
-
-.formHeaderImage {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+  font-weight: 600;
 }
 
 .formTitle {
-  margin: 0;
-  font-size: 26px;
+  margin: 8px 0 0;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: #0f172a;
-}
-
-.formSubtitle {
-  margin: 0;
-  font-size: 14px;
-  color: #64748b;
+  color: var(--foreground);
 }
 
 .formTabList {
   display: flex;
   align-items: center;
-  border-radius: 16px;
-  background: rgba(14, 165, 233, 0.08);
+  border-radius: 14px;
+  background: var(--secondary);
   padding: 4px;
   position: relative;
 }
@@ -148,9 +92,9 @@
   top: 4px;
   bottom: 4px;
   width: calc(50% - 4px);
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  box-shadow: 0 12px 20px rgba(2, 132, 199, 0.35);
+  border-radius: 10px;
+  background: var(--brand-gradient);
+  box-shadow: 0 10px 18px color-mix(in oklab, var(--primary) 28%, transparent);
   transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
   pointer-events: none;
 }
@@ -158,20 +102,19 @@
 .formTabButton {
   flex: 1;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   background: transparent;
-  color: #0f172a;
+  color: var(--foreground);
   font-size: 14px;
   font-weight: 600;
   padding: 10px 14px;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   z-index: 1;
 }
 
 .formTabButtonActive {
-  color: #ffffff;
+  color: var(--primary-foreground);
 }
 
 .formTabList[data-active="signin"]::before {
@@ -188,15 +131,14 @@
 }
 
 .formTabButton:focus-visible {
-  outline: 2px solid #0284c7;
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
+  gap: 14px;
 }
 
 .formField {
@@ -208,7 +150,7 @@
 .formLabel {
   font-size: 13px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
 .formInputWrapper {
@@ -223,7 +165,7 @@
   width: 18px;
   height: 18px;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
   pointer-events: none;
 }
 
@@ -232,19 +174,19 @@
   height: 46px;
   padding: 0 16px 0 48px;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  background: #f8fafc;
+  border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+  background: var(--input-background);
   font-size: 15px;
-  color: #0f172a;
+  color: var(--foreground);
   transition: border 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
 .formInput:focus-visible {
   outline: none;
-  border-color: #0ea5e9;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
+  border-color: var(--primary);
+  background: var(--card);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
 }
 
 .formInput:disabled {
@@ -254,8 +196,8 @@
 
 .formAlert {
   border-radius: 14px;
-  border: 1px solid rgba(248, 113, 113, 0.45);
-  background: rgba(254, 226, 226, 0.65);
+  border: 1px solid color-mix(in oklab, var(--destructive) 45%, transparent);
+  background: color-mix(in oklab, var(--destructive) 12%, white);
   padding: 12px 16px;
 }
 
@@ -263,13 +205,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #b91c1c;
+  color: var(--destructive);
 }
 
 .formAlertDescription {
   margin: 4px 0 0 0;
   font-size: 13px;
-  color: #b91c1c;
+  color: var(--destructive);
 }
 
 .formSubmit {
@@ -277,8 +219,8 @@
   height: 48px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-size: 15px;
   font-weight: 600;
   display: flex;
@@ -286,12 +228,14 @@
   justify-content: center;
   gap: 10px;
   cursor: pointer;
+  box-shadow: 0 12px 24px color-mix(in oklab, var(--primary) 30%, transparent);
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .formSubmit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
+  background: color-mix(in oklab, var(--primary) 88%, black);
+  box-shadow: 0 16px 32px color-mix(in oklab, var(--primary) 34%, transparent);
 }
 
 .formSubmit:disabled {
@@ -300,7 +244,7 @@
 }
 
 .formSubmit:focus-visible {
-  outline: 2px solid #0284c7;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -310,31 +254,13 @@
   animation: spin 0.9s linear infinite;
 }
 
-.formDivider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #7c8aa1;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-top: 8px;
-}
-
-.formDividerLine {
-  flex: 1;
-  height: 1px;
-  background: rgba(148, 163, 184, 0.45);
-}
-
 .formOauthButton {
   width: 100%;
   height: 46px;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid color-mix(in oklab, var(--border) 90%, transparent);
+  background: var(--card);
+  color: var(--foreground);
   font-size: 14px;
   font-weight: 600;
   display: flex;
@@ -346,9 +272,8 @@
 }
 
 .formOauthButton:hover:not(:disabled) {
-  background: #f1f5ff;
+  background: var(--secondary);
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
 }
 
 .formOauthButton:disabled {
@@ -357,7 +282,7 @@
 }
 
 .formOauthButton:focus-visible {
-  outline: 2px solid #0284c7;
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -366,26 +291,26 @@
   height: 18px;
 }
 
+.taglineFooter {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.copyright {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 720px) {
-  .card {
-    padding: 36px 28px 32px;
-    gap: 32px;
-    border-radius: 28px;
-  }
-
-  .inner {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .formCard {
-    padding: 26px;
   }
 }
 
@@ -395,12 +320,7 @@
   }
 
   .card {
-    padding: 32px 24px 28px;
-    gap: 28px;
-  }
-
-  .formCard {
-    padding: 24px;
-    border-radius: 22px;
+    padding: 32px 20px 28px;
+    gap: 16px;
   }
 }

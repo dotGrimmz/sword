@@ -271,6 +271,10 @@
   flex-shrink: 0;
 }
 
+.themePreviewRealign {
+  background: linear-gradient(135deg, #d91f26, #f28c00);
+}
+
 .themePreviewOcean {
   background: linear-gradient(135deg, #0ea5e9, #06b6d4);
 }

@@ -385,12 +385,12 @@ export function BibleReaderScreen() {
 
   const handleToggleHighlight = async (verseNumber: number) => {
     if (!selectedBookId) {
-      toast.error("Pick a book before highlighting.");
+      toast.error("Pick a book before marking.");
       return;
     }
 
     if (!translationCode) {
-      toast.error("Select a translation before highlighting.");
+      toast.error("Select a translation before marking.");
       return;
     }
 
@@ -404,11 +404,11 @@ export function BibleReaderScreen() {
       );
       try {
         await deleteUserHighlight(existingHighlight.id);
-        toast.success("Highlight removed");
+        toast.success("Mark removed");
         dispatchHighlightsUpdated({ source: "reader" });
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Unable to remove highlight";
+          error instanceof Error ? error.message : "Unable to remove mark";
         toast.error(message);
         setHighlights(previous);
       } finally {
@@ -428,11 +428,11 @@ export function BibleReaderScreen() {
         color: HIGHLIGHT_COLOR,
       });
       setHighlights((prev) => [newHighlight, ...prev]);
-      toast.success("Verse highlighted");
+      toast.success("Verse marked");
       dispatchHighlightsUpdated({ source: "reader" });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to highlight verse";
+        error instanceof Error ? error.message : "Unable to mark verse";
       toast.error(message);
     } finally {
       setHighlightingVerse(null);
@@ -527,7 +527,7 @@ export function BibleReaderScreen() {
         verseEnd: noteVerse,
         body,
       });
-      toast.success("Note saved");
+      toast.success("Reflection saved");
       setNoteDialogOpen(false);
       dispatchNotesUpdated({ source: "reader" });
     } catch (error) {
@@ -745,7 +745,7 @@ export function BibleReaderScreen() {
           <LoadingScreen
             variant="section"
             title="Loading Scripture…"
-            subtitle="We’re fetching this passage and syncing your highlights."
+            subtitle="We’re fetching this passage and syncing your marks."
           />
         ) : chapterError ? (
           <div className={clsx(styles.statusCard, styles.statusCardError)}>
@@ -864,7 +864,7 @@ export function BibleReaderScreen() {
               {selectedBook ? ` (${selectedBook.chapters} chapters)` : ""}
             </p>
             <p>
-              {highlightsForChapter.length} highlight
+              {highlightsForChapter.length} mark
               {highlightsForChapter.length === 1 ? "" : "s"} in this chapter •{" "}
               {currentBookmark?.verse
                 ? `Bookmarked verse ${currentBookmark.verse}`
@@ -907,7 +907,7 @@ export function BibleReaderScreen() {
             <ModalTitle>
               {selectedBook
                 ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}`
-                : "New Note"}
+                : "New Reflection"}
             </ModalTitle>
           </ModalHeader>
           <ModalBody tight className={styles.dialogBody}>
@@ -930,7 +930,7 @@ export function BibleReaderScreen() {
                 {isSavingNote ? (
                   <Loader2 className={styles.saveButtonSpinner} />
                 ) : null}
-                Save Note
+                Save Reflection
               </Button>
             </div>
           </ModalBody>

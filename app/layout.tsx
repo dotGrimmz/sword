@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
@@ -18,14 +18,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SWORD Bible Study",
-  description: "A focused environment for studying Scripture, notes, highlights, and memory verses.",
+  description:
+    "SWORD for Realign Ministries — Scripture, reflections, and marked passages.",
   icons: {
     icon: "/sword_logo.png",
     shortcut: "/sword_logo.png",
     apple: "/sword_logo.png",
   },
   manifest: "/manifest.json",
-  themeColor: "#0f172a",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#D91F26",
 };
 
 export default function RootLayout({
@@ -34,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="ocean">
+    <html lang="en" data-theme="realign">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <OfflineProvider>
           <DataCacheProvider>{children}</DataCacheProvider>

@@ -2,15 +2,15 @@
 
 import { useCallback } from "react";
 import { Button } from "./ui/button";
-import { Home, BookOpen, Heart, Brain, FileText, Book } from "lucide-react";
+import { BookOpen, FileText, Heart, LayoutDashboard } from "lucide-react";
 import { motion } from "motion/react";
 
 import { cn } from "./ui/utils";
 import styles from "./BottomNavigation.module.css";
+import { dashboardScreens } from "@/components/app-navigation";
 import { useDataCacheContext } from "@/lib/data-cache/DataCacheProvider";
 import { getUserNotes } from "@/lib/api/notes";
 import { getUserHighlights } from "@/lib/api/highlights";
-import { getUserMemoryVerses } from "@/lib/api/memory";
 import { useTranslationContext } from "./TranslationContext";
 
 interface BottomNavigationProps {
@@ -18,7 +18,25 @@ interface BottomNavigationProps {
   onNavigate: (screen: string) => void;
 }
 
-export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigationProps) {
+const navIconByScreen = {
+  home: LayoutDashboard,
+  reader: BookOpen,
+  notes: FileText,
+  highlights: Heart,
+} as const;
+
+const navItems = (
+  ["home", "reader", "notes", "highlights"] as const
+).map((screenKey) => ({
+  id: dashboardScreens[screenKey].id,
+  icon: navIconByScreen[screenKey],
+  label: dashboardScreens[screenKey].label,
+}));
+
+export function BottomNavigation({
+  currentScreen,
+  onNavigate,
+}: BottomNavigationProps) {
   const dataCache = useDataCacheContext();
   const { translationCode } = useTranslationContext();
   const translationKey = translationCode ?? "none";
@@ -31,38 +49,26 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
           void dataCache.fetch(
             `user-notes-preview-${translationKey}`,
             () => getUserNotes(10, translationCode ?? undefined),
-            { staleTime },
+            { staleTime }
           );
           void dataCache.fetch(
             `user-highlights-${translationKey}`,
             () => getUserHighlights(translationCode ?? undefined),
-            { staleTime },
-          );
-          void dataCache.fetch(
-            `user-memory-verses-${translationKey}`,
-            () => getUserMemoryVerses(translationCode ?? undefined),
-            { staleTime },
+            { staleTime }
           );
           break;
         case "notes":
           void dataCache.fetch(
             `user-notes-${translationKey}`,
             () => getUserNotes(undefined, translationCode ?? undefined),
-            { staleTime },
+            { staleTime }
           );
           break;
         case "highlights":
           void dataCache.fetch(
             `user-highlights-${translationKey}`,
             () => getUserHighlights(translationCode ?? undefined),
-            { staleTime },
-          );
-          break;
-        case "memory":
-          void dataCache.fetch(
-            `user-memory-verses-${translationKey}`,
-            () => getUserMemoryVerses(translationCode ?? undefined),
-            { staleTime },
+            { staleTime }
           );
           break;
         default:
@@ -71,15 +77,6 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
     },
     [dataCache, translationCode, translationKey]
   );
-
-  const navItems = [
-    { id: "home", icon: Home, label: "Home" },
-    { id: "reader", icon: BookOpen, label: "Reader" },
-    { id: "pre-read", icon: Book, label: "Pre-Read" },
-    { id: "highlights", icon: Heart, label: "Highlights" },
-    { id: "memory", icon: Brain, label: "Memory" },
-    { id: "notes", icon: FileText, label: "Notes" },
-  ];
 
   return (
     <div className={styles.container}>
@@ -100,9 +97,7 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
                 title={item.label}
               >
                 <div className={styles.iconWrapper}>
-                  {item.icon && (
-                    <item.icon className={styles.navIcon} aria-hidden="true" />
-                  )}
+                  <item.icon className={styles.navIcon} aria-hidden="true" />
                   {isActive && (
                     <motion.div
                       layoutId="activeIndicator"
@@ -112,6 +107,7 @@ export function BottomNavigation({ currentScreen, onNavigate }: BottomNavigation
                     />
                   )}
                 </div>
+                <span className={styles.navLabel}>{item.label}</span>
               </Button>
             );
           })}

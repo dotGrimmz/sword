@@ -14,8 +14,8 @@
   pointer-events: auto;
   width: min(100%, 36rem);
   border-radius: 24px;
-  border: 1px solid hsla(var(--border), 0.4);
-  background: hsla(var(--card), 0.95);
+  border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+  background: color-mix(in oklab, var(--card) 95%, transparent);
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
   overflow: hidden;
@@ -38,16 +38,16 @@
   min-height: var(--nav-control-height, 56px);
   width: 100%;
   padding: var(--nav-control-padding-y, 8px) 0;
-  gap: 0;
+  gap: var(--nav-control-gap, 4px);
   position: relative;
-  color: hsla(var(--muted-foreground), 1);
+  color: var(--muted-foreground);
   font-size: var(--nav-control-font-size, 12px);
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .navButtonActive {
-  color: hsl(var(--primary));
+  color: var(--primary);
 }
 
 .iconWrapper {
@@ -56,6 +56,13 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 0;
+}
+
+.navLabel {
+  font-size: var(--nav-control-label-font-size, 11px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
 }
 
 .navIcon {
@@ -68,14 +75,15 @@
 .navIconLogo {
   width: 20px;
   height: 20px;
-  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.35));
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--primary) 35%, transparent));
 }
 
 .activeIndicator {
   position: absolute;
   inset: -4px;
   border-radius: 14px;
-  background: hsla(var(--accent), 0.24);
+  background: var(--brand-gradient);
+  opacity: 0.22;
 }
 
 @media (max-width: 520px) {

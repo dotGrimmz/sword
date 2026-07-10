@@ -113,7 +113,7 @@ const formatHighlightsPlaintext = (
 ) => {
   const now = new Date();
   const header = [
-    "My Highlights",
+    "Marked Passages",
     now.toLocaleString(undefined, {
       month: "short",
       day: "numeric",
@@ -401,7 +401,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
     try {
       await deleteUserHighlight(highlight.id);
-      toast.success("Highlight removed");
+      toast.success("Mark removed");
       dispatchHighlightsUpdated({ source: "highlights-screen" });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to remove highlight";
@@ -448,7 +448,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
 
   const handleExportHighlights = useCallback(() => {
     if (derivedHighlights.length === 0) {
-      toast.info("No highlights to export just yet.");
+      toast.info("No marked passages to export just yet.");
       return;
     }
 
@@ -467,9 +467,10 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success("Highlights exported as text");
+      toast.success("Marked passages exported as text");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to export highlights";
+      const message =
+        error instanceof Error ? error.message : "Unable to export marked passages";
       toast.error(message);
     }
   }, [derivedHighlights, translation?.name, translationCode]);
@@ -547,9 +548,9 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
       <div className={styles.toolbar}>
         <div className={styles.toolbarRow}>
           <div className={styles.headerCopy}>
-            <h1 className={styles.headerTitle}>My Highlights</h1>
+            <h1 className={styles.headerTitle}>Marked</h1>
             <p className={styles.headerSubtitle}>
-              {filteredHighlights.length} shown • {highlights.length} total saved
+              {filteredHighlights.length} shown • {highlights.length} total marked
             </p>
           </div>
           <TranslationSwitcher
@@ -562,7 +563,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             size="icon"
             onClick={handleExportHighlights}
             className={styles.exportButton}
-            aria-label="Export highlights"
+            aria-label="Export marked passages"
           >
             <Share className={styles.toolbarIcon} />
           </Button>
@@ -571,7 +572,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
         <div className={styles.searchWrapper}>
           <Search className={styles.searchIcon} />
           <Input
-            placeholder="Search highlights..."
+            placeholder="Search marked passages..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className={styles.searchInput}
@@ -607,8 +608,8 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
         {busy ? (
           <LoadingScreen
             variant="section"
-            title="Loading highlights…"
-            subtitle="We’re fetching your saved passages and colour filters."
+            title="Loading marked passages…"
+            subtitle="We’re fetching your marked passages and colour filters."
           />
         ) : filteredHighlights.length === 0 ? (
           <div className={styles.emptyState}>
@@ -621,7 +622,7 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
                 className={styles.emptyBadgeImage}
               />
             </div>
-            <h3 className={styles.emptyTitle}>No highlights match your filters</h3>
+            <h3 className={styles.emptyTitle}>No marked passages match your filters</h3>
             <p className={styles.emptyCopy}>
               Try adjusting your search or colour filter—or capture a new highlight to see it here.
             </p>

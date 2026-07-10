@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 
 import { cn } from "@/components/ui/utils";
+import { buildAuthCallbackUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/client";
 
 import styles from "./LoginScreen.module.css";
@@ -86,9 +87,7 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
             options: {
               data: username ? { username } : undefined,
               emailRedirectTo:
-                typeof window !== "undefined"
-                  ? `${window.location.origin}/auth/callback`
-                  : undefined,
+                typeof window !== "undefined" ? buildAuthCallbackUrl(redirectTo) : undefined,
             },
           });
 
@@ -127,13 +126,13 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
     setError(null);
 
     try {
-      const redirectToUrl =
-        typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+      const callbackUrl =
+        typeof window !== "undefined" ? buildAuthCallbackUrl(redirectTo) : undefined;
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectToUrl,
+          redirectTo: callbackUrl,
           queryParams: {
             prompt: "consent",
           },
@@ -148,7 +147,7 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, isLoading]);
+  }, [supabase, isLoading, redirectTo]);
 
   return (
     <div className={styles.container}>
@@ -166,164 +165,144 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
           </div>
           <div>
             <h1 className={styles.heading}>SWORD</h1>
-            <p className={styles.subheading}>Scripture • Wisdom • Order • Reflection • Devotion</p>
+            <p className={styles.subheading}>Realign Ministries</p>
           </div>
         </header>
 
-        <div className={styles.content}>
-          <div className={styles.inner}>
-            <div className={styles.formCard}>
-              <div className={styles.formHeader}>
-              <div className={styles.formIconCircle}>
-                <Image
-                  src="/sword_logo.png"
-                  alt="SWORD logo"
-                  width={40}
-                  height={40}
-                  className={styles.formHeaderImage}
+        <h2 className={styles.formTitle}>Welcome</h2>
+
+        <div
+          className={styles.formTabList}
+          role="tablist"
+          aria-label="Authentication mode"
+          data-active={mode}
+        >
+          <button
+            type="button"
+            className={cn(styles.formTabButton, mode === "signin" && styles.formTabButtonActive)}
+            onClick={() => {
+              setMode("signin");
+              resetState();
+            }}
+            disabled={isLoading}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            className={cn(styles.formTabButton, mode === "signup" && styles.formTabButtonActive)}
+            onClick={() => {
+              setMode("signup");
+              resetState();
+            }}
+            disabled={isLoading}
+          >
+            Create Account
+          </button>
+        </div>
+
+        <form className={styles.form} onSubmit={handleSubmit}>
+          {isSignup && (
+            <div className={styles.formField}>
+              <label htmlFor="username" className={styles.formLabel}>
+                Username
+              </label>
+              <div className={styles.formInputWrapper}>
+                <User className={styles.formInputIcon} aria-hidden="true" />
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="SwordSeeker"
+                  value={state.username}
+                  onChange={(event) => updateField("username", event.target.value)}
+                  disabled={isLoading}
+                  className={styles.formInput}
                 />
               </div>
-                <div>
-                  <h2 className={styles.formTitle}>Welcome to SWORD</h2>
-                  <p className={styles.formSubtitle}>
-                    {isSignup ? "Create an account to begin your study journey." : "Sign in to continue your study."}
-                  </p>
-                </div>
-              </div>
+            </div>
+          )}
 
-              <div
-                className={styles.formTabList}
-                role="tablist"
-                aria-label="Authentication mode"
-                data-active={mode}
-              >
-                <button
-                  type="button"
-                  className={cn(styles.formTabButton, mode === "signin" && styles.formTabButtonActive)}
-                  onClick={() => {
-                    setMode("signin");
-                    resetState();
-                  }}
-                  disabled={isLoading}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  className={cn(styles.formTabButton, mode === "signup" && styles.formTabButtonActive)}
-                  onClick={() => {
-                    setMode("signup");
-                    resetState();
-                  }}
-                  disabled={isLoading}
-                >
-                  Create Account
-                </button>
-              </div>
-
-              <form className={styles.form} onSubmit={handleSubmit}>
-                {isSignup && (
-                  <div className={styles.formField}>
-                    <label htmlFor="username" className={styles.formLabel}>
-                      Username
-                    </label>
-                    <div className={styles.formInputWrapper}>
-                      <User className={styles.formInputIcon} aria-hidden="true" />
-                      <input
-                        id="username"
-                        name="username"
-                        type="text"
-                        autoComplete="username"
-                        placeholder="SwordSeeker"
-                        value={state.username}
-                        onChange={(event) => updateField("username", event.target.value)}
-                        disabled={isLoading}
-                        className={styles.formInput}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className={styles.formField}>
-                  <label htmlFor="email" className={styles.formLabel}>
-                    Email
-                  </label>
-                  <div className={styles.formInputWrapper}>
-                    <Mail className={styles.formInputIcon} aria-hidden="true" />
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      value={state.email}
-                      onChange={(event) => updateField("email", event.target.value)}
-                      disabled={isLoading}
-                      required
-                      className={styles.formInput}
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.formField}>
-                  <label htmlFor="password" className={styles.formLabel}>
-                    Password
-                  </label>
-                  <div className={styles.formInputWrapper}>
-                    <Lock className={styles.formInputIcon} aria-hidden="true" />
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete={isSignup ? "new-password" : "current-password"}
-                      placeholder="••••••••"
-                      value={state.password}
-                      onChange={(event) => updateField("password", event.target.value)}
-                      disabled={isLoading}
-                      required
-                      className={styles.formInput}
-                    />
-                  </div>
-                </div>
-
-                {error ? (
-                  <div className={styles.formAlert} role="alert">
-                    <p className={styles.formAlertTitle}>Something went wrong</p>
-                    <p className={styles.formAlertDescription}>{error}</p>
-                  </div>
-                ) : null}
-
-                <button type="submit" className={styles.formSubmit} disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className={styles.formSubmitIcon} aria-hidden="true" />
-                      Processing...
-                    </>
-                  ) : (
-                    FORM_MODES[mode]
-                  )}
-                </button>
-              </form>
-
-              <div className={styles.formDivider}>
-                <span className={styles.formDividerLine} />
-                <span>or continue with</span>
-                <span className={styles.formDividerLine} />
-              </div>
-
-              <button
-                type="button"
-                className={styles.formOauthButton}
-                onClick={handleGoogleSignIn}
+          <div className={styles.formField}>
+            <label htmlFor="email" className={styles.formLabel}>
+              Email
+            </label>
+            <div className={styles.formInputWrapper}>
+              <Mail className={styles.formInputIcon} aria-hidden="true" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={state.email}
+                onChange={(event) => updateField("email", event.target.value)}
                 disabled={isLoading}
-              >
-                <Image src="/globe.svg" width={18} height={18} alt="Google" className={styles.formOauthIcon} />
-                Continue with Google
-              </button>
+                required
+                className={styles.formInput}
+              />
             </div>
           </div>
-        </div>
+
+          <div className={styles.formField}>
+            <label htmlFor="password" className={styles.formLabel}>
+              Password
+            </label>
+            <div className={styles.formInputWrapper}>
+              <Lock className={styles.formInputIcon} aria-hidden="true" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                placeholder="••••••••"
+                value={state.password}
+                onChange={(event) => updateField("password", event.target.value)}
+                disabled={isLoading}
+                required
+                className={styles.formInput}
+              />
+            </div>
+          </div>
+
+          {error ? (
+            <div className={styles.formAlert} role="alert">
+              <p className={styles.formAlertTitle}>Something went wrong</p>
+              <p className={styles.formAlertDescription}>{error}</p>
+            </div>
+          ) : null}
+
+          <button type="submit" className={styles.formSubmit} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className={styles.formSubmitIcon} aria-hidden="true" />
+                Processing...
+              </>
+            ) : (
+              FORM_MODES[mode]
+            )}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          className={styles.formOauthButton}
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+        >
+          <Image src="/globe.svg" width={18} height={18} alt="Google" className={styles.formOauthIcon} />
+          Sign in with Google
+        </button>
+
+        <p className={styles.taglineFooter}>
+          Scripture • Wisdom • Order • Reflection • Devotion
+        </p>
       </div>
+
+      <p className={styles.copyright}>
+        © {new Date().getFullYear()} Realign Ministries. All rights reserved.
+      </p>
     </div>
   );
 }
