@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
     },
   );
 
+  // Refresh the session so server components see up-to-date auth cookies.
   await supabase.auth.getUser();
 
   return supabaseResponse;

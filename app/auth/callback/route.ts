@@ -8,15 +8,17 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
   const next = sanitizeAuthNextPath(requestUrl.searchParams.get("next"));
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (!code) {
+    return NextResponse.redirect(new URL("/login", requestUrl.origin));
+  }
 
-    if (error) {
-      const loginUrl = new URL("/login", requestUrl.origin);
-      loginUrl.searchParams.set("error", error.message);
-      return NextResponse.redirect(loginUrl);
-    }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    const loginUrl = new URL("/login", requestUrl.origin);
+    loginUrl.searchParams.set("error", error.message);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));
