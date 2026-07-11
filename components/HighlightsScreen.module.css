@@ -86,7 +86,7 @@
     color-mix(in srgb, var(--accent) 55%, transparent) 0%,
     color-mix(in srgb, var(--secondary) 45%, transparent) 100%
   );
-  color: hsl(var(--primary-foreground));
+  color: var(--primary-foreground);
   border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
   box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;

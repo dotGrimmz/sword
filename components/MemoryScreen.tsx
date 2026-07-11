@@ -62,7 +62,8 @@ import type { BibleBookSummary } from "@/types/bible";
 import type { UserMemoryVerse } from "@/types/user";
 import { MEMORY_UPDATED_EVENT, dispatchMemoryUpdated } from "@/lib/events";
 import styles from "./MemoryScreen.module.css";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 
 interface MemoryScreenProps {
   onNavigate?: (screen: string) => void;
@@ -131,19 +132,31 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const memoryQuery = useDataQuery(
-    `user-memory-verses-${translationKey}`,
-    () => getUserMemoryVerses(translationCode ?? undefined),
-    {
-      staleTime: 1000 * 60 * 5,
-      enabled: fetchEnabled,
-    }
-  );
+  const queryClient = useQueryClient();
+  const memoryQueryKey = queryKeys.userMemory(translationKey);
+
+  const memoryQuery = useQuery({
+    queryKey: memoryQueryKey,
+    queryFn: () => getUserMemoryVerses(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
   const memoryVerses = useMemo(
     () => memoryQuery.data ?? [],
-    [memoryQuery.data]
+    [memoryQuery.data],
   );
-  const { setData: setMemoryCache, refetch: refetchMemory } = memoryQuery;
+
+  const setMemoryCache = useCallback(
+    (
+      value:
+        | UserMemoryVerse[]
+        | ((previous: UserMemoryVerse[] | undefined) => UserMemoryVerse[]),
+    ) => {
+      queryClient.setQueryData<UserMemoryVerse[]>(memoryQueryKey, value);
+    },
+    [memoryQueryKey, queryClient],
+  );
+  const { refetch: refetchMemory } = memoryQuery;
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);

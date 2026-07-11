@@ -14,8 +14,8 @@
   padding: 24px clamp(16px, 4vw, 32px) calc(var(--bottom-nav-height, 112px) + 40px);
   background: linear-gradient(
     180deg,
-    hsla(var(--muted), 0.18) 0%,
-    hsla(var(--background), 1) 60%
+    color-mix(in oklab, var(--muted) 18%, transparent) 0%,
+    color-mix(in oklab, var(--background) 100%, transparent) 60%
   );
   box-sizing: border-box;
 }
@@ -37,8 +37,8 @@
   min-height: 45rem;
   overflow: hidden;
   border-radius: 28px;
-  border: 1px solid hsla(var(--border), 0.35);
-  background: hsla(var(--background), 0.96);
+  border: 1px solid color-mix(in oklab, var(--border) 35%, transparent);
+  background: color-mix(in oklab, var(--background) 96%, transparent);
   box-shadow: 0 32px 68px rgba(15, 23, 42, 0.18);
 }
 

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * @deprecated Use TanStack Query instead (`AppQueryProvider` + `useQuery` from
+ * `@tanstack/react-query`, keys in `@/lib/query/keys`). Kept for evaluation /
+ * comparison — do not wire new screens to this module.
+ */
+
 import {
   createContext,
   useContext,
@@ -120,6 +126,7 @@ const notify = (entry: CacheEntry) => {
   });
 };
 
+/** @deprecated Prefer `AppQueryProvider` from `@/lib/query/provider`. */
 export const DataCacheProvider = ({ children }: PropsWithChildren) => {
   const storeRef = useRef<Map<string, CacheEntry>>(new Map());
 
@@ -201,6 +208,7 @@ export const DataCacheProvider = ({ children }: PropsWithChildren) => {
   return <DataCacheContext.Provider value={value}>{children}</DataCacheContext.Provider>;
 };
 
+/** @deprecated Prefer `useQueryClient` from `@tanstack/react-query`. */
 export const useDataCacheContext = () => {
   const context = useContext(DataCacheContext);
   if (!context) {
@@ -214,6 +222,7 @@ type UseDataQueryOptions<T> = FetchOptions & {
   initialData?: T;
 };
 
+/** @deprecated Prefer `useQuery` from `@tanstack/react-query`. */
 export const useDataQuery = <T,>(
   key: string,
   fetcher: () => Promise<T>,
@@ -256,11 +265,16 @@ export const useDataQuery = <T,>(
 
   const refetch = () => cache.fetch<T>(key, fetcher, fetchOptions);
 
+  const isLoading =
+    enabled &&
+    snapshot.data === undefined &&
+    (snapshot.status === "idle" || snapshot.status === "loading");
+
   return {
     data: snapshot.data,
     error: snapshot.error,
     status: snapshot.status,
-    isLoading: !enabled ? false : snapshot.status === "idle" || snapshot.status === "loading",
+    isLoading,
     isFetching: snapshot.status === "loading",
     isError: snapshot.status === "error",
     stale: snapshot.stale,

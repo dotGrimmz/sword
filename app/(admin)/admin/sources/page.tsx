@@ -13,6 +13,7 @@ export default async function AdminSourcesPage() {
   const sources = await fetchSources();
 
   if (!sources) {
+    console.error("No sources found");
     notFound();
   }
 

@@ -18,6 +18,7 @@ type TranslationSwitcherProps = {
   selectClassName?: string;
   label?: string;
   hideLabel?: boolean;
+  showCodeOnly?: boolean;
   size?: "default" | "compact";
 };
 
@@ -26,6 +27,7 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
   selectClassName,
   label = "Translation",
   hideLabel = false,
+  showCodeOnly = false,
   size = "default",
 }: TranslationSwitcherProps) {
   const {
@@ -44,6 +46,13 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
     : "Select translation";
 
   const selectValue = translationCode ?? "__none__";
+  const selectedTranslation = translations.find(
+    (item) => item.code === translationCode,
+  );
+  const compactTriggerLabel =
+    showCodeOnly && selectedTranslation
+      ? selectedTranslation.code.toUpperCase()
+      : null;
 
   return (
     <div
@@ -63,14 +72,18 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
           className={cn(styles.selectTrigger, selectClassName)}
           aria-label="Choose Bible translation"
         >
-          <SelectValue placeholder={placeholder} className={styles.selectValue} />
+          {compactTriggerLabel ? (
+            <span className={styles.selectValue}>{compactTriggerLabel}</span>
+          ) : (
+            <SelectValue placeholder={placeholder} className={styles.selectValue} />
+          )}
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__none__" disabled>
+        <SelectContent className={styles.selectContent} sideOffset={6}>
+          <SelectItem value="__none__" disabled className={styles.selectItem}>
             Select translation
           </SelectItem>
           {translations.map((item) => (
-            <SelectItem key={item.code} value={item.code}>
+            <SelectItem key={item.code} value={item.code} className={styles.selectItem}>
               {`${item.code.toUpperCase()} · ${item.name}`}
             </SelectItem>
           ))}

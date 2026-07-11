@@ -50,6 +50,10 @@ export const getAccessToken = async (): Promise<string | null> => {
   return accessTokenPromise;
 };
 
+export const primeAccessToken = (token: string | null) => {
+  cachedAccessToken = token;
+};
+
 export const clearCachedAccessToken = () => {
   cachedAccessToken = null;
 };

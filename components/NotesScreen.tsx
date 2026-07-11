@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -45,7 +45,7 @@ import {
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import { buildReferenceLabel } from "@/lib/api/bible";
 import {
   createUserNote,
   deleteUserNote,
@@ -56,7 +56,9 @@ import type { BibleBookSummary } from "@/types/bible";
 import type { UserNote } from "@/types/user";
 import { NOTES_UPDATED_EVENT, dispatchNotesUpdated } from "@/lib/events";
 import { AudioNotePanel, type AudioNotePayload } from "./notes/AudioNotePanel";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import { usePassageTextsMap } from "@/lib/query/passages";
 import styles from "./NotesScreen.module.css";
 
 interface NotesScreenProps {
@@ -116,12 +118,27 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const notesQuery = useDataQuery<UserNote[]>(
-    `user-notes-${translationKey}`,
-    () => getUserNotes(undefined, translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled },
-  );
+  const queryClient = useQueryClient();
+  const notesQueryKey = queryKeys.userNotes(translationKey);
+
+  const notesQuery = useQuery({
+    queryKey: notesQueryKey,
+    queryFn: () => getUserNotes(undefined, translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
   const notes = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
+
+  const setNotesCache = useCallback(
+    (
+      value:
+        | UserNote[]
+        | ((previous: UserNote[] | undefined) => UserNote[]),
+    ) => {
+      queryClient.setQueryData<UserNote[]>(notesQueryKey, value);
+    },
+    [notesQueryKey, queryClient],
+  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAudioNoteOpen, setIsAudioNoteOpen] = useState(false);
   const [createBookId, setCreateBookId] = useState<string | null>(null);
@@ -136,20 +153,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const [editBody, setEditBody] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-
-  const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
-  const verseTextsRef = useRef(verseTexts);
-  const pendingVerseFetches = useRef(new Set<string>());
-
-  useEffect(() => {
-    verseTextsRef.current = verseTexts;
-  }, [verseTexts]);
-
-  useEffect(() => {
-    setVerseTexts({});
-    verseTextsRef.current = {};
-    pendingVerseFetches.current.clear();
-  }, [translationCode]);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -195,10 +198,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
   const {
     refetch: refetchNotes,
-    setData: setNotesCache,
     isError: notesError,
     error: notesErrorValue,
-    isLoading: isNotesLoading,
   } = notesQuery;
 
   useEffect(() => {
@@ -233,59 +234,22 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     toast.error(message);
   }, [notesError, notesErrorValue]);
 
-  useEffect(() => {
-    if (!translationCode) {
-      return;
-    }
+  const passageRequests = useMemo(
+    () =>
+      notes.map((note) => {
+        const book = note.bookId ? bookIndex.get(note.bookId) : undefined;
+        return {
+          id: note.id,
+          bookName: book?.name,
+          chapter: note.chapter,
+          verseStart: note.verseStart,
+          verseEnd: note.verseEnd,
+        };
+      }),
+    [bookIndex, notes],
+  );
 
-    for (const note of notes) {
-      const key = note.id;
-      if (verseTextsRef.current[key] !== undefined) {
-        continue;
-      }
-
-      if (pendingVerseFetches.current.has(key)) {
-        continue;
-      }
-
-      const bookId = note.bookId ?? undefined;
-      const chapter = note.chapter ?? undefined;
-      const verseStart = note.verseStart ?? undefined;
-
-      if (!bookId || !chapter || !verseStart) {
-        setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        continue;
-      }
-
-      const book = bookIndex.get(bookId);
-
-      if (!book) {
-        setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        continue;
-      }
-
-      pendingVerseFetches.current.add(key);
-      void getPassage(
-        translationCode,
-        book.name,
-        { chapter, verse: verseStart },
-        {
-          chapter,
-          verse: note.verseEnd ?? verseStart,
-        }
-      )
-        .then((response) => {
-          const combined = response.verses.map((entry) => entry.text).join(" ");
-          setVerseTexts((prev) => ({ ...prev, [key]: combined }));
-        })
-        .catch(() => {
-          setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        })
-        .finally(() => {
-          pendingVerseFetches.current.delete(key);
-        });
-    }
-  }, [notes, translationCode, bookIndex]);
+  const verseTexts = usePassageTextsMap(translationCode, passageRequests);
 
   const derivedNotes = useMemo<DerivedNote[]>(() => {
     return notes.map((note) => {
@@ -395,7 +359,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const statsCards = useMemo(
     () => [
       {
-        label: "Total notes",
+        label: "Total reflections",
         value: String(noteCount),
         context:
           noteCount === 0
@@ -476,11 +440,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       });
 
       setNotesCache((prev) => [newNote, ...(prev ?? [])]);
-      setVerseTexts((prev) => {
-        const next = { ...prev };
-        delete next[newNote.id];
-        return next;
-      });
       setIsCreateOpen(false);
       toast.success("Note saved");
       dispatchNotesUpdated({ source: "notes-screen" });
@@ -511,11 +470,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       });
 
       setNotesCache((prev) => [newNote, ...(prev ?? [])]);
-      setVerseTexts((prev) => {
-        const next = { ...prev };
-        delete next[newNote.id];
-        return next;
-      });
       dispatchNotesUpdated({ source: "notes-screen" });
     },
     [setNotesCache, translation?.id, translationCode]
@@ -572,11 +526,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     const previousNotes = notes;
 
     setNotesCache((prev) => (prev ?? []).filter((item) => item.id !== note.id));
-    setVerseTexts((prev) => {
-      const next = { ...prev };
-      delete next[note.id];
-      return next;
-    });
 
     try {
       await deleteUserNote(note.id);
@@ -594,14 +543,17 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const chapterOptions = selectedBook ? selectedBook.chapters : 1;
 
   const showLoadingState =
-    isNotesLoading || isLoadingTranslations || isLoadingBooks || !fetchEnabled;
+    isLoadingTranslations ||
+    isLoadingBooks ||
+    !fetchEnabled ||
+    notesQuery.isLoading;
 
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
         <div className={styles.headerBar}>
           <div className={styles.headerTitleWrap}>
-            <h1 className={styles.headerTitle}>Study Notes</h1>
+            <h1 className={styles.headerTitle}>Reflections</h1>
             <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
           <div className={styles.headerActions}>
@@ -653,7 +605,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         <div className={styles.searchWrap}>
           <Search className={styles.searchIcon} aria-hidden="true" />
           <Input
-            placeholder="Search your notes..."
+            placeholder="Search your reflections..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className={styles.searchInput}
@@ -720,7 +672,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                   aria-hidden="true"
                 />
                 <div>
-                  <p className={styles.dialogMetaLabel}>Saved notes</p>
+                  <p className={styles.dialogMetaLabel}>Saved reflections</p>
                   <p className={styles.dialogMetaValue}>{noteCount}</p>
                 </div>
               </div>
@@ -928,7 +880,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             </div>
             <h3 className={styles.emptyTitle}>Your study journal is ready</h3>
             <p className={styles.emptyCopy}>
-              Capture a reflection or prayer to begin building a notes archive
+              Capture a reflection or prayer to begin building your archive
               that surfaces alongside your studies.
             </p>
           </div>

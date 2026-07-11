@@ -13,14 +13,12 @@ import { motion } from "motion/react";
 import {
   Book,
   BookOpen,
-  Brain,
   Calendar,
-  ClipboardList,
   Clock,
   Heart,
   Lightbulb,
   Loader2,
-  Settings,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -34,22 +32,19 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Progress } from "./ui/progress";
-import { cn } from "./ui/utils";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
-import { getUserMemoryVerses } from "@/lib/api/memory";
 import { getUserNotes } from "@/lib/api/notes";
-import type { BibleBookSummary } from "@/types/bible";
-import type { UserMemoryVerse, UserNote } from "@/types/user";
+import type { UserNote } from "@/types/user";
 import {
   HIGHLIGHTS_UPDATED_EVENT,
-  MEMORY_UPDATED_EVENT,
   NOTES_UPDATED_EVENT,
 } from "@/lib/events";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { useProfile } from "@/components/ProfileContext";
-import { useDataQuery } from "@/lib/data-cache/DataCacheProvider";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import type { BibleBookSummary } from "@/types/bible";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -109,28 +104,24 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const notesQuery = useDataQuery<UserNote[]>(
-    `user-notes-preview-${translationKey}`,
-    () => getUserNotes(10, translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
-  );
-  const highlightsQuery = useDataQuery(
-    `user-highlights-${translationKey}`,
-    () => getUserHighlights(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
-  );
-  const memoryQuery = useDataQuery(
-    `user-memory-verses-${translationKey}`,
-    () => getUserMemoryVerses(translationCode ?? undefined),
-    { staleTime: 1000 * 60 * 5, enabled: fetchEnabled }
-  );
+  const notesQuery = useQuery({
+    queryKey: queryKeys.userNotesPreview(translationKey),
+    queryFn: () => getUserNotes(10, translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
+  const highlightsQuery = useQuery({
+    queryKey: queryKeys.userHighlights(translationKey),
+    queryFn: () => getUserHighlights(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
     () => highlightsQuery.data ?? [],
     [highlightsQuery.data]
   );
-  const memoryData = useMemo(() => memoryQuery.data ?? [], [memoryQuery.data]);
 
   const [todaysVerse, setTodaysVerse] = useState<VerseSnapshot | null>(null);
   const [isVerseLoading, setIsVerseLoading] = useState(true);
@@ -145,21 +136,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
 
   const notesCount = notesData.length;
   const highlightsCount = highlightsData.length;
-  const memoryCount = memoryData.length;
-
-  const needsReviewCount = useMemo(() => {
-    const today = new Date();
-    return memoryData.filter((verse) => {
-      if (!verse.nextReviewDate) {
-        return false;
-      }
-      const nextReview = new Date(verse.nextReviewDate);
-      if (Number.isNaN(nextReview.getTime())) {
-        return false;
-      }
-      return nextReview <= today;
-    }).length;
-  }, [memoryData]);
 
   const recentNotes = useMemo<NotePreview[]>(() => {
     const sorted = [...notesData].sort((a, b) => {
@@ -191,8 +167,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         chapter: number;
         verseStart: number;
         verseEnd: number;
-      } | null,
-      memory: UserMemoryVerse | null
+      } | null
     ) => {
       if (!translationCode) {
         setTodaysVerse(null);
@@ -203,16 +178,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       setIsVerseLoading(true);
 
       try {
-        const candidate =
-          highlight ??
-          (memory
-            ? {
-                bookId: memory.bookId,
-                chapter: memory.chapter ?? 1,
-                verseStart: memory.verseStart ?? 1,
-                verseEnd: memory.verseEnd ?? memory.verseStart ?? 1,
-              }
-            : null);
+        const candidate = highlight;
 
         if (!candidate || !candidate.bookId) {
           setTodaysVerse(null);
@@ -273,15 +239,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       void highlightsQuery.refetch();
     };
 
-    const handleMemoryUpdated = (event: Event) => {
-      const custom = event as CustomEvent<{ source?: string }>;
-      if (custom.detail?.source === "home-screen") return;
-      void memoryQuery.refetch();
-    };
-
     window.addEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
     window.addEventListener(HIGHLIGHTS_UPDATED_EVENT, handleHighlightsUpdated);
-    window.addEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
 
     return () => {
       window.removeEventListener(NOTES_UPDATED_EVENT, handleNotesUpdated);
@@ -289,9 +248,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
         HIGHLIGHTS_UPDATED_EVENT,
         handleHighlightsUpdated
       );
-      window.removeEventListener(MEMORY_UPDATED_EVENT, handleMemoryUpdated);
     };
-  }, [highlightsQuery, memoryQuery, notesQuery]);
+  }, [highlightsQuery, notesQuery]);
 
   useEffect(() => {
     if (!translationCode) {
@@ -310,10 +268,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
           }
         : null;
 
-    const memoryCandidate = memoryData.length > 0 ? memoryData[0]! : null;
-
-    void determineVerseSnapshot(highlightCandidate, memoryCandidate);
-  }, [determineVerseSnapshot, highlightsData, memoryData, translationCode]);
+    void determineVerseSnapshot(highlightCandidate);
+  }, [determineVerseSnapshot, highlightsData, translationCode]);
 
   useEffect(() => {
     if (notesQuery.isError && notesQuery.error) {
@@ -335,16 +291,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     }
   }, [highlightsQuery.error, highlightsQuery.isError]);
 
-  useEffect(() => {
-    if (memoryQuery.isError && memoryQuery.error) {
-      const message =
-        memoryQuery.error instanceof Error
-          ? memoryQuery.error.message
-          : "Failed to load memory verses";
-      toast.error(message);
-    }
-  }, [memoryQuery.error, memoryQuery.isError]);
-
   type QuickAction = {
     icon?: typeof BookOpen;
     label: string;
@@ -355,123 +301,66 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     detail?: string;
   };
 
-  const { role } = useProfile();
-  const isAdmin = role === "admin";
-
-  const quickActions = useMemo<QuickAction[]>(() => {
-    const actions: QuickAction[] = [
+  const quickActions = useMemo<QuickAction[]>(
+    () => [
       {
         icon: BookOpen,
-        label: "Open Reader",
+        label: "Open Scripture",
         screen: "reader",
-        subtitle: translationCode
-          ? `${translation?.name ?? translationCode.toUpperCase()} active`
-          : "Choose a translation",
-        detail: "Return to the passage you were studying.",
+        subtitle: "Return to the passage you were studying.",
       },
       {
         icon: Heart,
-        label: "My Highlights",
+        label: "Marked",
         screen: "highlights",
-        subtitle: `${highlightsCount} saved`,
-        detail: "Review and reflect on verses you marked.",
+        subtitle: "Review verses you marked.",
       },
       {
         icon: Lightbulb,
-        label: "Study Notes",
+        label: "Reflections",
         screen: "notes",
-        subtitle: `${notesCount} reflections`,
-        detail: "Capture insights and prayers in one place.",
-      },
-      {
-        icon: Brain,
-        label: "Memory Verses",
-        screen: "memory",
-        subtitle: `${needsReviewCount} need review`,
-        detail: "Strengthen recall with gentle spaced reviews.",
+        subtitle: "Capture insights in one place.",
       },
       {
         icon: Book,
         label: "Pre-Read",
         href: "/pre-read",
-        subtitle: "Preview today's study",
-        detail: "Read the passage, reflection prompts, and poll.",
+        subtitle: "Preview today's study.",
       },
-    ];
-
-    if (isAdmin) {
-      actions.push({
-        icon: ClipboardList,
-        label: "Admin Console",
-        href: "/admin",
-        subtitle: "Manage Apologetics content.",
-        detail: "Publish, edit, and organize topics, paths, and sources.",
-      });
-    }
-
-    actions.push({
-      icon: Settings,
-      label: "Settings",
-      screen: "settings",
-      subtitle: "Manage your account and theme.",
-      detail: "Update preferences, appearance, and profile info.",
-    });
-
-    return actions;
-  }, [
-    translation?.name,
-    translationCode,
-    highlightsCount,
-    notesCount,
-    needsReviewCount,
-    isAdmin,
-  ]);
+    ],
+    []
+  );
 
   const progressData = useMemo(() => {
-    const total = notesCount + highlightsCount + memoryCount;
+    const total = notesCount + highlightsCount;
     if (total === 0) {
       return [
-        { label: "Notes captured", value: 0 },
-        { label: "Highlights", value: 0 },
-        { label: "Memory verses", value: 0 },
+        { label: "Reflections captured", value: 0 },
+        { label: "Marked verses", value: 0 },
       ];
     }
     return [
       {
-        label: "Notes captured",
+        label: "Reflections captured",
         value: Math.round((notesCount / total) * 100),
       },
       {
-        label: "Highlights",
+        label: "Marked verses",
         value: Math.round((highlightsCount / total) * 100),
       },
-      {
-        label: "Memory verses",
-        value: Math.round((memoryCount / total) * 100),
-      },
     ];
-  }, [notesCount, highlightsCount, memoryCount]);
-
-  const notesPriming =
-    fetchEnabled && notesQuery.isLoading && notesQuery.data === undefined;
-  const highlightsPriming =
-    fetchEnabled &&
-    highlightsQuery.isLoading &&
-    highlightsQuery.data === undefined;
-  const memoryPriming =
-    fetchEnabled && memoryQuery.isLoading && memoryQuery.data === undefined;
+  }, [notesCount, highlightsCount]);
 
   const showLoading =
     isLoadingBooks ||
     isLoadingTranslations ||
-    notesPriming ||
-    highlightsPriming ||
-    memoryPriming;
+    notesQuery.isLoading ||
+    highlightsQuery.isLoading;
 
   return (
     <div className={styles.page}>
       {showLoading ? (
-        <LoadingScreen subtitle="We're gathering your notes, highlights, and memory verses." />
+        <LoadingScreen subtitle="We're gathering your reflections and marked passages." />
       ) : (
         <div className={styles.stack}>
           <div className={styles.headerStrip}>
@@ -482,13 +371,29 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               </p>
             </div>
 
-            <TranslationSwitcher
-              className={styles.translationSwitcher}
-              selectClassName={styles.translationSwitcherTrigger}
-              hideLabel
-              size="compact"
-            />
+            <div className={styles.headerToolbar}>
+              <TranslationSwitcher
+                className={styles.translationSwitcher}
+                selectClassName={styles.translationSwitcherTrigger}
+                hideLabel
+                showCodeOnly
+                size="compact"
+              />
+              <button
+                type="button"
+                className={styles.profileButton}
+                aria-label="Profile"
+                title="Profile"
+                onClick={() => handleNavigate("settings")}
+              >
+                <User className={styles.profileIcon} aria-hidden="true" />
+              </button>
+            </div>
           </div>
+
+          <p className={styles.welcomeTagline}>
+            Scripture • Wisdom • Order • Reflection • Devotion
+          </p>
 
           {isVerseLoading || todaysVerse ? (
             <motion.div
@@ -540,11 +445,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className={cn(
-                      styles.quickCard,
-                      action.href === "/apologetics" &&
-                        styles.quickCardApologetics
-                    )}
+                    className={styles.quickCard}
                     onClick={() => {
                       if (action.href) {
                         router.push(action.href);
@@ -555,13 +456,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                       }
                     }}
                   >
-                    <CardContent
-                      className={cn(
-                        styles.quickCardContent,
-                        action.href === "/apologetics" &&
-                          styles.quickCardContentCentered
-                      )}
-                    >
+                    <CardContent className={styles.quickCardContent}>
                       {action.renderIcon ? (
                         <div className={styles.quickIconWrapper}>
                           {action.renderIcon()}
@@ -581,11 +476,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                         >
                           {action.subtitle}
                         </CardDescription>
-                        {action.detail ? (
-                          <p className={styles.quickFootnote}>
-                            {action.detail}
-                          </p>
-                        ) : null}
                       </div>
                     </CardContent>
                   </Card>
@@ -670,6 +560,8 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               </CardContent>
             </Card>
           </motion.div>
+
+          <p className={styles.ministryCredit}>Realign Ministries</p>
         </div>
       )}
     </div>

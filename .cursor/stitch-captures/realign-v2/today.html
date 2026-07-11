@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html data-theme="realign" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --font-size: 16px;
+      --font-weight-medium: 500;
+      --font-weight-normal: 400;
+      --radius: .75rem;
+      --nav-control-height: 56px;
+      --nav-control-padding-y: 8px;
+      --nav-control-font-size: 12px;
+      --nav-control-label-font-size: 11px;
+      --nav-control-icon-size: 20px;
+      --nav-control-gap: 4px;
+
+      /* Realign Ministries Theme */
+      --background: #FFF5F0;
+      --foreground: #1A1A1A;
+      --card: #ffffff;
+      --card-foreground: #1A1A1A;
+      --popover: #ffffff;
+      --popover-foreground: #1A1A1A;
+      --primary: #D91F26;
+      --primary-foreground: #ffffff;
+      --secondary: #FFE8DC;
+      --secondary-foreground: #1A1A1A;
+      --muted: #FFE8DC;
+      --muted-foreground: #665c56;
+      --accent: #F28C00;
+      --accent-foreground: #ffffff;
+      --destructive: #dc2626;
+      --destructive-foreground: #ffffff;
+      --border: rgba(26, 26, 26, 0.1);
+      --input: transparent;
+      --input-background: #FFE8DC;
+      --switch-background: #cbd5e1;
+      --ring: rgba(217, 31, 38, .3);
+      --sidebar: #ffffff;
+      --sidebar-foreground: #1A1A1A;
+      --sidebar-primary: #D91F26;
+      --sidebar-primary-foreground: #ffffff;
+      --sidebar-accent: #FFE8DC;
+      --sidebar-accent-foreground: #1A1A1A;
+      --sidebar-border: rgba(26, 26, 26, 0.1);
+      --sidebar-ring: rgba(217, 31, 38, .3);
+
+      --canvas-gradient: linear-gradient(180deg, var(--background) 0%, #fffcfb 100%);
+      --surface-gradient: linear-gradient(140deg, var(--card) 0%, var(--secondary) 100%);
+      --surface-gradient-soft: linear-gradient(140deg, var(--card) 0%, rgba(255, 232, 220, 0.4) 100%);
+      --surface-glass-gradient: linear-gradient(160deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 232, 220, 0.8) 100%);
+      --brand-gradient: linear-gradient(to right, #D91F26, #F28C00);
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .scripture-text {
+      font-family: 'Merriweather', serif;
+    }
+
+    /* [project]/components/BottomNavigation.module.css */
+    .BottomNavigation-shell {
+      pointer-events: auto;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(18px);
+      border-radius: 24px;
+      width: min(100%, 36rem);
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(26, 26, 26, 0.15);
+    }
+
+    .BottomNavigation-navButton {
+      min-height: 56px;
+      width: 100%;
+      padding: 8px 0;
+      color: var(--muted-foreground);
+      font-size: 11px;
+      flex-direction: column;
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      transition: color .2s;
+      display: flex;
+      position: relative;
+    }
+
+    .BottomNavigation-navButtonActive {
+      color: var(--primary);
+    }
+
+    .BottomNavigation-activeIndicator {
+      background: var(--brand-gradient);
+      opacity: 0.15;
+      border-radius: 14px;
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 8px;
+      right: 8px;
+    }
+
+    /* [project]/components/HomeScreen.module.css overrides */
+    .page-container {
+      background: var(--canvas-gradient);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .verse-card {
+      border: 1px solid rgba(217, 31, 38, 0.2);
+      background: var(--surface-gradient);
+      box-shadow: 0 16px 24px rgba(217, 31, 38, 0.08);
+    }
+
+    .quick-card {
+      border: 1px solid var(--border);
+      background: var(--surface-gradient-soft);
+      transition: all 0.2s ease;
+    }
+
+    .quick-card:hover {
+      background: var(--surface-gradient);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(26, 26, 26, 0.1);
+    }
+
+    .progress-bar-indicator {
+      background: var(--primary);
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#D91F26",
+            "background-light": "#FFF5F0",
+            "background-dark": "#1A1A1A",
+          },
+          fontFamily: {
+            "display": ["Public Sans", "sans-serif"],
+            "serif": ["Merriweather", "serif"]
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="antialiased">
+<div class="page-container" style="--bottom-nav-height:104px">
+<!-- App Surface -->
+<div class="flex-1 flex justify-center p-4 sm:p-6 md:p-8 pb-32">
+<div class="w-full max-w-2xl bg-white/80 rounded-[28px] border border-[var(--border)] shadow-xl overflow-hidden flex flex-col relative">
+<!-- Header area with tagline and logo -->
+<div class="p-6 pb-0 flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<div>
+<h1 class="text-2xl font-bold text-[var(--primary)]">Welcome back</h1>
+<p class="text-sm text-[var(--muted-foreground)]">Stay rooted in Scripture today</p>
+<p class="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] opacity-70 mt-1">
+                Scripture • Wisdom • Order • Reflection • Devotion
+              </p>
+</div>
+<button class="bg-[var(--secondary)] p-2 px-4 rounded-xl text-xs font-bold text-[var(--primary)] flex items-center gap-2 border border-[var(--border)]">
+              NIV
+              <svg class="lucide lucide-user" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+</button>
+</div>
+</div>
+<div class="flex-1 p-6 space-y-6 overflow-y-auto">
+<!-- Verse of the Day Card -->
+<div class="verse-card p-6 rounded-xl flex flex-col gap-4">
+<div class="flex items-center gap-2 text-[var(--primary)]">
+<svg class="lucide lucide-calendar" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect height="18" rx="2" width="18" x="3" y="4"></rect><path d="M3 10h18"></path></svg>
+<span class="text-sm font-semibold">Verse of the day</span>
+</div>
+<div class="space-y-2">
+<blockquote class="scripture-text text-lg italic text-[var(--foreground)] leading-relaxed">
+                “Do not conform to the pattern of this world, but be transformed by the renewing of your mind.”
+              </blockquote>
+<cite class="text-sm font-medium text-[var(--primary)] block">— Romans 12:2</cite>
+</div>
+</div>
+<!-- Quick Access Grid -->
+<div class="space-y-4">
+<h2 class="text-lg font-semibold text-[var(--foreground)]">Continue your journey</h2>
+<div class="grid grid-cols-2 gap-3">
+<!-- Open Scripture -->
+<div class="quick-card p-4 rounded-xl flex flex-col gap-3 cursor-pointer">
+<svg class="text-[var(--primary)]" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold">Open Scripture</h4>
+<p class="text-[10px] text-[var(--muted-foreground)] leading-tight">Return to the passage you were studying.</p>
+</div>
+</div>
+<!-- Marked -->
+<div class="quick-card p-4 rounded-xl flex flex-col gap-3 cursor-pointer">
+<svg class="text-[var(--primary)]" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold">Marked</h4>
+<p class="text-[10px] text-[var(--muted-foreground)] leading-tight">Review verses you marked.</p>
+</div>
+</div>
+<!-- Reflections -->
+<div class="quick-card p-4 rounded-xl flex flex-col gap-3 cursor-pointer">
+<svg class="text-[var(--primary)]" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold">Reflections</h4>
+<p class="text-[10px] text-[var(--muted-foreground)] leading-tight">Capture insights in one place.</p>
+</div>
+</div>
+<!-- Memory -->
+<div class="quick-card p-4 rounded-xl flex flex-col gap-3 cursor-pointer">
+<svg class="text-[var(--primary)]" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"></path><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"></path></svg>
+<div class="space-y-1">
+<h4 class="text-sm font-semibold">Memory</h4>
+<p class="text-[10px] text-[var(--muted-foreground)] leading-tight">Strengthen your recall.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats Section -->
+<div class="bg-white border border-[var(--border)] rounded-xl p-6 space-y-4 shadow-sm">
+<h3 class="text-sm font-semibold flex items-center gap-2 text-[var(--foreground)]">
+<svg class="text-[var(--primary)]" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Rhythm overview
+            </h3>
+<div class="space-y-4">
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-[var(--muted-foreground)]">Reflections captured</span>
+<span class="font-semibold">42%</span>
+</div>
+<div class="h-2 w-full bg-[var(--secondary)] rounded-full overflow-hidden">
+<div class="h-full bg-[var(--primary)] rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-[var(--muted-foreground)]">Marked verses</span>
+<span class="font-semibold">35%</span>
+</div>
+<div class="h-2 w-full bg-[var(--secondary)] rounded-full overflow-hidden">
+<div class="h-full bg-[var(--primary)] rounded-full" style="width: 35%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Reflections -->
+<div class="bg-white border border-[var(--border)] rounded-xl p-6 space-y-4 shadow-sm">
+<h3 class="text-sm font-semibold text-[var(--foreground)]">Recent reflections</h3>
+<div class="space-y-4">
+<div class="border-l-2 border-[var(--primary)] pl-3 py-1">
+<p class="text-[10px] text-[var(--primary)] font-bold">Philippians 3:12-14 • Jul 8</p>
+<p class="text-sm text-[var(--foreground)] mt-1">Pressing on toward the goal — what does it mean to forget what is behind?</p>
+</div>
+<div class="border-l-2 border-[var(--primary)] pl-3 py-1">
+<p class="text-[10px] text-[var(--primary)] font-bold">Romans 12:2 • Jul 6</p>
+<p class="text-sm text-[var(--foreground)] mt-1">Do not conform to the pattern of this world… transformation starts with the mind.</p>
+</div>
+</div>
+</div>
+<!-- Footer credit -->
+<div class="text-center pt-4 opacity-50">
+<p class="text-[10px] font-medium text-[var(--muted-foreground)] uppercase tracking-widest">Realign Ministries</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center p-4 px-6 pb-[calc(env(safe-area-inset-bottom)+20px)] pointer-events-none">
+<div class="BottomNavigation-shell">
+<div class="flex items-center justify-around p-2 gap-2">
+<!-- Today -->
+<button aria-label="Today" class="BottomNavigation-navButton BottomNavigation-navButtonActive" type="button">
+<div class="relative flex items-center justify-center">
+<svg class="lucide lucide-house" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+<div class="BottomNavigation-activeIndicator"></div>
+</div>
+<span class="mt-1 font-semibold">Today</span>
+</button>
+<!-- Scripture -->
+<button aria-label="Scripture" class="BottomNavigation-navButton" type="button">
+<div class="flex items-center justify-center">
+<svg class="lucide lucide-book-open" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>
+</div>
+<span class="mt-1">Scripture</span>
+</button>
+<!-- Reflections -->
+<button aria-label="Reflections" class="BottomNavigation-navButton" type="button">
+<div class="flex items-center justify-center">
+<svg class="lucide lucide-file-text" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+</div>
+<span class="mt-1">Reflections</span>
+</button>
+<!-- Marked -->
+<button aria-label="Marked" class="BottomNavigation-navButton" type="button">
+<div class="flex items-center justify-center">
+<svg class="lucide lucide-heart" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+</div>
+<span class="mt-1">Marked</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

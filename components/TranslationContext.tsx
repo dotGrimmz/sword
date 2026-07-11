@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   getBooksForTranslation,
@@ -19,10 +20,7 @@ import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserMemoryVerses } from "@/lib/api/memory";
 import { getUserBookmarks } from "@/lib/api/bookmarks";
 import type { BibleBookSummary, BibleTranslationSummary } from "@/types/bible";
-import {
-  useDataCacheContext,
-  useDataQuery,
-} from "@/lib/data-cache/DataCacheProvider";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 
 type TranslationContextValue = {
   translations: BibleTranslationSummary[];
@@ -55,7 +53,7 @@ interface TranslationProviderProps {
 
 export function TranslationProvider({ children }: TranslationProviderProps) {
   const [translationCode, setTranslationCode] = useState<string | null>(null);
-  const dataCache = useDataCacheContext();
+  const queryClient = useQueryClient();
 
   const selectTranslation = useCallback((code: string) => {
     setTranslationCode(code);
@@ -69,8 +67,10 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     isLoading: isLoadingTranslations,
     error: translationsErrorValue,
     refetch: refetchTranslations,
-  } = useDataQuery<BibleTranslationSummary[]>("translations", getTranslations, {
-    staleTime: 1000 * 60 * 10,
+  } = useQuery({
+    queryKey: queryKeys.translations(),
+    queryFn: getTranslations,
+    staleTime: STALE_TIMES.translations,
   });
 
   const translations = translationsData;
@@ -86,16 +86,17 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
     isLoading: isLoadingBooks,
     error: booksErrorValue,
     refetch: refetchBooksQuery,
-  } = useDataQuery<BibleBookSummary[]>(
-    `books-${translationCode ?? "none"}`,
-    () => getBooksForTranslation(translationCode as string),
-    {
-      staleTime: 1000 * 60 * 5,
-      enabled: Boolean(translationCode),
-    },
-  );
+  } = useQuery({
+    queryKey: queryKeys.books(translationCode ?? "none"),
+    queryFn: () => getBooksForTranslation(translationCode as string),
+    staleTime: STALE_TIMES.user,
+    enabled: Boolean(translationCode),
+  });
 
-  const books = useMemo(() => (translationCode ? booksData : []), [booksData, translationCode]);
+  const books = useMemo(
+    () => (translationCode ? booksData : []),
+    [booksData, translationCode],
+  );
 
   const booksError = booksErrorValue
     ? booksErrorValue instanceof Error
@@ -136,7 +137,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
   const translation = useMemo(
     () => translations.find((item) => item.code === translationCode) ?? null,
-    [translations, translationCode]
+    [translations, translationCode],
   );
 
   useEffect(() => {
@@ -144,34 +145,32 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
       return;
     }
 
-    const staleTime = 1000 * 60 * 5;
-
-    void dataCache.fetch(
-      `user-notes-preview-${translationCode}`,
-      () => getUserNotes(10, translationCode),
-      { staleTime }
-    );
-    void dataCache.fetch(
-      `user-notes-${translationCode}`,
-      () => getUserNotes(undefined, translationCode),
-      { staleTime }
-    );
-    void dataCache.fetch(
-      `user-highlights-${translationCode}`,
-      () => getUserHighlights(translationCode),
-      { staleTime }
-    );
-    void dataCache.fetch(
-      `user-memory-verses-${translationCode}`,
-      () => getUserMemoryVerses(translationCode),
-      { staleTime }
-    );
-    void dataCache.fetch(
-      `user-bookmarks-${translationCode}`,
-      () => getUserBookmarks(translationCode),
-      { staleTime }
-    );
-  }, [dataCache, translationCode]);
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.userNotesPreview(translationCode),
+      queryFn: () => getUserNotes(10, translationCode),
+      staleTime: STALE_TIMES.user,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.userNotes(translationCode),
+      queryFn: () => getUserNotes(undefined, translationCode),
+      staleTime: STALE_TIMES.user,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.userHighlights(translationCode),
+      queryFn: () => getUserHighlights(translationCode),
+      staleTime: STALE_TIMES.user,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.userMemory(translationCode),
+      queryFn: () => getUserMemoryVerses(translationCode),
+      staleTime: STALE_TIMES.user,
+    });
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.userBookmarks(translationCode),
+      queryFn: () => getUserBookmarks(translationCode),
+      staleTime: STALE_TIMES.user,
+    });
+  }, [queryClient, translationCode]);
 
   const refreshBooks = useCallback(async () => {
     if (!translationCode) {
@@ -205,7 +204,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
       selectTranslation,
       refreshTranslations,
       refreshBooks,
-    ]
+    ],
   );
 
   useEffect(() => {

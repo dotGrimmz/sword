@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cursor MCP (contains API keys)
+.cursor/mcp.json
+
+# supabase local link cache
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

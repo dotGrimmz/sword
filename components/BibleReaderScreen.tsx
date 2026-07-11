@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -34,6 +35,8 @@ import {
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { TranslationSwitcher } from "@/components/TranslationSwitcher";
+import bibleSelectStyles from "@/components/TranslationSwitcher.module.css";
 import { getChapterContent } from "@/lib/api/bible";
 import {
   createUserHighlight,
@@ -46,13 +49,14 @@ import {
   getUserBookmarks,
   upsertUserBookmark,
 } from "@/lib/api/bookmarks";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import { useReaderStore } from "@/lib/stores/reader-store";
 import type { BibleBookSummary, BibleVerse } from "@/types/bible";
 import type { UserBookmark, UserHighlight } from "@/types/user";
 import { dispatchHighlightsUpdated, dispatchNotesUpdated } from "@/lib/events";
 import styles from "./BibleReaderScreen.module.css";
 
 const HIGHLIGHT_COLOR = "yellow" as const;
-const READER_STORAGE_KEY = "sword-reader-state";
 const normalizeBookInput = (value: string) =>
   value.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim();
 
@@ -60,23 +64,24 @@ export function BibleReaderScreen() {
   const {
     translations,
     translationCode,
-    selectTranslation,
     books,
     isLoadingTranslations,
     isLoadingBooks,
   } = useTranslationContext();
 
-  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
-  const [chapter, setChapter] = useState(1);
-  const [verses, setVerses] = useState<BibleVerse[]>([]);
-  const [isLoadingChapter, setIsLoadingChapter] = useState(false);
-  const [chapterError, setChapterError] = useState<string | null>(null);
+  const selectedBookId = useReaderStore((state) => state.bookId);
+  const chapter = useReaderStore((state) => state.chapter);
+  const selectedVerse = useReaderStore((state) => state.selectedVerse);
+  const hasHydrated = useReaderStore((state) => state._hasHydrated);
+  const setChapter = useReaderStore((state) => state.setChapter);
+  const setSelectedVerse = useReaderStore((state) => state.setSelectedVerse);
+  const setPosition = useReaderStore((state) => state.setPosition);
+  const applyFromQuery = useReaderStore((state) => state.applyFromQuery);
+  const goToPreviousChapter = useReaderStore((state) => state.goToPrevious);
+  const goToNextChapter = useReaderStore((state) => state.goToNext);
 
-  const [highlights, setHighlights] = useState<UserHighlight[]>([]);
-  const [bookmarks, setBookmarks] = useState<UserBookmark[]>([]);
-
-  const [isLoadingHighlights, setIsLoadingHighlights] = useState(false);
-  const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
+  const translationKey = translationCode ?? "none";
+  const fetchEnabled = Boolean(translationCode);
 
   const [highlightingVerse, setHighlightingVerse] = useState<number | null>(
     null
@@ -110,56 +115,86 @@ export function BibleReaderScreen() {
     return index;
   }, [books]);
 
-  const selectedBook = selectedBookId
-    ? bookIndex.get(selectedBookId) ?? null
-    : null;
-  const hasHydratedReaderState = useRef(false);
-  const hydratedReaderStateRef = useRef<{ bookId: string | null; chapter: number | null } | null>(null);
+  const selectedBook = selectedBookId ? bookIndex.get(selectedBookId) ?? null : null;
+  const skipVerseScrollRef = useRef(false);
   const queryAppliedRef = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const queryBookParam = searchParams?.get("book") ?? null;
   const queryChapterParam = searchParams?.get("chapter") ?? null;
 
-  useEffect(() => {
-    if (hasHydratedReaderState.current) {
-      return;
-    }
-    if (typeof window === "undefined") {
-      return;
-    }
+  const queryClient = useQueryClient();
+  const highlightsQueryKey = queryKeys.userHighlights(translationKey);
+  const bookmarksQueryKey = queryKeys.userBookmarks(translationKey);
 
-    try {
-      const raw = window.localStorage.getItem(READER_STORAGE_KEY);
-      if (!raw) {
-        hasHydratedReaderState.current = true;
-        return;
-      }
+  const chapterQuery = useQuery({
+    queryKey: queryKeys.chapter(
+      translationKey,
+      selectedBook?.name ?? "none",
+      chapter,
+    ),
+    queryFn: async () => {
+      const response = await getChapterContent(
+        translationCode!,
+        selectedBook!.name,
+        chapter,
+      );
+      return response.verses;
+    },
+    staleTime: STALE_TIMES.bible,
+    enabled: Boolean(translationCode && selectedBook),
+  });
 
-      const parsed = JSON.parse(raw) as {
-        bookId?: string | null;
-        chapter?: number;
-      } | null;
+  const highlightsQuery = useQuery({
+    queryKey: highlightsQueryKey,
+    queryFn: () => getUserHighlights(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
 
-      hydratedReaderStateRef.current = {
-        bookId: parsed?.bookId ?? null,
-        chapter:
-          parsed?.chapter && Number.isInteger(parsed.chapter) && parsed.chapter > 0
-            ? parsed.chapter
-            : null,
-      };
+  const bookmarksQuery = useQuery({
+    queryKey: bookmarksQueryKey,
+    queryFn: () => getUserBookmarks(translationCode ?? undefined),
+    staleTime: STALE_TIMES.user,
+    enabled: fetchEnabled,
+  });
 
-      if (parsed?.bookId) {
-        setSelectedBookId(parsed.bookId);
-      }
-      if (hydratedReaderStateRef.current?.chapter) {
-        setChapter(hydratedReaderStateRef.current.chapter);
-      }
-    } catch (error) {
-      console.warn("Failed to restore reader state from storage", error);
-    } finally {
-      hasHydratedReaderState.current = true;
-    }
-  }, []);
+  const verses = useMemo(() => chapterQuery.data ?? [], [chapterQuery.data]);
+  const highlights = useMemo(
+    () => highlightsQuery.data ?? [],
+    [highlightsQuery.data],
+  );
+  const bookmarks = useMemo(
+    () => bookmarksQuery.data ?? [],
+    [bookmarksQuery.data],
+  );
+
+  const setHighlightsCache = useCallback(
+    (
+      value:
+        | UserHighlight[]
+        | ((previous: UserHighlight[] | undefined) => UserHighlight[]),
+    ) => {
+      queryClient.setQueryData<UserHighlight[]>(highlightsQueryKey, value);
+    },
+    [highlightsQueryKey, queryClient],
+  );
+
+  const setBookmarksCache = useCallback(
+    (
+      value:
+        | UserBookmark[]
+        | ((previous: UserBookmark[] | undefined) => UserBookmark[]),
+    ) => {
+      queryClient.setQueryData<UserBookmark[]>(bookmarksQueryKey, value);
+    },
+    [bookmarksQueryKey, queryClient],
+  );
+
+  const chapterError = chapterQuery.isError
+    ? chapterQuery.error instanceof Error
+      ? chapterQuery.error.message
+      : "Failed to load chapter"
+    : null;
 
   useEffect(() => {
     if (!books.length) {
@@ -217,145 +252,62 @@ export function BibleReaderScreen() {
       matchingBook.chapters
     );
 
-    setSelectedBookId(matchingBook.id);
-    setChapter(requestedChapter);
+    applyFromQuery(matchingBook.id, requestedChapter);
     queryAppliedRef.current = queryKey;
-  }, [books, queryBookParam, queryChapterParam]);
+  }, [applyFromQuery, books, queryBookParam, queryChapterParam]);
 
   useEffect(() => {
-    if (books.length === 0) {
+    if (!hasHydrated || books.length === 0) {
       return;
     }
 
-    const hydrated = hydratedReaderStateRef.current;
-
-    if (hydrated?.bookId && bookIndex.has(hydrated.bookId)) {
-      if (selectedBookId !== hydrated.bookId) {
-        setSelectedBookId(hydrated.bookId);
-        return;
-      }
-
-      const target = hydrated.chapter;
-      const book = bookIndex.get(hydrated.bookId);
-      if (target && book) {
-        if (target >= 1 && target <= book.chapters) {
-          if (chapter !== target) {
-            setChapter(target);
-            return;
-          }
-        } else if (chapter < 1 || chapter > book.chapters) {
-          setChapter(1);
-          hydratedReaderStateRef.current = null;
-          return;
-        }
-      }
-
-      hydratedReaderStateRef.current = null;
+    if (queryBookParam?.trim()) {
       return;
     }
 
-    if (hydrated && hydrated.bookId && !bookIndex.has(hydrated.bookId)) {
-      hydratedReaderStateRef.current = null;
-    }
-
-    if (!selectedBookId || !bookIndex.has(selectedBookId)) {
-      const firstBook = books[0]!;
-      if (selectedBookId !== firstBook.id) {
-        setSelectedBookId(firstBook.id);
-        setChapter(1);
-      } else if (chapter !== 1) {
+    if (selectedBookId && bookIndex.has(selectedBookId)) {
+      const book = bookIndex.get(selectedBookId)!;
+      if (chapter < 1 || chapter > book.chapters) {
         setChapter(1);
       }
-    }
-  }, [books, selectedBookId, bookIndex, chapter]);
-
-  useEffect(() => {
-    const loadChapter = async () => {
-      if (!translationCode || !selectedBook) {
-        setVerses([]);
-        return;
-      }
-
-      setIsLoadingChapter(true);
-      setChapterError(null);
-
-      try {
-        const response = await getChapterContent(
-          translationCode,
-          selectedBook.name,
-          chapter
-        );
-        setVerses(response.verses);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to load chapter";
-        setChapterError(message);
-        setVerses([]);
-      } finally {
-        setIsLoadingChapter(false);
-      }
-    };
-
-    void loadChapter();
-  }, [translationCode, selectedBook, chapter]);
-
-  useEffect(() => {
-    if (!translationCode) {
-      setHighlights([]);
-      setIsLoadingHighlights(false);
       return;
     }
 
-    const loadHighlights = async () => {
-      setIsLoadingHighlights(true);
-      try {
-        const data = await getUserHighlights(translationCode);
-        setHighlights(data);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to load highlights";
-        toast.error(message);
-        setHighlights([]);
-      } finally {
-        setIsLoadingHighlights(false);
-      }
-    };
-
-    void loadHighlights();
-  }, [translationCode]);
+    const firstBook = books[0]!;
+    setPosition(firstBook.id, 1);
+  }, [selectedBookId, bookIndex, books, chapter, hasHydrated, queryBookParam, setChapter, setPosition]);
 
   useEffect(() => {
-    if (!translationCode) {
-      setBookmarks([]);
-      setIsLoadingBookmarks(false);
+    setSelectedVerse(1);
+    skipVerseScrollRef.current = true;
+  }, [chapter, selectedBookId, setSelectedVerse]);
+
+  useEffect(() => {
+    if (verses.length === 0) {
       return;
     }
 
-    const loadBookmarks = async () => {
-      setIsLoadingBookmarks(true);
-      try {
-        const data = await getUserBookmarks(translationCode);
-        setBookmarks(data);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to load bookmarks";
-        toast.error(message);
-        setBookmarks([]);
-      } finally {
-        setIsLoadingBookmarks(false);
-      }
-    };
+    if (!verses.some((verse) => verse.verse === selectedVerse)) {
+      skipVerseScrollRef.current = true;
+      setSelectedVerse(verses[0]!.verse);
+      return;
+    }
 
-    void loadBookmarks();
-  }, [translationCode]);
+    if (skipVerseScrollRef.current) {
+      skipVerseScrollRef.current = false;
+      return;
+    }
+
+    const verseElement = document.getElementById(`reader-verse-${selectedVerse}`);
+    verseElement?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedVerse, verses, setSelectedVerse]);
 
   const highlightsForChapter = useMemo(() => {
     if (!selectedBookId) {
       return [] as UserHighlight[];
     }
     return highlights.filter(
-      (highlight) =>
-        highlight.bookId === selectedBookId && highlight.chapter === chapter
+      (highlight) => highlight.bookId === selectedBookId && highlight.chapter === chapter,
     );
   }, [highlights, selectedBookId, chapter]);
 
@@ -385,12 +337,12 @@ export function BibleReaderScreen() {
 
   const handleToggleHighlight = async (verseNumber: number) => {
     if (!selectedBookId) {
-      toast.error("Pick a book before highlighting.");
+      toast.error("Pick a book before marking.");
       return;
     }
 
     if (!translationCode) {
-      toast.error("Select a translation before highlighting.");
+      toast.error("Select a translation before marking.");
       return;
     }
 
@@ -399,18 +351,18 @@ export function BibleReaderScreen() {
 
     if (existingHighlight) {
       const previous = highlights;
-      setHighlights((prev) =>
-        prev.filter((item) => item.id !== existingHighlight.id)
+      setHighlightsCache((prev) =>
+        (prev ?? []).filter((item) => item.id !== existingHighlight.id),
       );
       try {
         await deleteUserHighlight(existingHighlight.id);
-        toast.success("Highlight removed");
+        toast.success("Mark removed");
         dispatchHighlightsUpdated({ source: "reader" });
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Unable to remove highlight";
+          error instanceof Error ? error.message : "Unable to remove mark";
         toast.error(message);
-        setHighlights(previous);
+        setHighlightsCache(() => previous);
       } finally {
         setHighlightingVerse(null);
       }
@@ -427,12 +379,12 @@ export function BibleReaderScreen() {
         verseEnd: verseNumber,
         color: HIGHLIGHT_COLOR,
       });
-      setHighlights((prev) => [newHighlight, ...prev]);
-      toast.success("Verse highlighted");
+      setHighlightsCache((prev) => [newHighlight, ...(prev ?? [])]);
+      toast.success("Verse marked");
       dispatchHighlightsUpdated({ source: "reader" });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to highlight verse";
+        error instanceof Error ? error.message : "Unable to mark verse";
       toast.error(message);
     } finally {
       setHighlightingVerse(null);
@@ -454,8 +406,8 @@ export function BibleReaderScreen() {
 
     if (currentBookmark && currentBookmark.verse === verseNumber) {
       const previous = bookmarks;
-      setBookmarks((prev) =>
-        prev.filter((item) => item.id !== currentBookmark.id)
+      setBookmarksCache((prev) =>
+        (prev ?? []).filter((item) => item.id !== currentBookmark.id),
       );
       try {
         await deleteUserBookmark(currentBookmark.id);
@@ -464,7 +416,7 @@ export function BibleReaderScreen() {
         const message =
           error instanceof Error ? error.message : "Unable to remove bookmark";
         toast.error(message);
-        setBookmarks(previous);
+        setBookmarksCache(() => previous);
       } finally {
         setBookmarkingVerse(null);
       }
@@ -479,9 +431,9 @@ export function BibleReaderScreen() {
         verse: verseNumber,
       });
 
-      setBookmarks((prev) => {
-        const others = prev.filter(
-          (item) => item.bookId !== selectedBookId || item.chapter !== chapter
+      setBookmarksCache((prev) => {
+        const others = (prev ?? []).filter(
+          (item) => item.bookId !== selectedBookId || item.chapter !== chapter,
         );
         return [bookmark, ...others];
       });
@@ -527,7 +479,7 @@ export function BibleReaderScreen() {
         verseEnd: noteVerse,
         body,
       });
-      toast.success("Note saved");
+      toast.success("Reflection saved");
       setNoteDialogOpen(false);
       dispatchNotesUpdated({ source: "reader" });
     } catch (error) {
@@ -543,200 +495,164 @@ export function BibleReaderScreen() {
     if (!selectedBook) {
       return;
     }
-
-    if (chapter > 1) {
-      setChapter((value) => value - 1);
-      return;
-    }
-
-    const currentIndex = books.findIndex((book) => book.id === selectedBook.id);
-    if (currentIndex > 0) {
-      const previousBook = books[currentIndex - 1]!;
-      setSelectedBookId(previousBook.id);
-      setChapter(previousBook.chapters);
-    }
+    goToPreviousChapter(books, selectedBook.id);
   };
 
   const goToNext = () => {
     if (!selectedBook) {
       return;
     }
-
-    if (chapter < selectedBook.chapters) {
-      setChapter((value) => value + 1);
-      return;
-    }
-
-    const currentIndex = books.findIndex((book) => book.id === selectedBook.id);
-    if (currentIndex >= 0 && currentIndex < books.length - 1) {
-      const nextBook = books[currentIndex + 1]!;
-      setSelectedBookId(nextBook.id);
-      setChapter(1);
-    }
+    goToNextChapter(books, selectedBook.id);
   };
 
   const isBusy =
     isLoadingTranslations ||
     isLoadingBooks ||
-    isLoadingChapter ||
-    isLoadingHighlights ||
-    isLoadingBookmarks;
+    chapterQuery.isLoading ||
+    highlightsQuery.isLoading ||
+    bookmarksQuery.isLoading;
 
   const translationLabel =
     activeTranslation?.name ?? translationCode ?? "Select translation";
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    if (!selectedBookId) {
-      window.localStorage.removeItem(READER_STORAGE_KEY);
-      return;
-    }
-
-    const payload = JSON.stringify({
-      bookId: selectedBookId,
-      chapter,
-    });
-
-    window.localStorage.setItem(READER_STORAGE_KEY, payload);
-  }, [selectedBookId, chapter]);
-
   return (
     <div className={styles.readerPage}>
       <div className={styles.toolbar}>
-        <div className={styles.toolbarRow}>
-          <div className={styles.selectorGroup}>
-            <div
-              className={clsx(
-                styles.selectorItem,
-                styles.selectorItemTranslation
-              )}
+        <div className={styles.headerRow}>
+          <div className={styles.titleBlock}>
+            <Select
+              value={selectedBookId ?? undefined}
+              onValueChange={(value) => {
+                setPosition(value, 1);
+              }}
+              disabled={books.length === 0}
             >
-              <Select
-                value={translationCode ?? "__none__"}
-                onValueChange={(value) => {
-                  if (value === "__none__") {
-                    return;
-                  }
-                  selectTranslation(value);
-                }}
+              <SelectTrigger
+                className={clsx(styles.selectTriggerBase, styles.titleSelect)}
+                aria-label="Choose book"
               >
-                <SelectTrigger
-                  className={clsx(
-                    styles.selectTriggerBase,
-                    styles.translationSelect
-                  )}
-                >
-                  <SelectValue placeholder="Translation" />
-                </SelectTrigger>
-                <SelectContent className={styles.selectContent}>
-                  <SelectItem value="__none__" disabled>
-                    Translation
+                <SelectValue placeholder="Scripture" />
+              </SelectTrigger>
+              <SelectContent
+                className={bibleSelectStyles.selectContent}
+                sideOffset={6}
+              >
+                {books.map((book) => (
+                  <SelectItem
+                    key={book.id}
+                    value={book.id}
+                    className={bibleSelectStyles.selectItem}
+                  >
+                    {book.name}
                   </SelectItem>
-                  {translations.map((translation) => (
-                    <SelectItem key={translation.code} value={translation.code}>
-                      {translation.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className={clsx(styles.selectorItem, styles.selectorItemBook)}>
-              <Select
-                value={selectedBookId ?? undefined}
-                onValueChange={(value) => {
-                  setSelectedBookId(value);
-                  setChapter(1);
-                }}
-                disabled={books.length === 0}
-              >
-                <SelectTrigger
-                  className={clsx(styles.selectTriggerBase, styles.bookSelect)}
-                >
-                  <SelectValue placeholder="Book" />
-                </SelectTrigger>
-                <SelectContent className={styles.selectContent}>
-                  {books.map((book) => (
-                    <SelectItem key={book.id} value={book.id}>
-                      {book.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div
-              className={clsx(
-                styles.selectorItem,
-                styles.selectorItemChapter
-              )}
-            >
-              <Select
-                value={`${chapter}`}
-                onValueChange={(value) =>
-                  setChapter(Number.parseInt(value, 10))
-                }
-                disabled={!selectedBook}
-              >
-                <SelectTrigger
-                  className={clsx(
-                    styles.selectTriggerBase,
-                    styles.chapterSelect
-                  )}
-                >
-                  <SelectValue placeholder="Chapter" />
-                </SelectTrigger>
-                <SelectContent className={styles.selectContent}>
-                  {selectedBook
-                    ? Array.from(
-                        { length: selectedBook.chapters },
-                        (_, index) => index + 1
-                      ).map((chapterNumber) => (
-                        <SelectItem
-                          key={chapterNumber}
-                          value={`${chapterNumber}`}
-                        >
-                          {chapterNumber}
-                        </SelectItem>
-                      ))
-                    : null}
-                </SelectContent>
-              </Select>
-            </div>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className={styles.navControls}>
-            <Button
-              variant="ghost"
-              size="nav"
-              onClick={goToPrevious}
-              disabled={!selectedBook}
-              className={styles.navControlButton}
-            >
-              <ChevronLeft
-                className={clsx(styles.navIcon, styles.navIconLeft)}
-              />{" "}
-              Previous
-            </Button>
-            <Button
-              variant="ghost"
-              size="nav"
-              onClick={goToNext}
-              disabled={!selectedBook}
-              className={styles.navControlButton}
-            >
-              Next{" "}
-              <ChevronRight
-                className={clsx(styles.navIcon, styles.navIconRight)}
-              />
-            </Button>
+          <div className={bibleSelectStyles.toolbar}>
+            <TranslationSwitcher
+              className={styles.translationSwitcher}
+              selectClassName={bibleSelectStyles.toolbarTrigger}
+              hideLabel
+              showCodeOnly
+              size="compact"
+            />
           </div>
         </div>
-        <div className={styles.translationMeta}>
-          {translationLabel}
-          {selectedBook ? ` • ${selectedBook.name} ${chapter}` : ""}
+
+        <div className={styles.chapterVerseRow}>
+          <div className={styles.passageField}>
+            <span className={styles.passageLabel}>Chapter</span>
+            <Select
+              value={`${chapter}`}
+              onValueChange={(value) => setChapter(Number.parseInt(value, 10))}
+              disabled={!selectedBook}
+            >
+              <SelectTrigger
+                className={clsx(
+                  styles.selectTriggerBase,
+                  styles.passageSelect,
+                  styles.chapterSelect,
+                )}
+                aria-label="Choose chapter"
+              >
+                <SelectValue placeholder="—" />
+              </SelectTrigger>
+              <SelectContent className={styles.selectContent} sideOffset={6}>
+                {selectedBook
+                  ? Array.from(
+                      { length: selectedBook.chapters },
+                      (_, index) => index + 1,
+                    ).map((chapterNumber) => (
+                      <SelectItem
+                        key={chapterNumber}
+                        value={`${chapterNumber}`}
+                        className={styles.selectItem}
+                      >
+                        Chapter {chapterNumber}
+                      </SelectItem>
+                    ))
+                  : null}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className={styles.passageField}>
+            <span className={styles.passageLabel}>Verse</span>
+            <Select
+              value={`${selectedVerse}`}
+              onValueChange={(value) =>
+                setSelectedVerse(Number.parseInt(value, 10))
+              }
+              disabled={!selectedBook || verses.length === 0}
+            >
+              <SelectTrigger
+                className={clsx(
+                  styles.selectTriggerBase,
+                  styles.passageSelect,
+                  styles.verseSelect,
+                )}
+                aria-label="Choose verse"
+              >
+                <SelectValue placeholder="—" />
+              </SelectTrigger>
+              <SelectContent className={styles.selectContent} sideOffset={6}>
+                {verses.map((verse) => (
+                  <SelectItem
+                    key={verse.verse}
+                    value={`${verse.verse}`}
+                    className={styles.selectItem}
+                  >
+                    Verse {verse.verse}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className={styles.navControls}>
+          <Button
+            variant="ghost"
+            size="nav"
+            onClick={goToPrevious}
+            disabled={!selectedBook}
+            className={styles.navControlButton}
+          >
+            <ChevronLeft className={clsx(styles.navIcon, styles.navIconLeft)} />{" "}
+            Previous
+          </Button>
+          <Button
+            variant="ghost"
+            size="nav"
+            onClick={goToNext}
+            disabled={!selectedBook}
+            className={styles.navControlButton}
+          >
+            Next{" "}
+            <ChevronRight className={clsx(styles.navIcon, styles.navIconRight)} />
+          </Button>
         </div>
       </div>
 
@@ -745,7 +661,7 @@ export function BibleReaderScreen() {
           <LoadingScreen
             variant="section"
             title="Loading Scripture…"
-            subtitle="We’re fetching this passage and syncing your highlights."
+            subtitle="We’re fetching this passage and syncing your marks."
           />
         ) : chapterError ? (
           <div className={clsx(styles.statusCard, styles.statusCardError)}>
@@ -769,6 +685,7 @@ export function BibleReaderScreen() {
               return (
                 <motion.div
                   key={verse.verse}
+                  id={`reader-verse-${verse.verse}`}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, delay: index * 0.02 }}
@@ -864,7 +781,7 @@ export function BibleReaderScreen() {
               {selectedBook ? ` (${selectedBook.chapters} chapters)` : ""}
             </p>
             <p>
-              {highlightsForChapter.length} highlight
+              {highlightsForChapter.length} mark
               {highlightsForChapter.length === 1 ? "" : "s"} in this chapter •{" "}
               {currentBookmark?.verse
                 ? `Bookmarked verse ${currentBookmark.verse}`
@@ -907,7 +824,7 @@ export function BibleReaderScreen() {
             <ModalTitle>
               {selectedBook
                 ? `${selectedBook.name} ${chapter}:${noteVerse ?? ""}`
-                : "New Note"}
+                : "New Reflection"}
             </ModalTitle>
           </ModalHeader>
           <ModalBody tight className={styles.dialogBody}>
@@ -930,7 +847,7 @@ export function BibleReaderScreen() {
                 {isSavingNote ? (
                   <Loader2 className={styles.saveButtonSpinner} />
                 ) : null}
-                Save Note
+                Save Reflection
               </Button>
             </div>
           </ModalBody>
