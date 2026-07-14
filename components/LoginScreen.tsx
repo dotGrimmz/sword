@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 
 import { cn } from "@/components/ui/utils";
+import { ensureProfile } from "@/lib/auth/ensure-profile";
 import { primeAccessToken } from "@/lib/api/session";
 import { buildAuthCallbackUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/client";
@@ -25,24 +26,44 @@ type FormState = {
   username: string;
 };
 
+type FormNotice = {
+  tone: "error" | "success";
+  title: string;
+  description: string;
+};
+
 const initialState: FormState = {
   email: "",
   password: "",
   username: "",
 };
 
+const MIN_PASSWORD_LENGTH = 6;
+
 interface LoginScreenProps {
   redirectTo?: string;
+  initialError?: string | null;
 }
 
-export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
+export function LoginScreen({
+  redirectTo = "/dashboard",
+  initialError = null,
+}: LoginScreenProps) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [mode, setMode] = useState<FormMode>("signin");
   const [state, setState] = useState<FormState>(initialState);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<FormNotice | null>(
+    initialError
+      ? {
+          tone: "error",
+          title: "Something went wrong",
+          description: initialError,
+        }
+      : null,
+  );
 
   const isSignup = mode === "signup";
 
@@ -52,7 +73,7 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
 
   const resetState = useCallback(() => {
     setState(initialState);
-    setError(null);
+    setNotice(null);
   }, []);
 
   const handleSubmit = useCallback(
@@ -64,20 +85,37 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
       }
 
       setIsLoading(true);
-      setError(null);
+      setNotice(null);
 
       const email = state.email.trim().toLowerCase();
-      const password = state.password.trim();
+      const password = state.password;
       const username = state.username.trim();
 
       try {
         if (!email || !password) {
-          setError("Email and password are required.");
+          setNotice({
+            tone: "error",
+            title: "Something went wrong",
+            description: "Email and password are required.",
+          });
           return;
         }
 
         if (isSignup && !username) {
-          setError("Username is required.");
+          setNotice({
+            tone: "error",
+            title: "Something went wrong",
+            description: "Username is required.",
+          });
+          return;
+        }
+
+        if (isSignup && password.length < MIN_PASSWORD_LENGTH) {
+          setNotice({
+            tone: "error",
+            title: "Something went wrong",
+            description: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+          });
           return;
         }
 
@@ -86,22 +124,48 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
             email,
             password,
             options: {
-              data: username ? { username } : undefined,
+              data: { username },
               emailRedirectTo:
                 typeof window !== "undefined" ? buildAuthCallbackUrl(redirectTo) : undefined,
             },
           });
 
           if (signUpError) {
-            setError(signUpError.message);
+            setNotice({
+              tone: "error",
+              title: "Something went wrong",
+              description: signUpError.message,
+            });
+            return;
+          }
+
+          // Supabase returns a user with empty identities when the email is already registered
+          // and email confirmation is enabled — treat that as "already exists", not success.
+          const identities = signUpData.user?.identities ?? [];
+          if (signUpData.user && identities.length === 0) {
+            setNotice({
+              tone: "error",
+              title: "Account already exists",
+              description: "An account with this email already exists. Sign in instead.",
+            });
+            setMode("signin");
+            setState((prev) => ({ ...prev, username: "", password: "" }));
             return;
           }
 
           if (!signUpData.session) {
-            setError("Check your email to confirm your account before signing in.");
+            setNotice({
+              tone: "success",
+              title: "Check your email",
+              description:
+                "We sent a confirmation link to your inbox. Open it to finish creating your account, then sign in.",
+            });
+            setMode("signin");
+            setState((prev) => ({ ...prev, password: "", username: "" }));
             return;
           }
 
+          await ensureProfile(supabase, signUpData.session.user);
           primeAccessToken(signUpData.session.access_token);
         } else {
           const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -110,8 +174,16 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
           });
 
           if (signInError) {
-            setError(signInError.message);
+            setNotice({
+              tone: "error",
+              title: "Something went wrong",
+              description: signInError.message,
+            });
             return;
+          }
+
+          if (signInData.user) {
+            await ensureProfile(supabase, signInData.user);
           }
 
           primeAccessToken(signInData.session?.access_token ?? null);
@@ -120,12 +192,17 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
         router.refresh();
         router.replace(redirectTo);
       } catch (submitError) {
-        setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
+        setNotice({
+          tone: "error",
+          title: "Something went wrong",
+          description:
+            submitError instanceof Error ? submitError.message : "Something went wrong.",
+        });
       } finally {
         setIsLoading(false);
       }
     },
-    [isSignup, state, supabase, router, isLoading, redirectTo]
+    [isSignup, state, supabase, router, isLoading, redirectTo],
   );
 
   const handleGoogleSignIn = useCallback(async () => {
@@ -134,7 +211,7 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
     }
 
     setIsLoading(true);
-    setError(null);
+    setNotice(null);
 
     try {
       const callbackUrl =
@@ -151,10 +228,19 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
       });
 
       if (oauthError) {
-        setError(oauthError.message);
+        setNotice({
+          tone: "error",
+          title: "Something went wrong",
+          description: oauthError.message,
+        });
       }
     } catch (oauthError) {
-      setError(oauthError instanceof Error ? oauthError.message : "Unable to start Google sign-in.");
+      setNotice({
+        tone: "error",
+        title: "Something went wrong",
+        description:
+          oauthError instanceof Error ? oauthError.message : "Unable to start Google sign-in.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -229,6 +315,7 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
                   value={state.username}
                   onChange={(event) => updateField("username", event.target.value)}
                   disabled={isLoading}
+                  required
                   className={styles.formInput}
                 />
               </div>
@@ -272,15 +359,22 @@ export function LoginScreen({ redirectTo = "/dashboard" }: LoginScreenProps) {
                 onChange={(event) => updateField("password", event.target.value)}
                 disabled={isLoading}
                 required
+                minLength={isSignup ? MIN_PASSWORD_LENGTH : undefined}
                 className={styles.formInput}
               />
             </div>
           </div>
 
-          {error ? (
-            <div className={styles.formAlert} role="alert">
-              <p className={styles.formAlertTitle}>Something went wrong</p>
-              <p className={styles.formAlertDescription}>{error}</p>
+          {notice ? (
+            <div
+              className={cn(
+                styles.formAlert,
+                notice.tone === "success" && styles.formAlertSuccess,
+              )}
+              role={notice.tone === "error" ? "alert" : "status"}
+            >
+              <p className={styles.formAlertTitle}>{notice.title}</p>
+              <p className={styles.formAlertDescription}>{notice.description}</p>
             </div>
           ) : null}
 

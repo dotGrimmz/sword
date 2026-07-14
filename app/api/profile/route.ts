@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { ensureProfile, PROFILE_SELECT } from "@/lib/auth/ensure-profile";
 import { createClient } from "@/lib/supabase/server";
-
-const PROFILE_SELECT =
-  "id, username, avatar_url, stream_tagline, stream_url, role, theme";
 
 const toTrimmedString = (value: unknown) =>
   typeof value === "string" ? value.trim() : "";
@@ -41,6 +39,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { profile, error: ensureError } = await ensureProfile(supabase, session.user);
+
+  if (profile) {
+    return NextResponse.json(profile);
+  }
+
+  // Fallback read if ensure failed (e.g. RLS) but a row already exists.
   const { data, error } = await supabase
     .from("profiles")
     .select(PROFILE_SELECT)
@@ -55,7 +60,10 @@ export async function GET() {
   }
 
   if (!data) {
-    return NextResponse.json({ error: "Profile not found." }, { status: 404 });
+    return NextResponse.json(
+      { error: ensureError ?? "Profile not found." },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json(data);
@@ -100,6 +108,7 @@ export async function PUT(request: Request) {
   }
 
   const updates = {
+    id: session.user.id,
     username: toNullableString(payload.displayName),
     stream_tagline: toNullableString(payload.streamTagline),
     stream_url: streamUrl,
@@ -107,8 +116,7 @@ export async function PUT(request: Request) {
 
   const { data, error } = await supabase
     .from("profiles")
-    .update(updates)
-    .eq("id", session.user.id)
+    .upsert(updates, { onConflict: "id" })
     .select(PROFILE_SELECT)
     .maybeSingle();
 

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { ensureProfile, PROFILE_SELECT } from "@/lib/auth/ensure-profile";
 import { createClient } from "@/lib/supabase/server";
 
 const AVATAR_BUCKET =
@@ -56,7 +57,10 @@ const extractStoragePath = (publicUrl: string | null | undefined) => {
   return objectPath.length > 0 ? objectPath : null;
 };
 
-const deleteAvatarFromStorage = async (supabase: Awaited<ReturnType<typeof createClient>>, url?: string | null) => {
+const deleteAvatarFromStorage = async (
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  url?: string | null,
+) => {
   const storagePath = extractStoragePath(url ?? null);
   if (!storagePath) {
     return;
@@ -108,19 +112,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: currentProfile, error: profileError } = await supabase
-    .from("profiles")
-    .select("avatar_url")
-    .eq("id", session.user.id)
-    .maybeSingle();
+  // Guarantee a profiles row exists before we write avatar_url.
+  const { profile: ensured, error: ensureError } = await ensureProfile(
+    supabase,
+    session.user,
+  );
 
-  if (profileError) {
+  if (!ensured) {
     return NextResponse.json(
-      { error: profileError.message },
+      { error: ensureError ?? "Unable to prepare profile for photo upload." },
       { status: 500 },
     );
   }
 
+  const previousAvatarUrl = ensured.avatar_url;
   const fileExt = getExtension(file);
   const filePath = `${session.user.id}/${randomUUID()}.${fileExt}`;
 
@@ -146,20 +151,19 @@ export async function POST(request: Request) {
     .from("profiles")
     .update({ avatar_url: publicUrl })
     .eq("id", session.user.id)
-    .select(
-      "id, username, avatar_url, stream_tagline, stream_url, role",
-    )
+    .select(PROFILE_SELECT)
     .maybeSingle();
 
   if (updateError || !updatedProfile) {
+    await deleteAvatarFromStorage(supabase, publicUrl);
     return NextResponse.json(
       { error: updateError?.message ?? "Unable to update profile." },
       { status: updateError?.code === "42501" ? 403 : 500 },
     );
   }
 
-  if (currentProfile?.avatar_url) {
-    await deleteAvatarFromStorage(supabase, currentProfile.avatar_url);
+  if (previousAvatarUrl && previousAvatarUrl !== publicUrl) {
+    await deleteAvatarFromStorage(supabase, previousAvatarUrl);
   }
 
   return NextResponse.json({
@@ -195,16 +199,18 @@ export async function DELETE() {
     await deleteAvatarFromStorage(supabase, profile.avatar_url);
   }
 
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ avatar_url: null })
-    .eq("id", session.user.id);
+  if (profile) {
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: null })
+      .eq("id", session.user.id);
 
-  if (updateError) {
-    return NextResponse.json(
-      { error: updateError.message },
-      { status: updateError.code === "42501" ? 403 : 500 },
-    );
+    if (updateError) {
+      return NextResponse.json(
+        { error: updateError.message },
+        { status: updateError.code === "42501" ? 403 : 500 },
+      );
+    }
   }
 
   return NextResponse.json({ avatar_url: null });
