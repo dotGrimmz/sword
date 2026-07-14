@@ -201,6 +201,11 @@
   padding: 12px 16px;
 }
 
+.formAlertSuccess {
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  background: color-mix(in oklab, var(--primary) 10%, white);
+}
+
 .formAlertTitle {
   margin: 0;
   font-size: 14px;
@@ -208,10 +213,18 @@
   color: var(--destructive);
 }
 
+.formAlertSuccess .formAlertTitle {
+  color: var(--primary);
+}
+
 .formAlertDescription {
   margin: 4px 0 0 0;
   font-size: 13px;
   color: var(--destructive);
+}
+
+.formAlertSuccess .formAlertDescription {
+  color: color-mix(in oklab, var(--foreground) 78%, transparent);
 }
 
 .formSubmit {

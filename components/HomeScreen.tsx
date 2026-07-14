@@ -35,6 +35,7 @@ import { Progress } from "./ui/progress";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserNotes } from "@/lib/api/notes";
+import { getProfile } from "@/lib/api/profile";
 import type { UserNote } from "@/types/user";
 import {
   HIGHLIGHTS_UPDATED_EVENT,
@@ -42,6 +43,7 @@ import {
 } from "@/lib/events";
 import styles from "./HomeScreen.module.css";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import type { BibleBookSummary } from "@/types/bible";
@@ -116,6 +118,12 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     staleTime: STALE_TIMES.user,
     enabled: fetchEnabled,
   });
+  const profileQuery = useQuery({
+    queryKey: queryKeys.profile(),
+    queryFn: getProfile,
+    staleTime: STALE_TIMES.profile,
+  });
+  const avatarUrl = profileQuery.data?.avatar_url?.trim() || null;
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
@@ -386,7 +394,14 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                 title="Profile"
                 onClick={() => handleNavigate("settings")}
               >
-                <User className={styles.profileIcon} aria-hidden="true" />
+                <Avatar className={styles.profileAvatar}>
+                  {avatarUrl ? (
+                    <AvatarImage src={avatarUrl} alt="" />
+                  ) : null}
+                  <AvatarFallback className={styles.profileAvatarFallback}>
+                    <User className={styles.profileIcon} aria-hidden="true" />
+                  </AvatarFallback>
+                </Avatar>
               </button>
             </div>
           </div>

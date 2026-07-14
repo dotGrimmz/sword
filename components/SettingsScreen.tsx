@@ -36,6 +36,7 @@ const profileToForm = (profile: ProfileResponse): ProfileFormState => ({
 
 const fallbackFormFromUser = (user: SupabaseUser): ProfileFormState => ({
   displayName:
+    (user.user_metadata?.username as string | undefined) ??
     (user.user_metadata?.full_name as string | undefined) ??
     (user.user_metadata?.name as string | undefined) ??
     user.email ??
@@ -144,7 +145,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
       const resolvedProfileForm: ProfileFormState = {
         displayName: profile.username ?? fallbackForm.displayName,
-        avatarUrl: profile.avatar_url ?? fallbackForm.avatarUrl,
+        avatarUrl: profile.avatar_url ?? "",
         streamTagline: profile.stream_tagline ?? "",
         streamUrl: profile.stream_url ?? "",
       };
@@ -182,17 +183,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   }, [theme]);
 
   const fallbackDisplayName =
+    (authUser?.user_metadata?.username as string | undefined) ??
     (authUser?.user_metadata?.full_name as string | undefined) ??
     (authUser?.user_metadata?.name as string | undefined) ??
     authUser?.email ??
     "Your profile";
-  const fallbackAvatarUrl =
-    (authUser?.user_metadata?.avatar_url as string | undefined) ??
-    (authUser?.user_metadata?.picture as string | undefined) ??
-    null;
   const profileDisplayName =
     profileForm.displayName.trim() || fallbackDisplayName;
-  const profileAvatarUrl = profileForm.avatarUrl.trim() || fallbackAvatarUrl;
+  // Stored profiles.avatar_url only — OAuth photo is seeded into the row on
+  // first ensureProfile create, so we don't paint metadata as a fake upload.
+  const profileAvatarUrl = profileForm.avatarUrl.trim() || null;
   const hasStoredAvatar = profileForm.avatarUrl.trim().length > 0;
   const email = authUser?.email ?? "No email on file";
 
@@ -367,8 +367,11 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       setProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
       setProfileCache((current) =>
-        current ? { ...current, avatar_url: nextUrl } : null,
+        current
+          ? { ...current, avatar_url: nextUrl || null }
+          : current,
       );
+      await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo updated.");
     } catch (error) {
       toast.error(
@@ -404,8 +407,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       setProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setProfileCache((current) =>
-        current ? { ...current, avatar_url: null } : null,
+        current ? { ...current, avatar_url: null } : current,
       );
+      await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo removed.");
     } catch (error) {
       toast.error(

@@ -202,39 +202,72 @@ export function StitchCaptureScripture() {
     <StitchCaptureShell currentScreen="reader">
       <div className={readerStyles.readerPage}>
         <div className={readerStyles.toolbar}>
-          <div className={readerStyles.toolbarRow}>
-            <div className={readerStyles.selectorGroup}>
+          <div className={readerStyles.headerRow}>
+            <div className={readerStyles.titleBlock}>
               <div
-                className={clsx(readerStyles.selectorItem, readerStyles.selectorItemTranslation)}
-                style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(15,23,42,0.1)", background: "#e0f2fe", fontSize: 14 }}
-              >
-                New International Version
-              </div>
-              <div
-                className={clsx(readerStyles.selectorItem, readerStyles.selectorItemBook)}
-                style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(15,23,42,0.1)", background: "#e0f2fe", fontSize: 14 }}
+                className={readerStyles.titleSelect}
+                style={{ display: "flex", alignItems: "center", minHeight: 40 }}
               >
                 Philippians
               </div>
-              <div
-                className={clsx(readerStyles.selectorItem, readerStyles.selectorItemChapter)}
-                style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(15,23,42,0.1)", background: "#e0f2fe", fontSize: 14, textAlign: "center" }}
-              >
-                3
-              </div>
             </div>
-            <div className={readerStyles.navControls}>
-              <button type="button" className={readerStyles.navControlButton}>
-                <ChevronLeft className={clsx(readerStyles.navIcon, readerStyles.navIconLeft)} />
-                Previous
-              </button>
-              <button type="button" className={readerStyles.navControlButton}>
-                Next
-                <ChevronRight className={clsx(readerStyles.navIcon, readerStyles.navIconRight)} />
-              </button>
+            <div
+              style={{
+                flexShrink: 0,
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1px solid color-mix(in srgb, var(--border) 70%, transparent)",
+                background: "var(--secondary)",
+                fontSize: 12,
+                fontWeight: 700,
+                color: "var(--primary)",
+              }}
+            >
+              NIV
             </div>
           </div>
-          <div className={readerStyles.translationMeta}>New International Version • Philippians 3</div>
+
+          <div className={readerStyles.chapterVerseRow}>
+            <div className={readerStyles.passageField}>
+              <span className={readerStyles.passageLabel}>Chapter</span>
+              <div
+                className={clsx(readerStyles.selectTriggerBase, readerStyles.passageSelect)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 10,
+                  padding: "0 12px",
+                }}
+              >
+                Chapter 3
+              </div>
+            </div>
+            <div className={readerStyles.passageField}>
+              <span className={readerStyles.passageLabel}>Verse</span>
+              <div
+                className={clsx(readerStyles.selectTriggerBase, readerStyles.passageSelect)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 10,
+                  padding: "0 12px",
+                }}
+              >
+                Verse 14
+              </div>
+            </div>
+          </div>
+
+          <div className={readerStyles.navControls}>
+            <button type="button" className={readerStyles.navControlButton}>
+              <ChevronLeft className={clsx(readerStyles.navIcon, readerStyles.navIconLeft)} />
+              Previous
+            </button>
+            <button type="button" className={readerStyles.navControlButton}>
+              Next
+              <ChevronRight className={clsx(readerStyles.navIcon, readerStyles.navIconRight)} />
+            </button>
+          </div>
         </div>
 
         <div className={readerStyles.readerContent}>
@@ -255,7 +288,7 @@ export function StitchCaptureScripture() {
                     [readerStyles.verseActionsVisible]: index === 0,
                   })}
                 >
-                  <Heart className={readerStyles.verseActionIcon} style={{ color: index === 0 ? "#0ea5e9" : undefined }} />
+                  <Heart className={readerStyles.verseActionIcon} style={{ color: index === 0 ? "var(--primary)" : undefined }} />
                   <MessageSquare className={readerStyles.verseActionIcon} />
                 </div>
               </div>
