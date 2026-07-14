@@ -369,7 +369,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       setProfileCache((current) =>
         current
           ? { ...current, avatar_url: nextUrl || null }
-          : current,
+          : null,
       );
       await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo updated.");
@@ -407,7 +407,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       setProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setProfileCache((current) =>
-        current ? { ...current, avatar_url: null } : current,
+        current ? { ...current, avatar_url: null } : null,
       );
       await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo removed.");
