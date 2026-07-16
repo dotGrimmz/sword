@@ -6,16 +6,11 @@ import { PlusCircle, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { BookCombobox } from "@/components/bible/BookCombobox";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createStudyLinkMaterial,
@@ -733,49 +728,39 @@ export default function PreReadForm({
           <div className={styles.fieldGrid}>
             <div className={styles.field}>
               <Label className={styles.label}>Book</Label>
-              <Select
+              <BookCombobox
+                books={books}
                 value={form.book || undefined}
+                valueKey="name"
                 onValueChange={handleBookSelect}
                 disabled={isLoadingBooks}
-              >
-                <SelectTrigger className={`${styles.control} w-full min-w-0 max-w-full`}>
-                  <SelectValue
-                    placeholder={
-                      isLoadingBooks ? "Loading books…" : "Choose a book"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {books.map((book) => (
-                    <SelectItem key={book.id} value={book.name}>
-                      {book.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder={
+                  isLoadingBooks ? "Loading books…" : "Choose a book"
+                }
+                searchPlaceholder="Type a book (e.g. gen, john)…"
+                triggerClassName={`${styles.control} w-full min-w-0 max-w-full`}
+                aria-label="Bible book"
+              />
             </div>
             <div className={styles.field}>
               <Label className={styles.label}>Chapter</Label>
-              <Select
+              <Combobox
+                options={chapterOptions.map((chapter) => ({
+                  value: String(chapter),
+                  label: `Chapter ${chapter}`,
+                  keywords: [String(chapter)],
+                }))}
                 value={form.chapter || undefined}
                 onValueChange={handleChapterSelect}
                 disabled={!selectedBook}
-              >
-                <SelectTrigger className={`${styles.control} w-full min-w-0 max-w-full`}>
-                  <SelectValue
-                    placeholder={
-                      selectedBook ? "Choose a chapter" : "Select a book first"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {chapterOptions.map((chapter) => (
-                    <SelectItem key={chapter} value={String(chapter)}>
-                      Chapter {chapter}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder={
+                  selectedBook ? "Choose a chapter" : "Select a book first"
+                }
+                searchPlaceholder="Type a chapter number…"
+                emptyMessage="No chapters match."
+                triggerClassName={`${styles.control} w-full min-w-0 max-w-full`}
+                aria-label="Chapter"
+              />
             </div>
             <div className={styles.field}>
               <Label htmlFor="verses_range" className={styles.label}>

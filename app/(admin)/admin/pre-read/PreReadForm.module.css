@@ -205,7 +205,8 @@
 }
 
 button.control,
-.control[data-slot="select-trigger"] {
+.control[data-slot="select-trigger"],
+.control[role="combobox"] {
   display: flex;
   width: 100%;
   max-width: 100%;
