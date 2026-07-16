@@ -10,11 +10,13 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 20px clamp(20px, 4vw, 28px) 20px;
-  background: var(--surface-glass-gradient);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-bottom: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  padding: 1.25rem clamp(1.15rem, 4vw, 1.75rem) 1.25rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, #fff8f4 92%, #ffffff),
+    #ffffff
+  );
+  border-bottom: 1px solid #e8cfc4;
 }
 
 .headerBar {
@@ -81,7 +83,7 @@
   flex-direction: column;
   gap: 18px;
   overflow-y: auto;
-  padding: 20px clamp(20px, 4vw, 32px) 90px;
+  padding: 1.25rem clamp(1.15rem, 4vw, 2rem) 5.5rem;
 }
 
 .spinner {
@@ -198,18 +200,12 @@
 .noteActions {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-}
-
-.noteActionButton {
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  gap: 0.5rem;
 }
 
 .noteActionIcon {
-  width: 14px;
-  height: 14px;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .noteContent {

@@ -154,6 +154,100 @@ textarea.control,
   color: #ffffff;
 }
 
+.btnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.btnIcon:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.btnIconDanger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  border-radius: 0.8rem;
+  border: 1.5px solid color-mix(in oklab, #b91c1c 25%, #e0c4b6);
+  background: color-mix(in oklab, #b91c1c 8%, #ffffff);
+  color: #b91c1c;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.btnIconDanger:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: color-mix(in oklab, #b91c1c 18%, #ffffff);
+  color: #991b1b;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+  color: #d91f26;
+}
+
+.chipActive {
+  border-color: #d91f26;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  box-shadow: 0 8px 18px color-mix(in oklab, #d91f26 24%, transparent);
+}
+
+.chipActive:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  filter: brightness(1.05);
+}
+
 @media (min-width: 768px) {
   .control {
     min-height: 3rem;
@@ -165,6 +259,20 @@ textarea.control,
   .btnSecondary {
     min-height: 2.75rem;
     font-size: 0.95rem;
+  }
+
+  .btnIcon,
+  .btnIconDanger {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .chip {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.85rem;
   }
 
   textarea.control,

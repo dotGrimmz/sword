@@ -22,6 +22,7 @@ import {
 import { useTranslationContext } from "./TranslationContext";
 import { TranslationSwitcher } from "./TranslationSwitcher";
 import { Button } from "./ui/button";
+import controls from "@/components/realign/controls.module.css";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
@@ -412,9 +413,9 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             </div>
             <div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className={styles.deleteButton}
+                className={`${controls.btnIconDanger} ${styles.deleteButton}`}
                 onClick={() => handleDeleteHighlight(highlight.raw)}
               >
                 <Trash2 className={styles.metaIcon} />
@@ -472,10 +473,10 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             hideLabel
           />
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={handleExportHighlights}
-            className={styles.exportButton}
+            className={`${controls.btnIcon} ${styles.exportButton}`}
             aria-label="Export marked passages"
           >
             <Share className={styles.toolbarIcon} />
@@ -488,27 +489,33 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
             placeholder="Search marked passages..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className={styles.searchInput}
+            className={`${controls.control} ${styles.searchInput}`}
           />
         </div>
 
         <div className={styles.filters}>
           <Filter className={styles.filterIcon} />
           <Button
-            variant={selectedColor === "all" ? "default" : "ghost"}
-            size="sm"
+            variant="outline"
             onClick={() => setSelectedColor("all")}
-            className={styles.filterButton}
+            className={clsx(
+              controls.chip,
+              styles.filterButton,
+              selectedColor === "all" && controls.chipActive,
+            )}
           >
             All colors
           </Button>
           {availableFilterColors.map((color) => (
             <Button
               key={color}
-              variant={selectedColor === color ? "default" : "ghost"}
-              size="sm"
+              variant="outline"
               onClick={() => setSelectedColor(color)}
-              className={styles.filterButton}
+              className={clsx(
+                controls.chip,
+                styles.filterButton,
+                selectedColor === color && controls.chipActive,
+              )}
             >
               <span className={clsx(styles.colorSwatch, colorSwatchClasses[color])} />
               {color.charAt(0).toUpperCase() + color.slice(1)}

@@ -774,18 +774,20 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     </div>
                     <div className={styles.noteActions}>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className={styles.noteActionButton}
+                        className={controls.btnIcon}
                         onClick={() => handleEdit(note.raw)}
+                        aria-label="Edit reflection"
                       >
                         <Edit className={styles.noteActionIcon} />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className={styles.noteActionButton}
+                        className={controls.btnIconDanger}
                         onClick={() => handleDelete(note.raw)}
+                        aria-label="Delete reflection"
                       >
                         <Trash2 className={styles.noteActionIcon} />
                       </Button>
