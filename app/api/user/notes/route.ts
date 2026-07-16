@@ -5,7 +5,7 @@ import { parseLimitParam } from "@/lib/bible/utils";
 import { fetchTranslationByCode } from "@/lib/bible/queries";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid, toNullableString, toOptionalInteger } from "@/lib/shared/parsers";
-import { mapNoteRow, sanitiseNoteBody } from "@/lib/user/notes";
+import { mapNoteRow, sanitiseNoteBody, NOTE_SELECT_COLUMNS } from "@/lib/user/notes";
 import type { CreateUserNotePayload } from "@/types/user";
 
 const validateCreatePayload = (
@@ -140,9 +140,7 @@ export async function GET(request: Request) {
 
   let query = supabase
     .from("user_notes")
-    .select(
-      "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
-    )
+    .select(NOTE_SELECT_COLUMNS)
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false, nullsFirst: false })
@@ -230,9 +228,7 @@ export async function POST(request: Request) {
       verse_end: validation.data.verseEnd,
       body: validation.data.body,
     })
-    .select(
-      "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
-    )
+    .select(NOTE_SELECT_COLUMNS)
     .single();
 
   if (error) {

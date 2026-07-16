@@ -188,7 +188,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
           note.verseStart,
           note.verseEnd
         ),
-        excerpt: getExcerpt(note.body, 140),
+        excerpt: getExcerpt(note.body ?? "", 140),
         updatedLabel: formatRelativeLabel(
           note.updatedAt ?? note.createdAt ?? null
         ),

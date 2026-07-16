@@ -101,7 +101,7 @@ const extractTitle = (body: string) => {
   return firstLine.length > 80 ? `${firstLine.slice(0, 77)}…` : firstLine;
 };
 
-const normaliseBody = (body: string) => body.trim();
+const normaliseBody = (body: string | null | undefined) => (body ?? "").trim();
 
 export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   void onNavigate;
@@ -288,7 +288,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       if (note.title.toLowerCase().includes(needle)) {
         return true;
       }
-      if (note.body.toLowerCase().includes(needle)) {
+      if ((note.body ?? "").toLowerCase().includes(needle)) {
         return true;
       }
       if (
@@ -393,7 +393,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
   const handleEdit = (note: UserNote) => {
     setEditingNote(note);
-    setEditBody(note.body);
+    setEditBody(note.body ?? "");
     setEditError(null);
   };
 
@@ -802,7 +802,9 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       “{note.verseText}”
                     </blockquote>
                   ) : null}
-                  <p className={styles.noteBody}>{note.body}</p>
+                  {note.body ? (
+                    <p className={styles.noteBody}>{note.body}</p>
+                  ) : null}
                 </CardContent>
               </Card>
             </motion.div>
