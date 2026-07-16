@@ -2,7 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  overflow-x: clip;
 }
 
 .header {
@@ -10,6 +13,13 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.header > div {
+  min-width: 0;
+  flex: 1;
 }
 
 .eyebrow {
@@ -26,10 +36,12 @@
   font-size: 1.05rem;
   font-weight: 700;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
 }
 
 .status {
   flex-shrink: 0;
+  max-width: 40%;
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
   background: #ffe8dc;
@@ -38,9 +50,15 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .phone {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 1.25rem;
   border: 1px solid #e8cfc4;
   background: #fff5f0;
@@ -50,8 +68,9 @@
   flex-direction: column;
   gap: 0.85rem;
   max-height: min(72vh, 780px);
+  overflow-x: clip;
   overflow-y: auto;
-  min-width: 0;
+  overscroll-behavior: contain;
 }
 
 .topBar {
@@ -59,24 +78,29 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .back {
   font-size: 0.85rem;
   font-weight: 650;
   color: #d91f26;
+  min-width: 0;
 }
 
 .brand {
   font-size: 0.9rem;
   font-weight: 800;
   color: #d91f26;
+  flex-shrink: 0;
 }
 
 .hero {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .heroEyebrow {
@@ -86,6 +110,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #4a4a4a;
+  overflow-wrap: anywhere;
 }
 
 .heroTitle {
@@ -95,6 +120,7 @@
   line-height: 1.2;
   color: #1a1a1a;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .scriptureRow {
@@ -102,13 +128,19 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .scriptureRef {
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
   font-size: 0.95rem;
   font-weight: 700;
   color: #d91f26;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .heroLink {
@@ -118,6 +150,7 @@
   font-size: 0.8rem;
   font-weight: 650;
   color: #d91f26;
+  flex-shrink: 0;
 }
 
 .heroLinkIcon {
@@ -128,10 +161,15 @@
 .card,
 .cardMuted,
 .memory {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 0.85rem;
   border: 1px solid #e8cfc4;
   padding: 0.85rem 0.9rem;
   background: #ffffff;
+  overflow-wrap: anywhere;
 }
 
 .cardMuted {
@@ -161,6 +199,8 @@
   line-height: 1.55;
   color: #1a1a1a;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .materials {
@@ -170,6 +210,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .materialCard {
@@ -181,6 +223,7 @@
   border: 1px solid #e8cfc4;
   background: #fff8f4;
   min-width: 0;
+  max-width: 100%;
 }
 
 .materialIcon {
@@ -244,6 +287,8 @@
   font-weight: 600;
   line-height: 1.4;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .memoryRef {
@@ -251,6 +296,8 @@
   font-size: 0.8rem;
   font-weight: 650;
   color: #d91f26;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .questions {
@@ -261,6 +308,8 @@
   gap: 0.4rem;
   font-size: 0.85rem;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pollQ {
@@ -268,6 +317,8 @@
   font-size: 0.9rem;
   font-weight: 650;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pollOptions {
@@ -277,15 +328,21 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .pollOptions li {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.5rem 0.65rem;
   border-radius: 0.55rem;
   border: 1px solid #e8cfc4;
   background: #ffffff;
   font-size: 0.85rem;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .empty {
@@ -295,6 +352,8 @@
   text-align: center;
   gap: 0.55rem;
   padding: 2.5rem 1rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .emptyIcon {
@@ -318,6 +377,7 @@
   font-size: 1.05rem;
   font-weight: 750;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
 }
 
 .emptyText {
@@ -326,4 +386,11 @@
   line-height: 1.45;
   color: #4a4a4a;
   max-width: 16rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1099px) {
+  .phone {
+    max-height: min(64vh, 640px);
+  }
 }
