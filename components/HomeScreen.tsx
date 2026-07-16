@@ -15,7 +15,6 @@ import {
   Book,
   BookOpen,
   Calendar,
-  Clock,
   Heart,
   Lightbulb,
   Loader2,
@@ -35,7 +34,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Progress } from "./ui/progress";
 import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserNotes } from "@/lib/api/notes";
@@ -155,9 +153,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     }
     return index;
   }, [books]);
-
-  const notesCount = notesData.length;
-  const highlightsCount = highlightsData.length;
 
   const recentNotes = useMemo<NotePreview[]>(() => {
     const sorted = [...notesData].sort((a, b) => {
@@ -358,26 +353,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     [currentStudy]
   );
 
-  const progressData = useMemo(() => {
-    const total = notesCount + highlightsCount;
-    if (total === 0) {
-      return [
-        { label: "Reflections captured", value: 0 },
-        { label: "Marked verses", value: 0 },
-      ];
-    }
-    return [
-      {
-        label: "Reflections captured",
-        value: Math.round((notesCount / total) * 100),
-      },
-      {
-        label: "Marked verses",
-        value: Math.round((highlightsCount / total) * 100),
-      },
-    ];
-  }, [notesCount, highlightsCount]);
-
   const showLoading =
     isLoadingBooks ||
     isLoadingTranslations ||
@@ -561,37 +536,6 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card className={styles.statsCard}>
-              <CardHeader className={styles.statsHeader}>
-                <CardTitle className={styles.statsTitle}>
-                  <Clock className={styles.statsIcon} aria-hidden="true" />
-                  Rhythm overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className={styles.statsContent}>
-                {progressData.map((item) => (
-                  <div key={item.label} className={styles.progressRow}>
-                    <div className={styles.progressMeta}>
-                      <span className={styles.progressLabel}>{item.label}</span>
-                      <span className={styles.progressValue}>
-                        {item.value}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={item.value}
-                      className={styles.progressBar}
-                    />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.25 }}
           >
             <Card className={styles.notesCard}>
               <CardHeader className={styles.notesHeader}>

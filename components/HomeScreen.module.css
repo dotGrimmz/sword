@@ -438,30 +438,20 @@
   height: 32px;
 }
 
-.statsCard,
 .notesCard {
   border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
   background: var(--card);
   box-shadow: 0 4px 16px color-mix(in oklab, var(--foreground) 5%, transparent);
-}
-
-.statsCard {
-  flex-shrink: 0;
-}
-
-.notesCard {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.statsHeader,
 .notesHeader {
   padding-bottom: 12px;
 }
 
-.statsTitle,
 .notesTitle {
   display: flex;
   align-items: center;
@@ -471,53 +461,6 @@
   font-weight: 600;
   color: var(--foreground);
   padding: 0.5rem;
-}
-
-.statsIcon {
-  width: 16px;
-  height: 16px;
-  color: var(--primary);
-}
-
-.statsContent {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-left: 0.5rem;
-  padding-right: 0.75rem;
-  padding-bottom: 0.5rem;
-}
-
-.progressRow {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.progressMeta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  font-size: 14px;
-}
-
-.progressLabel {
-  flex: 1;
-  min-width: 0;
-  color: var(--foreground);
-}
-
-.progressValue {
-  flex-shrink: 0;
-  min-width: 2.75rem;
-  text-align: center;
-  color: var(--muted-foreground);
-}
-
-.progressBar {
-  height: 8px;
-  border-radius: 999px;
 }
 
 .notesContent {
