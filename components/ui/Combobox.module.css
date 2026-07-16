@@ -1,0 +1,194 @@
+.root {
+  width: 100%;
+  min-width: 0;
+}
+
+.trigger {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  padding: 0.85rem 1rem;
+  color: #1a1a1a;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: color-mix(in oklab, #d91f26 35%, #e0c4b6);
+  background: #ffffff;
+}
+
+.trigger:focus-visible {
+  outline: none;
+  border-color: #d91f26;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px color-mix(in oklab, #d91f26 18%, transparent);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.trigger[data-placeholder] {
+  color: #6b5a52;
+  font-weight: 450;
+}
+
+.triggerLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  color: #8a7268;
+  opacity: 0.9;
+}
+
+.content {
+  width: var(--radix-popover-trigger-width);
+  max-width: min(100vw - 1.5rem, 28rem);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  border: 1.5px solid #e8cfc4;
+  background: #ffffff;
+  box-shadow:
+    0 18px 40px color-mix(in oklab, #1a1a1a 12%, transparent),
+    0 2px 8px color-mix(in oklab, #d91f26 8%, transparent);
+}
+
+.searchRow {
+  padding: 0.7rem;
+  border-bottom: 1px solid #f0ddd4;
+  background: #fff8f4;
+}
+
+.searchInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.85rem;
+  border-radius: 0.7rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  padding: 0.65rem 0.85rem;
+  color: #1a1a1a;
+  font-size: 1rem;
+  line-height: 1.35;
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.searchInput::placeholder {
+  color: #8a7268;
+}
+
+.searchInput:focus {
+  border-color: #d91f26;
+  box-shadow: 0 0 0 3px color-mix(in oklab, #d91f26 16%, transparent);
+}
+
+.list {
+  max-height: 16.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.4rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.empty {
+  margin: 0;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  color: #6b5a52;
+  font-size: 0.95rem;
+}
+
+.option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
+  padding: 0.8rem 0.85rem;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.option:hover,
+.option[data-active] {
+  background: color-mix(in oklab, #d91f26 10%, #fff5f0);
+  color: #1a1a1a;
+}
+
+.option[data-selected] {
+  background: color-mix(in oklab, #d91f26 14%, #ffe8dc);
+  color: #1a1a1a;
+}
+
+.option[data-selected][data-active] {
+  background: color-mix(in oklab, #d91f26 18%, #ffe0d0);
+}
+
+.optionLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.check {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: #d91f26;
+}
+
+@media (min-width: 720px) {
+  .trigger {
+    min-height: 3rem;
+    padding: 0.75rem 0.95rem;
+    font-size: 1rem;
+  }
+
+  .searchInput {
+    min-height: 2.5rem;
+    font-size: 0.95rem;
+  }
+
+  .option {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.95rem;
+  }
+}

@@ -157,7 +157,8 @@
 
 .field :global(input),
 .field :global(textarea),
-.field :global(button[data-slot="select-trigger"]) {
+.field :global(button[data-slot="select-trigger"]),
+.field :global(button[role="combobox"]) {
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -237,9 +238,13 @@ textarea.control {
 .statusToggles {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.75rem;
   min-width: 0;
   max-width: 100%;
+}
+
+.statusToggles :global(button) {
+  border-radius: 0.85rem;
 }
 
 .arrayGroup {
@@ -463,6 +468,25 @@ textarea.control {
   .toolbarActions :global(a),
   .toolbarActions :global(button) {
     flex: 1 1 calc(50% - 0.4rem);
+    min-height: 3.5rem;
+  }
+
+  .statusToggles {
+    gap: 0.75rem;
+  }
+
+  .statusToggles :global(button) {
+    flex: 1 1 100%;
+    min-height: 3.5rem;
+    font-size: 1.05rem;
+  }
+
+  .formShell :global(button:not([role="combobox"])) {
+    min-height: 3.5rem;
+  }
+
+  .formShell :global(button[role="combobox"]) {
+    min-height: 3.5rem;
   }
 
   .control {
@@ -470,7 +494,7 @@ textarea.control {
     width: 100%;
     max-width: 100%;
     min-width: 0 !important;
-    min-height: 3.15rem;
+    min-height: 3.5rem;
     font-size: 1.05rem;
     padding: 0.85rem 1rem;
   }
@@ -491,9 +515,15 @@ textarea.control {
   .actions :global(a),
   .actions :global(button) {
     width: 100%;
+    min-height: 3.5rem;
   }
 
   .section {
     padding: 1.1rem 1rem;
+  }
+
+  .materialsActions :global(button),
+  .materialsActions :global(label) {
+    min-height: 3.5rem;
   }
 }

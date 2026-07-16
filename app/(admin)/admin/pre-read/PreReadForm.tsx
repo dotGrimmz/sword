@@ -7,11 +7,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { BookCombobox } from "@/components/bible/BookCombobox";
+import { VerseRangePicker } from "@/components/bible/VerseRangePicker";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { parseVerseRangeValue } from "@/lib/bible/verseRange";
 import {
   createStudyLinkMaterial,
   deleteStudyMaterial,
@@ -36,14 +38,14 @@ import { StudyMaterialsEditor } from "./StudyMaterialsEditor";
 
 /** Bigger tap targets on mobile; comfortable padded size from md up. */
 const btnSize =
-  "h-12 px-5 text-base md:h-10 md:px-5 md:text-sm";
-const btnIconSize = "size-11 md:size-9";
+  "h-14 min-h-14 px-6 text-base md:h-10 md:min-h-10 md:px-5 md:text-sm";
+const btnIconSize = "size-12 md:size-9";
 const btnSecondary =
-  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
+  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
 const btnPrimary =
-  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white";
+  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white";
 const btnStatus =
-  "h-12 flex-1 basis-28 min-w-0 px-4 text-base md:h-10 md:px-5 md:text-sm hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
+  "h-14 min-h-14 flex-1 basis-[calc(50%-0.35rem)] min-w-0 px-4 text-base font-semibold md:h-11 md:min-h-11 md:basis-28 md:px-5 md:text-sm hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
 
 type PreReadFormProps = {
   mode: "create" | "edit";
@@ -127,6 +129,10 @@ export default function PreReadForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [books, setBooks] = useState<BibleBookSummary[]>([]);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
+  const [chapterVerseCount, setChapterVerseCount] = useState<number | null>(
+    null,
+  );
+  const [isLoadingVerses, setIsLoadingVerses] = useState(false);
   const [versesManuallyEdited, setVersesManuallyEdited] = useState(
     Boolean(initialData?.verses_range && initialData.verses_range.length > 0)
   );
@@ -280,16 +286,17 @@ export default function PreReadForm({
       !Number.isFinite(currentChapter) ||
       currentChapter < CHAPTER_MIN
     ) {
+      setChapterVerseCount(null);
+      setIsLoadingVerses(false);
       return;
     }
-    if (versesEditedRef.current) {
-      return;
-    }
+
     let active = true;
     const controller = new AbortController();
 
     const hydrateVerses = async () => {
       try {
+        setIsLoadingVerses(true);
         const response = await fetch(
           CHAPTER_ENDPOINT(currentBook, currentChapter),
           {
@@ -303,7 +310,11 @@ export default function PreReadForm({
         const verseCount = Array.isArray(payload.verses)
           ? payload.verses.length
           : 0;
-        if (!active || verseCount === 0) {
+        if (!active) {
+          return;
+        }
+        setChapterVerseCount(verseCount > 0 ? verseCount : null);
+        if (verseCount === 0 || versesEditedRef.current) {
           return;
         }
         setForm((prev) => {
@@ -322,6 +333,11 @@ export default function PreReadForm({
       } catch (error) {
         if (active && (error as Error).name !== "AbortError") {
           console.error("Failed to auto-fill verse range", error);
+          setChapterVerseCount(null);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingVerses(false);
         }
       }
     };
@@ -341,6 +357,7 @@ export default function PreReadForm({
       chapter: "",
       versesRange: "",
     }));
+    setChapterVerseCount(null);
     setVersesManuallyEdited(false);
   };
 
@@ -348,7 +365,9 @@ export default function PreReadForm({
     setForm((prev) => ({
       ...prev,
       chapter: value,
+      versesRange: "",
     }));
+    setChapterVerseCount(null);
     setVersesManuallyEdited(false);
   };
 
@@ -420,27 +439,7 @@ export default function PreReadForm({
     }
   };
 
-  const parseVerseRange = (value: string) => {
-    const normalized = value.trim();
-    if (!normalized) {
-      return null;
-    }
-    const match = normalized.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
-    if (!match) {
-      return null;
-    }
-    const start = Number(match[1]);
-    const end = match[2] ? Number(match[2]) : start;
-    if (
-      !Number.isFinite(start) ||
-      !Number.isFinite(end) ||
-      start <= 0 ||
-      end < start
-    ) {
-      return null;
-    }
-    return { start, end };
-  };
+  const parseVerseRange = parseVerseRangeValue;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -762,19 +761,21 @@ export default function PreReadForm({
                 aria-label="Chapter"
               />
             </div>
-            <div className={styles.field}>
-              <Label htmlFor="verses_range" className={styles.label}>
-                Verses (optional)
-              </Label>
-              <Input
-                id="verses_range"
-                className={`${styles.control} w-full min-w-0 max-w-full`}
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <Label className={styles.label}>Verses</Label>
+              <VerseRangePicker
+                verseCount={chapterVerseCount}
                 value={form.versesRange}
-                onChange={(event) => handleVersesChange(event.target.value)}
-                placeholder="1-26"
+                onValueChange={handleVersesChange}
+                disabled={isLoadingVerses}
+                triggerClassName={`${styles.control} w-full min-w-0 max-w-full`}
               />
               <p className={styles.helper}>
-                Leave blank for the full chapter.
+                {isLoadingVerses
+                  ? "Loading verse bounds…"
+                  : chapterVerseCount
+                    ? `Chapter has ${chapterVerseCount} verses. Defaults to the full chapter.`
+                    : "Pick a book and chapter to unlock verse bounds."}
               </p>
             </div>
             <div className={styles.field}>

@@ -4,14 +4,14 @@ import * as React from "react";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 
 import { filterComboboxOptions } from "@/lib/bible/filterBooks";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/components/ui/utils";
+
+import styles from "./Combobox.module.css";
 
 export type ComboboxOption = {
   value: string;
@@ -132,39 +132,38 @@ export function Combobox({
   };
 
   return (
-    <div className={cn("w-full min-w-0", className)}>
+    <div className={cn(styles.root, className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
+          <button
             id={id}
             type="button"
-            variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-controls={id ? `${id}-listbox` : undefined}
             aria-label={ariaLabel}
             disabled={disabled}
-            className={cn(
-              "border-input data-[placeholder]:text-muted-foreground flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm font-normal whitespace-nowrap shadow-none transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-              !selected && "text-muted-foreground",
-              triggerClassName,
-            )}
+            data-placeholder={!selected ? "" : undefined}
+            className={cn(styles.trigger, triggerClassName)}
           >
-            <span className="min-w-0 flex-1 truncate text-left">
+            <span className={styles.triggerLabel}>
               {selected?.label ?? placeholder}
             </span>
-            <ChevronDownIcon className="size-4 shrink-0 opacity-50" />
-          </Button>
+            <ChevronDownIcon className={styles.chevron} aria-hidden="true" />
+          </button>
         </PopoverTrigger>
         <PopoverContent
           align="start"
+          sideOffset={6}
           className={cn(
-            "w-[var(--radix-popover-trigger-width)] p-0",
+            "w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] border-0 bg-transparent p-0 shadow-none",
+            styles.content,
             contentClassName,
           )}
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <div className="border-b p-2">
-            <Input
+          <div className={styles.searchRow}>
+            <input
               ref={searchRef}
               value={query}
               onChange={(event) => {
@@ -173,7 +172,7 @@ export function Combobox({
               }}
               onKeyDown={onSearchKeyDown}
               placeholder={searchPlaceholder}
-              className="h-10"
+              className={styles.searchInput}
               aria-autocomplete="list"
               aria-controls={id ? `${id}-listbox` : undefined}
               autoComplete="off"
@@ -185,12 +184,10 @@ export function Combobox({
             ref={listRef}
             id={id ? `${id}-listbox` : undefined}
             role="listbox"
-            className="max-h-60 overflow-y-auto overscroll-contain p-1"
+            className={styles.list}
           >
             {filtered.length === 0 ? (
-              <p className="text-muted-foreground px-2 py-3 text-center text-sm">
-                {emptyMessage}
-              </p>
+              <p className={styles.empty}>{emptyMessage}</p>
             ) : (
               filtered.map((option, index) => {
                 const isSelected = option.value === value;
@@ -202,19 +199,15 @@ export function Combobox({
                     role="option"
                     aria-selected={isSelected}
                     data-combobox-index={index}
-                    className={cn(
-                      "relative flex w-full cursor-default items-center gap-2 rounded-md px-2.5 py-2.5 text-left text-sm outline-hidden transition-colors",
-                      isActive && "bg-accent text-accent-foreground",
-                      isSelected && !isActive && "bg-accent/50",
-                    )}
+                    data-active={isActive ? "" : undefined}
+                    data-selected={isSelected ? "" : undefined}
+                    className={styles.option}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectValue(option.value)}
                   >
-                    <span className="min-w-0 flex-1 truncate">
-                      {option.label}
-                    </span>
+                    <span className={styles.optionLabel}>{option.label}</span>
                     {isSelected ? (
-                      <CheckIcon className="size-4 shrink-0 opacity-70" />
+                      <CheckIcon className={styles.check} aria-hidden="true" />
                     ) : null}
                   </button>
                 );
