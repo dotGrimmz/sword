@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -68,7 +67,7 @@ type VerseSnapshot = {
   reference: string;
 };
 
-const formatDate = (iso: string | null) => {
+const formatRelativeLabel = (iso: string | null) => {
   if (!iso) {
     return null;
   }
@@ -76,6 +75,24 @@ const formatDate = (iso: string | null) => {
   if (Number.isNaN(date.getTime())) {
     return null;
   }
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  const dayDiff = Math.round(
+    (startOfToday.getTime() - startOfDate.getTime()) / 86_400_000
+  );
+
+  if (dayDiff === 0) return "Today";
+  if (dayDiff === 1) return "Yesterday";
+  if (dayDiff > 1 && dayDiff < 7) {
+    return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
+  }
+
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
@@ -172,7 +189,9 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
           note.verseEnd
         ),
         excerpt: getExcerpt(note.body, 140),
-        updatedLabel: formatDate(note.updatedAt ?? note.createdAt ?? null),
+        updatedLabel: formatRelativeLabel(
+          note.updatedAt ?? note.createdAt ?? null
+        ),
       } satisfies NotePreview;
     });
   }, [bookIndex, notesData]);
@@ -537,45 +556,88 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card className={styles.notesCard}>
-              <CardHeader className={styles.notesHeader}>
-                <CardTitle className={styles.notesTitle}>
-                  Recent reflections
-                </CardTitle>
-              </CardHeader>
-              <CardContent className={styles.notesContent}>
+            <section className={styles.notesCard} aria-labelledby="recent-reflections-heading">
+              <div className={styles.notesHeader}>
+                <div className={styles.notesTitleRow}>
+                  <Lightbulb className={styles.notesIcon} aria-hidden="true" />
+                  <h2 id="recent-reflections-heading" className={styles.notesTitle}>
+                    Recent reflections
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className={styles.notesViewAll}
+                  onClick={() => handleNavigate("notes")}
+                >
+                  View all
+                  <ArrowUpRight className={styles.notesViewAllIcon} aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className={styles.notesContent}>
                 {recentNotes.length > 0 ? (
-                  recentNotes.map((note) => (
-                    <div key={note.id} className={styles.noteItem}>
-                      <p className={styles.noteMeta}>
-                        {note.reference ?? "Unspecified reference"}
-                        {note.updatedLabel ? ` • ${note.updatedLabel}` : ""}
-                      </p>
-                      <p className={styles.noteExcerpt}>{note.excerpt}</p>
-                    </div>
-                  ))
+                  <ul className={styles.notesList}>
+                    {recentNotes.map((note, index) => (
+                      <motion.li
+                        key={note.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.28, delay: 0.08 * index }}
+                      >
+                        <button
+                          type="button"
+                          className={styles.noteItem}
+                          onClick={() => handleNavigate("notes")}
+                        >
+                          <div className={styles.noteItemTop}>
+                            <span className={styles.noteReference}>
+                              {note.reference ?? "Open reflection"}
+                            </span>
+                            {note.updatedLabel ? (
+                              <span className={styles.noteWhen}>
+                                {note.updatedLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className={styles.noteExcerpt}>{note.excerpt}</p>
+                          <span className={styles.noteItemCta} aria-hidden="true">
+                            Open
+                            <ArrowUpRight className={styles.noteItemCtaIcon} />
+                          </span>
+                        </button>
+                      </motion.li>
+                    ))}
+                  </ul>
                 ) : (
                   <div className={styles.notePlaceholder}>
                     <div className={styles.notePlaceholderBadge}>
-                      <Image
-                        src="/sword_logo.png"
-                        alt="Sword logo"
-                        width={86}
-                        height={86}
-                        className={styles.notePlaceholderImage}
+                      <Lightbulb
+                        className={styles.notePlaceholderIcon}
+                        aria-hidden="true"
                       />
                     </div>
                     <h3 className={styles.notePlaceholderTitle}>
-                      Your next reflection starts here
+                      Nothing captured yet
                     </h3>
                     <p className={styles.notePlaceholderCopy}>
-                      Capture a takeaway, prayer, or question and watch this
-                      space fill with your study journey.
+                      Jot a takeaway, prayer, or question after you read —
+                      your latest notes will show up here.
                     </p>
+                    <button
+                      type="button"
+                      className={styles.notePlaceholderCta}
+                      onClick={() => handleNavigate("notes")}
+                    >
+                      Write a reflection
+                      <ArrowUpRight
+                        className={styles.notePlaceholderCtaIcon}
+                        aria-hidden="true"
+                      />
+                    </button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           </motion.div>
 
           <p className={styles.ministryCredit}>Realign Ministries</p>
