@@ -35,6 +35,7 @@ import {
 import styles from "./PreReadForm.module.css";
 import { StudyHubPreview } from "./StudyHubPreview";
 import { StudyMaterialsEditor } from "./StudyMaterialsEditor";
+import { WeekPicker } from "./WeekPicker";
 
 /** Bigger tap targets on mobile; comfortable padded size from md up. */
 const btnSize =
@@ -207,10 +208,10 @@ export default function PreReadForm({
       cancelled = true;
     };
   }, [mode, initialData?.id]);
-  const resetWeekStart = () => {
+  const handleWeekChange = (weekStart: string) => {
     setForm((prev) => ({
       ...prev,
-      weekStart: getCurrentWeekStartInput(),
+      weekStart: startOfWeek(new Date(`${weekStart}T12:00:00`)),
     }));
   };
 
@@ -683,38 +684,21 @@ export default function PreReadForm({
                 required
               />
             </div>
-            <div className={styles.field}>
-              <Label htmlFor="week_start" className={styles.label}>
-                Week of
-              </Label>
-              <Input
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <Label className={styles.label}>Week of</Label>
+              <WeekPicker
                 id="week_start"
-                type="date"
-                className={`${styles.control} w-full min-w-0 max-w-full`}
                 value={form.weekStart}
-                onChange={(event) =>
-                  handleFieldChange("weekStart", event.target.value)
-                }
-                required
+                onValueChange={handleWeekChange}
               />
               <p className={styles.helper}>
-                Saved as the Monday of that week
+                Members see this study during the Monday–Sunday block shown
+                above
                 {form.weekStart
-                  ? ` (${formatWeekLabel(
-                      startOfWeek(new Date(`${form.weekStart}T12:00:00`)),
-                    )})`
+                  ? ` (${formatWeekLabel(form.weekStart)})`
                   : ""}
                 .
               </p>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className={`mt-1 w-fit ${btnSize}`}
-                onClick={resetWeekStart}
-              >
-                Use this week
-              </Button>
             </div>
           </div>
         </section>
