@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import controls from "@/components/realign/controls.module.css";
 
 import styles from "./CommentsSection.module.css";
 
@@ -61,14 +62,6 @@ const CommentItem = ({
   onDelete,
   setReplyValue,
 }: CommentItemProps) => {
-  const fallback =
-    comment.author.username
-      ?.split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() ?? "M";
-
   return (
     <li className={styles.item}>
       <div className={styles.itemHeader}>
@@ -79,8 +72,6 @@ const CommentItem = ({
               alt={comment.author.username ?? "Member"}
             />
           ) : null}
-
-          {/* <AvatarFallback>{fallback}</AvatarFallback> */}
         </Avatar>
         <div className={styles.itemMeta}>
           <p className={styles.itemName}>
@@ -95,7 +86,7 @@ const CommentItem = ({
       <div className={styles.itemActions}>
         <button
           type="button"
-          className={styles.actionButton}
+          className={controls.btnGhost}
           onClick={() =>
             onReplyToggle(replyingTo === comment.id ? null : comment.id)
           }
@@ -105,7 +96,7 @@ const CommentItem = ({
         {comment.can_delete ? (
           <button
             type="button"
-            className={`${styles.actionButton} ${styles.deleteButton}`}
+            className={controls.btnDanger}
             onClick={() => onDelete(comment.id)}
           >
             Delete
@@ -119,19 +110,20 @@ const CommentItem = ({
             value={replyValue}
             onChange={(event) => setReplyValue(event.target.value)}
             rows={2}
+            className={`${controls.control} ${controls.controlTextarea}`}
           />
           <div className={styles.replyActions}>
             <Button
               type="button"
-              size="sm"
+              className={controls.btnPrimary}
               onClick={() => onReplySubmit(comment.id)}
             >
               Post Reply
             </Button>
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              className={controls.btnSecondary}
               onClick={() => onReplyToggle(null)}
             >
               Cancel
@@ -320,10 +312,12 @@ export function CommentsSection({
           value={newComment}
           onChange={(event) => setNewComment(event.target.value)}
           rows={3}
+          className={`${controls.control} ${controls.controlTextarea}`}
         />
         <div className={styles.editorActions}>
           <Button
             type="button"
+            className={controls.btnPrimary}
             onClick={() => postComment(newComment, null)}
             disabled={submitting}
           >

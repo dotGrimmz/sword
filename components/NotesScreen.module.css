@@ -45,81 +45,14 @@
 .headerTitle {
   margin: 0;
   font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.headerMeta {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted-foreground);
-}
-
-.addButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  height: auto;
-  min-height: 48px;
-  padding: 0.7rem 1.3rem;
-  font-size: 0.95rem;
-  border-radius: calc(var(--radius) - 0.15rem);
-}
-
-.addButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.addButton:not(:disabled):hover {
-  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
-  transform: translateY(-1px);
+  font-weight: 700;
+  color: #d91f26;
 }
 
 .addButtonIcon {
   width: 18px;
   height: 18px;
   margin-right: 6px;
-}
-
-.statsRow {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-}
-
-.statCard {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
-  background: var(--surface-gradient-soft);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-
-.statLabel {
-  margin: 0;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: color-mix(in oklab, var(--muted-foreground) 90%, transparent);
-}
-
-.statValue {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.statContext {
-  margin: 0;
-  font-size: 0.75rem;
-  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
 }
 
 .searchWrap {
@@ -133,18 +66,13 @@
   width: 18px;
   height: 18px;
   transform: translateY(-50%);
-  color: var(--muted-foreground);
+  color: #8a7268;
   pointer-events: none;
+  z-index: 1;
 }
 
 .searchInput {
-  padding-left: 40px;
-  background-color: var(--input-background);
-  border: 1px solid var(--border);
-  border-color: color-mix(in oklab, var(--border) 55%, transparent);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  padding-left: 2.75rem;
 }
 
 .listArea {
@@ -452,14 +380,6 @@
   color: color-mix(in oklab, var(--muted-foreground) 85%, transparent);
 }
 
-.selectTrigger,
-.input,
-.textarea {
-  background-color: var(--input-background);
-  border: 1px solid var(--border);
-  border-color: color-mix(in oklab, var(--border) 55%, transparent);
-}
-
 .textarea {
   min-height: 150px;
   resize: vertical;
@@ -495,22 +415,6 @@
 
 .saveButton {
   width: 100%;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  padding-inline: 1.8rem;
-  height: 48px;
-  font-size: 1rem;
-}
-
-.saveButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.saveButton:not(:disabled):hover {
-  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
-  transform: translateY(-1px);
 }
 
 .dialogTip {
@@ -528,22 +432,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.editButtonPrimary {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.editButtonPrimary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.editButtonPrimary:not(:disabled):hover {
-  background-color: color-mix(in oklab, var(--primary) 90%, transparent);
-  transform: translateY(-1px);
 }
 
 @keyframes notesScreenSpinner {

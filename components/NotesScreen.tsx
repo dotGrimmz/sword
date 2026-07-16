@@ -13,7 +13,6 @@ import {
   Trash2,
   BookOpen,
   Sparkles,
-  NotebookPen,
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
@@ -59,6 +58,7 @@ import { AudioNotePanel, type AudioNotePayload } from "./notes/AudioNotePanel";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import { usePassageTextsMap } from "@/lib/query/passages";
+import controls from "@/components/realign/controls.module.css";
 import styles from "./NotesScreen.module.css";
 
 interface NotesScreenProps {
@@ -304,90 +304,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     });
   }, [derivedNotes, searchQuery]);
 
-  const noteCount = notes.length;
-  const verseLinkedCount = useMemo(
-    () => derivedNotes.filter((note) => Boolean(note.referenceLabel)).length,
-    [derivedNotes]
-  );
-  const verseLinkedPercent =
-    noteCount > 0 ? Math.round((verseLinkedCount / noteCount) * 100) : 0;
-
-  const averageWordCount = useMemo(() => {
-    if (noteCount === 0) {
-      return 0;
-    }
-    const totalWords = derivedNotes.reduce((sum, note) => {
-      const count = note.body.split(/\s+/).filter(Boolean).length;
-      return sum + count;
-    }, 0);
-    return Math.max(1, Math.round(totalWords / noteCount));
-  }, [derivedNotes, noteCount]);
-
-  const latestNoteLabel = useMemo(() => {
-    if (notes.length === 0) {
-      return "First note awaits";
-    }
-    const mostRecent = notes.reduce<UserNote | null>((current, candidate) => {
-      if (!current) {
-        return candidate;
-      }
-      const candidateDate = new Date(
-        candidate.updatedAt ?? candidate.createdAt ?? 0
-      );
-      const currentDate = new Date(current.updatedAt ?? current.createdAt ?? 0);
-      return candidateDate > currentDate ? candidate : current;
-    }, null);
-
-    return (
-      formatDate(mostRecent?.updatedAt ?? mostRecent?.createdAt ?? null) ??
-      "Recently updated"
-    );
-  }, [notes]);
-
-  const headerMeta = useMemo(() => {
-    const savedLabel = `${noteCount} ${
-      noteCount === 1 ? "saved reflection" : "saved reflections"
-    }`;
-    const linkedLabel = `${verseLinkedCount} ${
-      verseLinkedCount === 1
-        ? "note linked to scripture"
-        : "notes linked to scripture"
-    }`;
-    return `${savedLabel} • ${linkedLabel}`;
-  }, [noteCount, verseLinkedCount]);
-
-  const statsCards = useMemo(
-    () => [
-      {
-        label: "Total reflections",
-        value: String(noteCount),
-        context:
-          noteCount === 0
-            ? "Start journaling your study insights."
-            : `${noteCount === 1 ? "Entry" : "Entries"} saved in your library.`,
-      },
-      {
-        label: "Scripture-linked",
-        value: noteCount === 0 ? "0" : `${verseLinkedPercent}%`,
-        context:
-          noteCount === 0
-            ? "Link passages to give your notes more context."
-            : `${verseLinkedCount} ${
-                verseLinkedCount === 1 ? "note" : "notes"
-              } include a verse.`,
-      },
-      {
-        label: "Average length",
-        value: noteCount === 0 ? "—" : `${averageWordCount} words`,
-        context:
-          noteCount === 0
-            ? "Your writing trends will appear here."
-            : "Typical note size across your reflections.",
-      },
-    ],
-    [noteCount, verseLinkedPercent, verseLinkedCount, averageWordCount]
-  );
-
   const handleCreateNote = async () => {
     if (!translationCode) {
       setCreateError("Select a translation before creating notes.");
@@ -554,7 +470,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         <div className={styles.headerBar}>
           <div className={styles.headerTitleWrap}>
             <h1 className={styles.headerTitle}>Reflections</h1>
-            <p className={styles.headerMeta}>{headerMeta}</p>
           </div>
           <div className={styles.headerActions}>
             <TranslationSwitcher
@@ -563,16 +478,15 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
               hideLabel
             />
             <Button
-              size="lg"
               variant="outline"
+              className={controls.btnSecondary}
               disabled={books.length === 0 || !translationCode}
               onClick={() => setIsAudioNoteOpen(true)}
             >
-              🎙 Record Note
+              Record Note
             </Button>
             <Button
-              size="lg"
-              className={styles.addButton}
+              className={controls.btnPrimary}
               disabled={books.length === 0 || !translationCode}
               onClick={() => setIsCreateOpen(true)}
             >
@@ -582,33 +496,13 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
           </div>
         </div>
 
-        <div className={styles.statsRow}>
-          {statsCards.map((card, index) => (
-            <motion.div
-              key={card.label}
-              className={styles.statCard}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.3,
-                ease: "easeOut",
-                delay: index * 0.04,
-              }}
-            >
-              <p className={styles.statLabel}>{card.label}</p>
-              <span className={styles.statValue}>{card.value}</span>
-              <p className={styles.statContext}>{card.context}</p>
-            </motion.div>
-          ))}
-        </div>
-
         <div className={styles.searchWrap}>
           <Search className={styles.searchIcon} aria-hidden="true" />
           <Input
             placeholder="Search your reflections..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className={styles.searchInput}
+            className={`${controls.control} ${styles.searchInput}`}
           />
         </div>
       </div>
@@ -660,48 +554,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
               </div>
             </motion.div>
 
-            <motion.div
-              className={styles.dialogMetaRow}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: "easeOut", delay: 0.05 }}
-            >
-              <div className={styles.dialogMetaTile}>
-                <NotebookPen
-                  className={styles.dialogMetaIcon}
-                  aria-hidden="true"
-                />
-                <div>
-                  <p className={styles.dialogMetaLabel}>Saved reflections</p>
-                  <p className={styles.dialogMetaValue}>{noteCount}</p>
-                </div>
-              </div>
-              <div className={styles.dialogMetaTile}>
-                <BookOpen
-                  className={styles.dialogMetaIcon}
-                  aria-hidden="true"
-                />
-                <div>
-                  <p className={styles.dialogMetaLabel}>Linked verses</p>
-                  <p className={styles.dialogMetaValue}>
-                    {noteCount === 0 ? "—" : `${verseLinkedPercent}%`}
-                  </p>
-                </div>
-              </div>
-              <div className={styles.dialogMetaTile}>
-                <Calendar
-                  className={styles.dialogMetaIcon}
-                  aria-hidden="true"
-                />
-                <div>
-                  <p className={styles.dialogMetaLabel}>Last updated</p>
-                  <p className={styles.dialogMetaValue}>{latestNoteLabel}</p>
-                </div>
-              </div>
-            </motion.div>
-
-            <div className={styles.dialogDivider} />
-
             <div className={styles.formStack}>
               <motion.div
                 className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
@@ -720,7 +572,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       setCreateVerseEnd("1");
                     }}
                   >
-                    <SelectTrigger className={styles.selectTrigger}>
+                    <SelectTrigger className={`${controls.control} ${styles.selectTrigger}`}>
                       <SelectValue placeholder="Select book" />
                     </SelectTrigger>
                     <SelectContent className={`${styles.selectContent} z-[9999]`}>
@@ -753,7 +605,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       setCreateVerseEnd("1");
                     }}
                   >
-                    <SelectTrigger className={styles.selectTrigger}>
+                    <SelectTrigger className={`${controls.control} ${styles.selectTrigger}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className={`${styles.selectContent} z-[9999]`}>
@@ -790,7 +642,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     min={1}
                     value={createVerseStart}
                     onChange={(event) => setCreateVerseStart(event.target.value)}
-                    className={styles.input}
+                    className={`${controls.control} ${styles.input}`}
                   />
                   <p className={styles.dialogHint}>
                     We&apos;ll fetch the verse text automatically.
@@ -803,7 +655,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     min={createVerseStart}
                     value={createVerseEnd}
                     onChange={(event) => setCreateVerseEnd(event.target.value)}
-                    className={styles.input}
+                    className={`${controls.control} ${styles.input}`}
                   />
                   <p className={styles.dialogHint}>
                     Use the same number to capture a single verse.
@@ -821,7 +673,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                   value={createBody}
                   onChange={(event) => setCreateBody(event.target.value)}
                   placeholder="Write your insights, prayers, and observations..."
-                  className={styles.textarea}
+                  className={`${controls.control} ${controls.controlTextarea} ${styles.textarea}`}
                 />
                 <p className={styles.dialogHint}>
                   Focus on what stood out, why it matters, and how you&apos;ll respond.
@@ -844,7 +696,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                 transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
               >
                 <Button
-                  className={styles.saveButton}
+                  className={`${controls.btnPrimary} ${styles.saveButton}`}
                   onClick={handleCreateNote}
                   disabled={isSavingCreate}
                 >
@@ -972,18 +824,22 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
             <Textarea
               value={editBody}
               onChange={(event) => setEditBody(event.target.value)}
-              className={`${styles.textarea} ${styles.editTextarea}`}
+              className={`${controls.control} ${controls.controlTextarea} ${styles.textarea} ${styles.editTextarea}`}
             />
             {editError ? (
               <p className={styles.errorMessage}>{editError}</p>
             ) : null}
           </ModalBody>
           <ModalFooter className={styles.editActions} direction="row">
-            <Button variant="ghost" onClick={() => setEditingNote(null)}>
+            <Button
+              variant="outline"
+              className={controls.btnSecondary}
+              onClick={() => setEditingNote(null)}
+            >
               Cancel
             </Button>
             <Button
-              className={styles.editButtonPrimary}
+              className={controls.btnPrimary}
               onClick={handleUpdateNote}
               disabled={isSavingEdit}
             >

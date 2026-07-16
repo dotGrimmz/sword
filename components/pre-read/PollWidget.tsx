@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import type { PollSnapshot } from "@/lib/pre-read/poll";
+import controls from "@/components/realign/controls.module.css";
 
 import styles from "./PollWidget.module.css";
 
@@ -161,19 +162,19 @@ export function PollWidget({
               </div>
               <div className={styles.progress}>
                 <div
-                  className={styles.progressFill}
+                  className={`${styles.progressFill} ${
+                    isSelected ? "" : styles.progressFillMuted
+                  }`}
                   style={{
                     width: `${percentages[index]}%`,
-                    background: isSelected
-                      ? "var(--primary)"
-                      : "color-mix(in oklab, var(--primary) 20%, transparent)",
                   }}
                 />
               </div>
               <Button
                 type="button"
-                variant={isSelected ? "default" : "secondary"}
-                size="sm"
+                className={
+                  isSelected ? controls.btnPrimary : controls.btnSecondary
+                }
                 disabled={isSubmitting}
                 onClick={() => handleVote(index)}
               >
