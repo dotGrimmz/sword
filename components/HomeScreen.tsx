@@ -324,33 +324,38 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
   };
 
   const quickActions = useMemo<QuickAction[]>(
-    () => [
-      {
-        icon: BookOpen,
-        label: "Open Scripture",
-        screen: "reader",
-        subtitle: "Return to the passage you were studying.",
-      },
-      {
-        icon: Heart,
-        label: "Marked",
-        screen: "highlights",
-        subtitle: "Review verses you marked.",
-      },
-      {
-        icon: Lightbulb,
-        label: "Reflections",
-        screen: "notes",
-        subtitle: "Capture insights in one place.",
-      },
-      {
-        icon: Book,
-        label: "Weekly Study",
-        href: "/pre-read",
-        subtitle: "This week's topic and materials.",
-      },
-    ],
-    []
+    () => {
+      const actions: QuickAction[] = [
+        {
+          icon: BookOpen,
+          label: "Open Scripture",
+          screen: "reader",
+          subtitle: "Return to the passage you were studying.",
+        },
+        {
+          icon: Heart,
+          label: "Marked",
+          screen: "highlights",
+          subtitle: "Review verses you marked.",
+        },
+        {
+          icon: Lightbulb,
+          label: "Reflections",
+          screen: "notes",
+          subtitle: "Capture insights in one place.",
+        },
+      ];
+      if (currentStudy) {
+        actions.push({
+          icon: Book,
+          label: "Weekly Study",
+          href: "/pre-read",
+          subtitle: "This week's topic and materials.",
+        });
+      }
+      return actions;
+    },
+    [currentStudy]
   );
 
   const progressData = useMemo(() => {
@@ -440,41 +445,28 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             </Link>
           ) : null}
 
-          <Link href="/pre-read" className={styles.studyPanel}>
-            <p className={styles.studyPanelEyebrow}>This Week&apos;s Study</p>
-            {studyQuery.isLoading ? (
-              <p className={styles.studyPanelMeta}>Loading…</p>
-            ) : currentStudy ? (
-              <>
-                <h2 className={styles.studyPanelTitle}>
-                  {currentStudy.title ||
-                    `${currentStudy.book} ${currentStudy.chapter}`}
-                </h2>
-                <p className={styles.studyPanelMeta}>
-                  {currentStudy.book} {currentStudy.chapter}
-                  {currentStudy.verses_range
-                    ? `:${currentStudy.verses_range}`
-                    : ""}
-                  {currentStudy.week_start
-                    ? ` · ${formatWeekLabel(currentStudy.week_start)}`
-                    : ""}
-                </p>
-                <span className={styles.studyPanelCta}>
-                  Open study hub
-                  <ArrowUpRight className={styles.studyPanelCtaIcon} />
-                </span>
-              </>
-            ) : (
-              <>
-                <h2 className={styles.studyPanelTitle}>
-                  No study posted this week
-                </h2>
-                <p className={styles.studyPanelMeta}>
-                  Check back once your pastor publishes materials.
-                </p>
-              </>
-            )}
-          </Link>
+          {currentStudy ? (
+            <Link href="/pre-read" className={styles.studyPanel}>
+              <p className={styles.studyPanelEyebrow}>This Week&apos;s Study</p>
+              <h2 className={styles.studyPanelTitle}>
+                {currentStudy.title ||
+                  `${currentStudy.book} ${currentStudy.chapter}`}
+              </h2>
+              <p className={styles.studyPanelMeta}>
+                {currentStudy.book} {currentStudy.chapter}
+                {currentStudy.verses_range
+                  ? `:${currentStudy.verses_range}`
+                  : ""}
+                {currentStudy.week_start
+                  ? ` · ${formatWeekLabel(currentStudy.week_start)}`
+                  : ""}
+              </p>
+              <span className={styles.studyPanelCta}>
+                Open study hub
+                <ArrowUpRight className={styles.studyPanelCtaIcon} />
+              </span>
+            </Link>
+          ) : null}
 
           {isVerseLoading || todaysVerse ? (
             <motion.div
