@@ -1,0 +1,54 @@
+{
+  "projectId": "12603776243583345396",
+  "projectTitle": "SWORD - Realign Ministries",
+  "capturedAt": "2026-07-16",
+  "designSystem": "assets/6837379725606496651",
+  "screens": [
+    {
+      "id": "9fd0e9db21a74210baaebbba9f254a39",
+      "title": "Realign Weekly Study (Pre-Read)",
+      "deviceType": "MOBILE",
+      "files": {
+        "html": "study-hub.html",
+        "png": "study-hub.png"
+      }
+    },
+    {
+      "id": "aee96e337b8f483283b50627f860a36c",
+      "title": "Realign Weekly Study (Empty State)",
+      "deviceType": "MOBILE",
+      "files": {
+        "html": "study-hub-empty.html",
+        "png": "study-hub-empty.png"
+      }
+    },
+    {
+      "id": "a3337238d66e4178bd684a5fa69a331f",
+      "title": "Realign Admin Console - Overview",
+      "deviceType": "DESKTOP",
+      "files": {
+        "html": "admin-overview.html",
+        "png": "admin-overview.png"
+      }
+    },
+    {
+      "id": "efab2c8b578f40beaba927e47c0dd94b",
+      "title": "Realign Admin Weekly Study Editor",
+      "deviceType": "DESKTOP",
+      "files": {
+        "html": "admin-weekly-study-editor.html",
+        "png": "admin-weekly-study-editor.png"
+      }
+    }
+  ],
+  "tokens": {
+    "primary": "#D91F26",
+    "accent": "#F28C00",
+    "secondary": "#FFE8DC",
+    "background": "#FFF5F0",
+    "onSurface": "#1A1A1A"
+  },
+  "designGate0": {
+    "note": "Stitch outputs saved under .cursor/stitch-captures/admin-study-hub/. Manual browser/Stitch preview sign-off still required before treating Design Gate 0 as human-approved."
+  }
+}

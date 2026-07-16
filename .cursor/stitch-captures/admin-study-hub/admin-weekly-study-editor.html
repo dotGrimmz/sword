@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Weekly Study Editor | Realign Ministries</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D91F26",
+                        "primary-container": "#FFDAD9",
+                        "on-primary-container": "#410002",
+                        secondary: "#F28C00",
+                        surface: "#FFF5F0",
+                        "surface-container": "#FFE8DC",
+                        "surface-container-high": "#F5DDD0",
+                        "on-surface": "#231A19",
+                        "on-surface-variant": "#534341",
+                        outline: "#857371",
+                        "outline-variant": "#D8C2BF"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Inter", "sans-serif"],
+                        display: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                        label: ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #FFF5F0;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-indicator {
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 24px;
+            background-color: #D91F26;
+            border-radius: 0 4px 4px 0;
+        }
+        /* Custom scrollbar for admin feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF5F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8C2BF;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D91F26;
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- SideNavBar (Shared Component Architecture) -->
+<aside class="w-64 h-screen fixed left-0 top-0 bg-surface border-r border-outline-variant flex flex-col p-4 gap-2 z-50">
+<div class="mb-8 px-4 py-2">
+<h1 class="text-xl font-bold text-primary tracking-tight">Grace Ministry</h1>
+<p class="text-xs font-medium text-on-surface-variant opacity-70">Admin Console</p>
+</div>
+<nav class="space-y-1 flex-1">
+<!-- Dashboard/Overview -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest transition-colors duration-150 rounded-xl group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Overview</span>
+</a>
+<!-- Weekly Study (Active) -->
+<div class="relative flex items-center">
+<div class="active-indicator"></div>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-xl font-bold w-full transition-all duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span>Weekly Study</span>
+</a>
+</div>
+<!-- Members/Hosts -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest transition-colors duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Hosts</span>
+</a>
+<!-- Users (Soon) -->
+<a class="flex items-center justify-between px-4 py-3 text-on-surface-variant opacity-50 cursor-not-allowed rounded-xl" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">person</span>
+<span class="font-medium">Users</span>
+</div>
+<span class="text-[10px] bg-outline-variant px-1.5 py-0.5 rounded uppercase font-bold">Soon</span>
+</a>
+<!-- Resources/Back -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-lowest transition-colors duration-150 rounded-xl" href="#">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-medium">Back to app</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant/30">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="h-16 fixed top-0 right-0 left-64 bg-surface/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-8 z-40">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-semibold text-on-surface">Weekly Study</h2>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+<nav class="flex gap-6">
+<a class="text-primary border-b-2 border-primary h-16 flex items-center px-1 text-sm font-medium" href="#">Editor</a>
+<a class="text-on-surface-variant hover:text-primary transition-all h-16 flex items-center px-1 text-sm font-medium" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container rounded-full transition-colors">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container rounded-full transition-colors">help_outline</span>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold text-xs overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a church administrator, a middle-aged woman with a warm, welcoming smile. She is wearing a smart-casual blazer in a neutral tone. The background is a soft-focus office setting with warm wood textures and subtle lighting, creating a trustworthy and competent professional aesthetic consistent with a ministry admin role." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzVzafssN1ngtPllNkYshn5XMy-8r0p7jHCVEwMJS6HZyEYcw5oAxSFJkTxprLjjtZROBh0kbPZ22gmBuizADErEmp1UK7Cn5blD69A9RWHjaEl97EwnMwHWTyDuWYI4wt8CWak47dGQrnMeAhi_v8h3H8V33FzUFXaalqyO6oSg7jNlwns7iHn0yQt7bOHE1205gglIiCK8ipFTzKHQCEu21cLCbUeh3fxGmxOzSWg_QxsV5OAO5k42nB33gocgbjDBMgh3wZxvvr"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 mt-16 p-8 pb-32">
+<div class="max-w-6xl mx-auto grid grid-cols-12 gap-8">
+<!-- Left Column: Primary Form -->
+<div class="col-span-12 lg:col-span-8 space-y-8">
+<!-- Basic Info Card -->
+<section class="bg-white rounded-2xl p-8 shadow-sm border border-outline-variant/40">
+<div class="flex justify-between items-start mb-6">
+<h3 class="text-xl font-bold text-on-surface">General Information</h3>
+<div class="flex items-center gap-3 bg-surface-container p-1 rounded-lg">
+<button class="px-4 py-1.5 rounded-md text-sm font-bold bg-white shadow-sm text-on-surface-variant">Draft</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-medium text-on-surface-variant/60 hover:text-on-surface-variant">Published</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="col-span-2 md:col-span-1">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Topic Title</label>
+<input class="w-full bg-surface border-outline-variant rounded-xl px-4 py-3 focus:ring-primary focus:border-primary placeholder:text-outline/50 transition-all" placeholder="e.g., Walking in Faith" type="text" value="Walking in Faith"/>
+</div>
+<div class="col-span-2 md:col-span-1">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Week Range</label>
+<div class="relative">
+<input class="w-full bg-surface border-outline-variant rounded-xl pl-10 pr-4 py-3 focus:ring-primary focus:border-primary placeholder:text-outline/50 transition-all" placeholder="e.g., Jul 13–19" type="text" value="Jul 13–19"/>
+<span class="material-symbols-outlined absolute left-3 top-3.5 text-on-surface-variant text-sm">calendar_month</span>
+</div>
+</div>
+<div class="col-span-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Scripture Reference</label>
+<input class="w-full bg-surface border-outline-variant rounded-xl px-4 py-3 focus:ring-primary focus:border-primary placeholder:text-outline/50 transition-all" placeholder="e.g., John 15:1-8" type="text" value="John 15:1-8"/>
+</div>
+</div>
+</section>
+<!-- Study Materials (Primary Focus) -->
+<section class="bg-surface-container rounded-2xl p-8 border border-primary/10 shadow-lg shadow-primary/5">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg">
+<span class="material-symbols-outlined text-white text-xl">folder_open</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface">Study Materials</h3>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">link</span>
+                                Add link
+                            </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">upload</span>
+                                Upload file
+                            </button>
+</div>
+</div>
+<!-- Dropzone -->
+<div class="border-2 border-dashed border-outline-variant rounded-2xl p-10 flex flex-col items-center justify-center bg-white/40 hover:bg-white/60 transition-colors cursor-pointer group mb-8">
+<div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">cloud_upload</span>
+</div>
+<p class="text-sm font-semibold text-on-surface">Upload PDF or image</p>
+<p class="text-xs text-on-surface-variant mt-1 opacity-60">Drag and drop or click to browse</p>
+</div>
+<!-- Items List -->
+<div class="space-y-3">
+<!-- Item 1: PDF -->
+<div class="flex items-center justify-between p-4 bg-white rounded-xl border border-outline-variant/30 group hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Discussion Guide</p>
+<p class="text-xs text-on-surface-variant opacity-60 uppercase font-bold tracking-tighter">PDF Document • 1.2 MB</p>
+</div>
+</div>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+<!-- Item 2: Video -->
+<div class="flex items-center justify-between p-4 bg-white rounded-xl border border-outline-variant/30 group hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">smart_display</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Weekly Teaching Video</p>
+<p class="text-xs text-on-surface-variant opacity-60 uppercase font-bold tracking-tighter">YouTube Link • youtube.com/watch?v=...</p>
+</div>
+</div>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+<!-- Item 3: Image -->
+<div class="flex items-center justify-between p-4 bg-white rounded-xl border border-outline-variant/30 group hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A macro close-up of a whiteboard with handwriting in blue and green ink, showing theological diagrams and study notes. The image has a natural, warm office light coming from the side, creating a collaborative and academic atmosphere for a ministry study session. High detail on the texture of the board and the dry-erase ink." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_3fzRlntIE22tazfgr5d5uDjA6gqazd6kT6juLK4IB-FZM9nT-33mWrHWNc4D7BmU6WXOugnsGYMbdTRUpw5MUh6eV5I68hNKzf30KQI682TWX7c1GNVETpaC1kZGcbxUY8cv9xlmlZwfZt1f_AeLTxa8DQeKeJzVsotwC5A9ZHXjf8jFUXWK-zrIw4t3BmRHitnk6PXaWkSHOuqaaHlxufO0Ui64QNdsBl9S8dkPbGjoGRzkJFbNc6farfPpFWlfEIefG1PLQG1A"/>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Whiteboard Notes</p>
+<p class="text-xs text-on-surface-variant opacity-60 uppercase font-bold tracking-tighter">Image • 4.5 MB</p>
+</div>
+</div>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Secondary Settings -->
+<aside class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Summary Section -->
+<section class="bg-white rounded-2xl p-6 shadow-sm border border-outline-variant/40">
+<h3 class="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-4">Study Summary</h3>
+<textarea class="w-full bg-surface border-outline-variant rounded-xl p-4 focus:ring-primary focus:border-primary placeholder:text-outline/50 transition-all resize-none text-sm leading-relaxed" placeholder="Provide a brief introduction for this study..." rows="8">In this week's study, we explore the deep symbolism of the vine and the branches. What does it truly mean to abide in Christ? We will walk through Jesus' final discourse with His disciples and discuss how this applies to our daily walk of faith.</textarea>
+<div class="mt-3 flex justify-between items-center">
+<span class="text-[10px] text-on-surface-variant font-bold opacity-40 uppercase">Character count: 242</span>
+<button class="text-primary text-xs font-bold hover:underline">AI Suggest</button>
+</div>
+</section>
+<!-- Helpful Tips (Bento-lite) -->
+<section class="bg-secondary/5 rounded-2xl p-6 border border-secondary/20">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-secondary text-lg">lightbulb</span>
+<h4 class="text-sm font-bold text-on-surface">Pro Tip</h4>
+</div>
+<p class="text-xs leading-relaxed text-on-surface-variant">
+                        Adding a <strong>Discussion Guide PDF</strong> significantly increases host engagement. Most groups prefer having a printable version for their meetings.
+                    </p>
+</section>
+<!-- Quick Stats -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white p-4 rounded-2xl border border-outline-variant/40">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase opacity-50 mb-1">Host Views</p>
+<p class="text-2xl font-black text-on-surface">124</p>
+</div>
+<div class="bg-white p-4 rounded-2xl border border-outline-variant/40">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase opacity-50 mb-1">Downloads</p>
+<p class="text-2xl font-black text-on-surface">58</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Action Footer (Sticky) -->
+<footer class="fixed bottom-0 right-0 left-64 bg-white border-t border-outline-variant p-4 px-10 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">cloud_done</span>
+<span class="text-xs font-medium">Last saved: 2 minutes ago</span>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors">Cancel</button>
+<button class="px-6 py-2.5 border-2 border-primary text-primary rounded-xl text-sm font-bold hover:bg-primary/5 transition-all active:scale-95">Save Draft</button>
+<button class="px-8 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/30 transition-all active:scale-95 flex items-center gap-2">
+                Publish Study
+                <span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</footer>
+<!-- Micro-interactions Script -->
+<script>
+        // Simple UI animations and state management
+        document.querySelectorAll('button, a').forEach(elem => {
+            elem.addEventListener('click', function(e) {
+                // Prevent default for demo links
+                if(this.getAttribute('href') === '#') e.preventDefault();
+            });
+        });
+
+        // Status Toggle logic
+        const toggleButtons = document.querySelectorAll('.bg-surface-container button');
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                toggleButtons.forEach(b => {
+                    b.classList.remove('bg-white', 'shadow-sm', 'text-on-surface-variant');
+                    b.classList.add('text-on-surface-variant/60');
+                });
+                btn.classList.add('bg-white', 'shadow-sm', 'text-on-surface-variant');
+                btn.classList.remove('text-on-surface-variant/60');
+            });
+        });
+    </script>
+</body></html>

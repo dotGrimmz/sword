@@ -17,15 +17,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import managerStyles from "../AdminManager.module.css";
+import {
+  createStudyLinkMaterial,
+  deleteStudyMaterial,
+  listStudyMaterials,
+  uploadStudyFileMaterial,
+} from "@/lib/api/study";
 import type {
   BibleBookSummary,
   BibleBooksResponse,
   BibleChapterResponse,
 } from "@/types/bible";
 import type { HostProfile, PreRead } from "@/types/pre-read";
+import { formatWeekLabel, startOfWeek } from "@/lib/study/week";
 
+import {
+  createLocalId,
+  type DraftMaterial,
+} from "./draft-materials";
 import styles from "./PreReadForm.module.css";
+import { StudyHubPreview } from "./StudyHubPreview";
+import { StudyMaterialsEditor } from "./StudyMaterialsEditor";
+
+/** Bigger tap targets on mobile; comfortable padded size from md up. */
+const btnSize =
+  "h-12 px-5 text-base md:h-10 md:px-5 md:text-sm";
+const btnIconSize = "size-11 md:size-9";
+const btnSecondary =
+  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
+const btnPrimary =
+  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white";
+const btnStatus =
+  "h-12 flex-1 basis-28 min-w-0 px-4 text-base md:h-10 md:px-5 md:text-sm hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
 
 type PreReadFormProps = {
   mode: "create" | "edit";
@@ -34,6 +57,8 @@ type PreReadFormProps = {
 };
 
 type FormState = {
+  title: string;
+  weekStart: string;
   book: string;
   chapter: string;
   versesRange: string;
@@ -44,12 +69,10 @@ type FormState = {
   pollOptions: string[];
   hostProfileId: string;
   streamStartTime: string;
-  visibleDay: string;
   isCancelled: boolean;
   published: boolean;
 };
 
-const HOST_NONE_VALUE = "__host_none";
 const CHAPTER_MIN = 1;
 const DEFAULT_TRANSLATION_CODE = "WEB";
 const CHAPTER_ENDPOINT = (book: string, chapter: number) =>
@@ -90,22 +113,7 @@ const toDateInputValue = (value?: string | null) => {
   return `${year}-${month}-${day}`;
 };
 
-const getTodayDateInput = () => toDateInputValue(new Date().toISOString());
-
-const getFullDayWindow = (dateValue: string) => {
-  if (!dateValue) {
-    return null;
-  }
-  const start = new Date(`${dateValue}T00:00:00`);
-  if (Number.isNaN(start.getTime())) {
-    return null;
-  }
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-  return {
-    from: start.toISOString(),
-    until: end.toISOString(),
-  };
-};
+const getCurrentWeekStartInput = () => startOfWeek(new Date());
 
 const ensureLength = (list: string[], min: number, fill = "") => {
   const clone = [...list];
@@ -118,7 +126,7 @@ const ensureLength = (list: string[], min: number, fill = "") => {
 export default function PreReadForm({
   mode,
   initialData,
-  hostOptions,
+  hostOptions: _hostOptions,
 }: PreReadFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,6 +138,11 @@ export default function PreReadForm({
   const versesEditedRef = useRef(versesManuallyEdited);
 
   const [form, setForm] = useState<FormState>(() => ({
+    title: initialData?.title ?? "",
+    weekStart:
+      (initialData?.week_start &&
+        toDateInputValue(`${initialData.week_start}T12:00:00`)) ||
+      getCurrentWeekStartInput(),
     book: initialData?.book ?? "",
     chapter: initialData?.chapter ? String(initialData.chapter) : "",
     versesRange: initialData?.verses_range ?? "",
@@ -147,20 +160,56 @@ export default function PreReadForm({
         : ["", ""],
     hostProfileId: initialData?.host_profile_id ?? "",
     streamStartTime: toDateTimeLocal(initialData?.stream_start_time),
-    visibleDay:
-      toDateInputValue(initialData?.visible_from) || getTodayDateInput(),
     isCancelled: initialData?.is_cancelled ?? false,
     published: initialData?.published ?? false,
   }));
 
+  const [materials, setMaterials] = useState<DraftMaterial[]>([]);
+  const [materialsReady, setMaterialsReady] = useState(mode === "create");
+
   const hasPoll = form.pollQuestion.trim().length > 0;
-  const hostSelectValue = form.hostProfileId
-    ? form.hostProfileId
-    : HOST_NONE_VALUE;
-  const resetVisibilityWindow = () => {
+
+  useEffect(() => {
+    if (mode !== "edit" || !initialData?.id) {
+      setMaterialsReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const rows = await listStudyMaterials(initialData.id);
+        if (cancelled) return;
+        setMaterials(
+          rows.map((row) => ({
+            localId: createLocalId(),
+            kind: row.kind,
+            title: row.title,
+            url: row.url,
+            previewUrl: row.mime_type?.startsWith("image/")
+              ? row.url
+              : undefined,
+            mimeType: row.mime_type,
+            persistedId: row.id,
+          })),
+        );
+      } catch (error) {
+        console.error(error);
+        toast.error("Unable to load study materials.");
+      } finally {
+        if (!cancelled) setMaterialsReady(true);
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, initialData?.id]);
+  const resetWeekStart = () => {
     setForm((prev) => ({
       ...prev,
-      visibleDay: getTodayDateInput(),
+      weekStart: getCurrentWeekStartInput(),
     }));
   };
 
@@ -360,18 +409,6 @@ export default function PreReadForm({
     });
   };
 
-  const hostOptionsList = useMemo(
-    () =>
-      hostOptions
-        .map((host) => ({
-          id: host.id,
-          label: host.username ?? "Unnamed Host",
-          inactive: !host.is_host_active,
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    [hostOptions]
-  );
-  console.log("hostOptions", hostOptions);
   const currentStatus = form.isCancelled
     ? "cancelled"
     : form.published
@@ -424,16 +461,22 @@ export default function PreReadForm({
       return;
     }
 
+    if (!form.title.trim()) {
+      toast.error("Topic title is required.");
+      return;
+    }
+
     if (!form.summary.trim()) {
       toast.error("Summary is required.");
       return;
     }
 
-    const dayWindow = getFullDayWindow(form.visibleDay);
-    if (!dayWindow) {
-      toast.error("Visible day is required.");
+    if (!form.weekStart.trim()) {
+      toast.error("Week start is required.");
       return;
     }
+
+    const weekStart = startOfWeek(new Date(`${form.weekStart}T12:00:00`));
 
     const reflectionQuestions = form.reflectionQuestions
       .map((entry) => entry.trim())
@@ -456,6 +499,8 @@ export default function PreReadForm({
     }
 
     const payload = {
+      title: form.title.trim(),
+      week_start: weekStart,
       book: form.book.trim(),
       chapter: chapterNumber,
       verses_range: form.versesRange.trim() || null,
@@ -467,8 +512,6 @@ export default function PreReadForm({
       host_profile_id: form.hostProfileId || null,
       stream_start_time: toISOString(form.streamStartTime),
       is_cancelled: form.isCancelled,
-      visible_from: dayWindow.from,
-      visible_until: dayWindow.until,
       published: form.published,
     };
 
@@ -486,7 +529,7 @@ export default function PreReadForm({
       });
 
       if (!response.ok) {
-        let message = "Unable to save Pre-Read.";
+        let message = "Unable to save weekly study.";
         try {
           const errorBody = (await response.json()) as { error?: string };
           if (errorBody?.error) {
@@ -498,18 +541,53 @@ export default function PreReadForm({
         throw new Error(message);
       }
 
-      toast.success(
-        mode === "edit"
-          ? "Pre-Read updated successfully."
-          : "Pre-Read created successfully."
+      const saved = (await response.json()) as PreRead;
+      const studyId = saved.id;
+
+      // Persist draft materials after the study row exists.
+      const toDelete = materials.filter(
+        (material) => material.markedForDelete && material.persistedId,
       );
+      const toCreate = materials.filter(
+        (material) => !material.markedForDelete && !material.persistedId,
+      );
+
+      for (const material of toDelete) {
+        if (material.persistedId) {
+          await deleteStudyMaterial(studyId, material.persistedId);
+        }
+      }
+
+      let sortOrder = 0;
+      for (const material of toCreate) {
+        if (material.kind === "link" && material.url) {
+          await createStudyLinkMaterial(studyId, {
+            title: material.title,
+            url: material.url,
+            sortOrder,
+          });
+          sortOrder += 1;
+        } else if (material.kind === "file" && material.file) {
+          await uploadStudyFileMaterial(
+            studyId,
+            material.file,
+            material.title,
+          );
+          sortOrder += 1;
+        }
+      }
+
+      toast.success(
+        mode === "edit" ? "Weekly study updated." : "Weekly study created.",
+      );
+
       router.push("/admin/pre-read");
       router.refresh();
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unexpected error saving Pre-Read."
+          : "Unexpected error saving weekly study.",
       );
     } finally {
       setIsSubmitting(false);
@@ -517,59 +595,56 @@ export default function PreReadForm({
   };
 
   return (
-    <div className={managerStyles.managerContainer}>
-      <div className={managerStyles.managerHeader}>
-        <div className={managerStyles.managerHeading}>
-          <p className={managerStyles.managerMeta}>
-            {mode === "edit"
-              ? "Edit existing Pre-Read"
-              : "Create a new Pre-Read"}
+    <div className={styles.layout}>
+      <div className={styles.formShell}>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarCopy}>
+          <p className={styles.toolbarEyebrow}>
+            {mode === "edit" ? "Editing" : "New study"}
           </p>
-          <h2 className={managerStyles.managerTitle}>
-            {mode === "edit" ? "Update Daily Study" : "New Daily Study"}
-          </h2>
+          <p className={styles.toolbarTitle}>
+            Attach materials, check the preview, then save
+          </p>
         </div>
-        <div className={managerStyles.buttonGroup}>
+        <div className={styles.toolbarActions}>
           <Button
             variant="outline"
             asChild
             disabled={isSubmitting}
-            className={styles.neutralButton}
+            className={btnSecondary}
           >
             <Link href="/admin/pre-read">Cancel</Link>
           </Button>
-          <Button type="submit" form="pre-read-form" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            form="pre-read-form"
+            disabled={isSubmitting}
+            className={btnPrimary}
+          >
             {isSubmitting
-              ? "Saving..."
+              ? "Saving…"
               : mode === "edit"
-              ? "Save Changes"
-              : "Create Pre-Read"}
+                ? "Save changes"
+                : "Create study"}
           </Button>
         </div>
       </div>
 
       <form id="pre-read-form" className={styles.form} onSubmit={handleSubmit}>
-        <section className={styles.statusCard}>
-          <div>
-            <p className={styles.statusEyebrow}>Status</p>
-            <p className={styles.statusValue}>
-              {currentStatus === "draft"
-                ? "Draft"
-                : currentStatus === "published"
-                  ? "Published"
-                  : "Cancelled"}
-            </p>
-            <p className={styles.helper}>
-              Choose the current state for this Pre-Read. Published entries are
-              visible to members; cancelled entries stay hidden but remain in
-              history.
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>1 · Visibility</p>
+            <h3 className={styles.sectionTitle}>Publish status</h3>
+            <p className={styles.sectionMeta}>
+              Draft stays private. Published shows on the member Study hub for
+              that week.
             </p>
           </div>
           <div className={styles.statusToggles}>
             <Button
               type="button"
               variant={currentStatus === "draft" ? "default" : "outline"}
-              className={styles.statusButton}
+              className={btnStatus}
               onClick={() => setStatus("draft")}
             >
               Draft
@@ -577,7 +652,7 @@ export default function PreReadForm({
             <Button
               type="button"
               variant={currentStatus === "published" ? "default" : "outline"}
-              className={styles.statusButton}
+              className={btnStatus}
               onClick={() => setStatus("published")}
             >
               Published
@@ -585,293 +660,325 @@ export default function PreReadForm({
             <Button
               type="button"
               variant={currentStatus === "cancelled" ? "default" : "outline"}
-              className={styles.statusButton}
+              className={btnStatus}
               onClick={() => setStatus("cancelled")}
             >
-              Cancelled
+              Hidden
             </Button>
           </div>
         </section>
-        <div className={styles.fieldGrid}>
-          <div className={styles.field}>
-            <Label className={styles.label}>Book</Label>
-            <Select
-              value={form.book || undefined}
-              onValueChange={handleBookSelect}
-              disabled={isLoadingBooks}
-            >
-              <SelectTrigger className={styles.control}>
-                <SelectValue
-                  placeholder={
-                    isLoadingBooks ? "Loading books..." : "Choose a book"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {books.map((book) => (
-                  <SelectItem key={book.id} value={book.name}>
-                    {book.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className={styles.field}>
-            <Label className={styles.label}>Chapter</Label>
-            <Select
-              value={form.chapter || undefined}
-              onValueChange={handleChapterSelect}
-              disabled={!selectedBook}
-            >
-              <SelectTrigger className={styles.control}>
-                <SelectValue
-                  placeholder={
-                    selectedBook ? "Choose a chapter" : "Select a book first"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {chapterOptions.map((chapter) => (
-                  <SelectItem key={chapter} value={String(chapter)}>
-                    Chapter {chapter}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className={styles.field}>
-            <Label htmlFor="verses_range" className={styles.label}>
-              Verses Range
-            </Label>
-            <Input
-              id="verses_range"
-              className={styles.control}
-              value={form.versesRange}
-              onChange={(event) => handleVersesChange(event.target.value)}
-              placeholder="1-26"
-            />
-            <p className={styles.helper}>
-              Defaults to the full chapter. Update this if you want a subset.
-            </p>
-          </div>
-          <div className={styles.field}>
-            <Label htmlFor="memory_verse" className={styles.label}>
-              Memory Verse (optional)
-            </Label>
-            <Input
-              id="memory_verse"
-              className={styles.control}
-              value={form.memoryVerse}
-              onChange={(event) =>
-                handleFieldChange("memoryVerse", event.target.value)
-              }
-              placeholder="John 4:24"
-            />
-          </div>
-        </div>
 
-        <div className={styles.field}>
-          <Label htmlFor="summary" className={styles.label}>
-            Summary
-          </Label>
-          <Textarea
-            id="summary"
-            rows={5}
-            className={styles.control}
-            value={form.summary}
-            onChange={(event) =>
-              handleFieldChange("summary", event.target.value)
-            }
-            placeholder="Describe the key points for this study."
-          />
-        </div>
-
-        <div className={styles.arrayGroup}>
-          <div className={styles.field}>
-            <Label className={styles.label}>Reflection Questions</Label>
-            <p className={styles.helper}>
-              Provide prompts participants will consider before the session.
-            </p>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>2 · Topic</p>
+            <h3 className={styles.sectionTitle}>What is this week about?</h3>
           </div>
-          {form.reflectionQuestions.map((question, index) => (
-            <div className={styles.arrayRow} key={`reflection-${index}`}>
+          <div className={styles.fieldGrid}>
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <Label htmlFor="study_title" className={styles.label}>
+                Topic title
+              </Label>
               <Input
-                className={styles.control}
-                value={question}
+                id="study_title"
+                className={`${styles.control} w-full min-w-0 max-w-full`}
+                value={form.title}
                 onChange={(event) =>
-                  updateReflectionQuestion(index, event.target.value)
+                  handleFieldChange("title", event.target.value)
                 }
-                placeholder={`Question ${index + 1}`}
+                placeholder="Walking in Faith"
+                required
               />
-              {form.reflectionQuestions.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeReflectionQuestion(index)}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              )}
             </div>
-          ))}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={addReflectionQuestion}
-            className="w-fit"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
-            Add Question
-          </Button>
-        </div>
+            <div className={styles.field}>
+              <Label htmlFor="week_start" className={styles.label}>
+                Week of
+              </Label>
+              <Input
+                id="week_start"
+                type="date"
+                className={`${styles.control} w-full min-w-0 max-w-full`}
+                value={form.weekStart}
+                onChange={(event) =>
+                  handleFieldChange("weekStart", event.target.value)
+                }
+                required
+              />
+              <p className={styles.helper}>
+                Saved as the Monday of that week
+                {form.weekStart
+                  ? ` (${formatWeekLabel(
+                      startOfWeek(new Date(`${form.weekStart}T12:00:00`)),
+                    )})`
+                  : ""}
+                .
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className={`mt-1 w-fit ${btnSize}`}
+                onClick={resetWeekStart}
+              >
+                Use this week
+              </Button>
+            </div>
+          </div>
+        </section>
 
-        <div className={styles.arrayGroup}>
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>3 · Scripture</p>
+            <h3 className={styles.sectionTitle}>Passage for the week</h3>
+          </div>
+          <div className={styles.fieldGrid}>
+            <div className={styles.field}>
+              <Label className={styles.label}>Book</Label>
+              <Select
+                value={form.book || undefined}
+                onValueChange={handleBookSelect}
+                disabled={isLoadingBooks}
+              >
+                <SelectTrigger className={`${styles.control} w-full min-w-0 max-w-full`}>
+                  <SelectValue
+                    placeholder={
+                      isLoadingBooks ? "Loading books…" : "Choose a book"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {books.map((book) => (
+                    <SelectItem key={book.id} value={book.name}>
+                      {book.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={styles.field}>
+              <Label className={styles.label}>Chapter</Label>
+              <Select
+                value={form.chapter || undefined}
+                onValueChange={handleChapterSelect}
+                disabled={!selectedBook}
+              >
+                <SelectTrigger className={`${styles.control} w-full min-w-0 max-w-full`}>
+                  <SelectValue
+                    placeholder={
+                      selectedBook ? "Choose a chapter" : "Select a book first"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {chapterOptions.map((chapter) => (
+                    <SelectItem key={chapter} value={String(chapter)}>
+                      Chapter {chapter}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={styles.field}>
+              <Label htmlFor="verses_range" className={styles.label}>
+                Verses (optional)
+              </Label>
+              <Input
+                id="verses_range"
+                className={`${styles.control} w-full min-w-0 max-w-full`}
+                value={form.versesRange}
+                onChange={(event) => handleVersesChange(event.target.value)}
+                placeholder="1-26"
+              />
+              <p className={styles.helper}>
+                Leave blank for the full chapter.
+              </p>
+            </div>
+            <div className={styles.field}>
+              <Label htmlFor="memory_verse" className={styles.label}>
+                Memory verse (optional)
+              </Label>
+              <Input
+                id="memory_verse"
+                className={`${styles.control} w-full min-w-0 max-w-full`}
+                value={form.memoryVerse}
+                onChange={(event) =>
+                  handleFieldChange("memoryVerse", event.target.value)
+                }
+                placeholder="John 15:5"
+              />
+            </div>
+          </div>
+        </section>
+
+        {materialsReady ? (
+          <StudyMaterialsEditor
+            materials={materials}
+            onChange={setMaterials}
+          />
+        ) : (
+          <section className={styles.materialsPanel}>
+            <p className={styles.helper}>Loading materials…</p>
+          </section>
+        )}
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>5 · Summary</p>
+            <h3 className={styles.sectionTitle}>Short overview for members</h3>
+          </div>
           <div className={styles.field}>
+            <Label htmlFor="summary" className={styles.label}>
+              Summary
+            </Label>
+            <Textarea
+              id="summary"
+              rows={4}
+              className={`${styles.control} w-full min-w-0 max-w-full`}
+              value={form.summary}
+              onChange={(event) =>
+                handleFieldChange("summary", event.target.value)
+              }
+              placeholder="A few sentences on the heart of this week's study."
+              required
+            />
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <p className={styles.sectionEyebrow}>Optional · Engagement</p>
+            <h3 className={styles.sectionTitle}>
+              Reflection questions & poll
+            </h3>
+            <p className={styles.sectionMeta}>
+              Skip these if you only need topic, scripture, and materials.
+            </p>
+          </div>
+
+          <div className={styles.arrayGroup}>
+            <Label className={styles.label}>Reflection questions</Label>
+            {form.reflectionQuestions.map((question, index) => (
+              <div className={styles.arrayRow} key={`reflection-${index}`}>
+                <Input
+                  className={`${styles.control} w-full min-w-0 max-w-full`}
+                  value={question}
+                  onChange={(event) =>
+                    updateReflectionQuestion(index, event.target.value)
+                  }
+                  placeholder={`Question ${index + 1}`}
+                />
+                {form.reflectionQuestions.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => removeReflectionQuestion(index)}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={addReflectionQuestion}
+              className={`w-fit ${btnSize}`}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              Add question
+            </Button>
+          </div>
+
+          <div className={styles.arrayGroup}>
             <Label className={styles.label}>Poll (optional)</Label>
-            <p className={styles.helper}>
-              Include a quick poll with 2-4 options for engagement.
-            </p>
-          </div>
-          <Input
-            value={form.pollQuestion}
-            className={styles.control}
-            onChange={(event) =>
-              handleFieldChange("pollQuestion", event.target.value)
-            }
-            placeholder="What stands out most from this passage?"
-          />
-          {form.pollOptions.map((option, index) => (
-            <div className={styles.arrayRow} key={`poll-${index}`}>
-              <Input
-                className={styles.control}
-                value={option}
-                onChange={(event) =>
-                  updatePollOption(index, event.target.value)
-                }
-                placeholder={`Option ${index + 1}`}
-                disabled={!hasPoll}
-              />
-              {form.pollOptions.length > 2 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removePollOption(index)}
-                  disabled={!hasPoll}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              )}
-            </div>
-          ))}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={addPollOption}
-            className="w-fit"
-            disabled={!hasPoll || form.pollOptions.length >= 4}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
-            Add Option
-          </Button>
-        </div>
-
-        <div className={styles.fieldGrid}>
-          <div className={styles.field}>
-            <Label className={styles.label}>Host</Label>
-            <Select
-              value={hostSelectValue}
-              onValueChange={(value) =>
-                handleFieldChange(
-                  "hostProfileId",
-                  value === HOST_NONE_VALUE ? "" : value
-                )
-              }
-            >
-              <SelectTrigger className={styles.control}>
-                <SelectValue placeholder="Select a host" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={HOST_NONE_VALUE}>
-                  No assigned host
-                </SelectItem>
-                {hostOptionsList.map((host) => (
-                  <SelectItem key={host.id} value={host.id}>
-                    {host.label}
-                    {host.inactive ? " (inactive)" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className={styles.field}>
-            <Label htmlFor="stream_start_time" className={styles.label}>
-              Stream Start (optional)
-            </Label>
             <Input
-              id="stream_start_time"
-              type="datetime-local"
-              className={styles.control}
-              value={form.streamStartTime}
+              value={form.pollQuestion}
+              className={`${styles.control} w-full min-w-0 max-w-full`}
               onChange={(event) =>
-                handleFieldChange("streamStartTime", event.target.value)
+                handleFieldChange("pollQuestion", event.target.value)
               }
+              placeholder="What stands out most from this passage?"
             />
+            {form.pollOptions.map((option, index) => (
+              <div className={styles.arrayRow} key={`poll-${index}`}>
+                <Input
+                  className={`${styles.control} w-full min-w-0 max-w-full`}
+                  value={option}
+                  onChange={(event) =>
+                    updatePollOption(index, event.target.value)
+                  }
+                  placeholder={`Option ${index + 1}`}
+                  disabled={!hasPoll}
+                />
+                {form.pollOptions.length > 2 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => removePollOption(index)}
+                    disabled={!hasPoll}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={addPollOption}
+              className={`w-fit ${btnSize}`}
+              disabled={!hasPoll || form.pollOptions.length >= 4}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              Add option
+            </Button>
           </div>
-        </div>
-
-        <div className={styles.field}>
-          <Label htmlFor="visible_day" className={styles.label}>
-            Visible Day
-          </Label>
-          <Input
-            id="visible_day"
-            type="date"
-            className={styles.control}
-            value={form.visibleDay}
-            onChange={(event) =>
-              handleFieldChange("visibleDay", event.target.value)
-            }
-          />
-          <p className={styles.helper}>
-            Members can view this Pre-Read for the entire selected day.
-          </p>
-        </div>
-        <div className={styles.inlineActions}>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={resetVisibilityWindow}
-          >
-            Reset to today
-          </Button>
-        </div>
+        </section>
 
         <div className={styles.actions}>
           <Button
             variant="outline"
             asChild
             disabled={isSubmitting}
-            className={styles.neutralButton}
+            className={btnSecondary}
           >
-            <Link href="/admin/pre-read">Discard changes</Link>
+            <Link href="/admin/pre-read">Discard</Link>
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className={styles.primaryButton}
+            className={btnPrimary}
           >
             {isSubmitting
-              ? "Saving..."
+              ? "Saving…"
               : mode === "edit"
-                ? "Save Changes"
-                : "Create Pre-Read"}
+                ? "Save changes"
+                : "Create study"}
           </Button>
         </div>
       </form>
+      </div>
+
+      <div className={styles.previewColumn}>
+        <StudyHubPreview
+          title={form.title}
+          weekStart={form.weekStart}
+          book={form.book}
+          chapter={form.chapter}
+          versesRange={form.versesRange}
+          summary={form.summary}
+          memoryVerse={form.memoryVerse}
+          reflectionQuestions={form.reflectionQuestions}
+          pollQuestion={form.pollQuestion}
+          pollOptions={form.pollOptions}
+          published={form.published}
+          isCancelled={form.isCancelled}
+          materials={materials}
+        />
+      </div>
     </div>
   );
 }

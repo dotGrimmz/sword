@@ -2,13 +2,15 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 1.5rem;
-  border: 1px solid var(--border);
-  background: var(--surface-glass-gradient);
-  box-shadow: 0 16px 48px color-mix(in oklab, var(--foreground) 8%, transparent);
-  backdrop-filter: blur(16px);
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #e8cfc4;
+  background: #ffffff;
+  box-shadow: 0 10px 28px color-mix(in oklab, #d91f26 6%, transparent);
   animation: fadeInSoft 380ms ease-out;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 @media (min-width: 640px) {

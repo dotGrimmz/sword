@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
+  ArrowUpRight,
   Book,
   BookOpen,
   Calendar,
@@ -18,10 +19,13 @@ import {
   Heart,
   Lightbulb,
   Loader2,
+  Shield,
   User,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { useProfile } from "./ProfileContext";
 import { useTranslationContext } from "./TranslationContext";
 import { TranslationSwitcher } from "./TranslationSwitcher";
 import {
@@ -36,6 +40,7 @@ import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
 import { getUserHighlights } from "@/lib/api/highlights";
 import { getUserNotes } from "@/lib/api/notes";
 import { getProfile } from "@/lib/api/profile";
+import { getCurrentStudy } from "@/lib/api/study";
 import type { UserNote } from "@/types/user";
 import {
   HIGHLIGHTS_UPDATED_EVENT,
@@ -47,6 +52,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import type { BibleBookSummary } from "@/types/bible";
+import { formatWeekLabel } from "@/lib/study/week";
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -88,6 +94,7 @@ const getExcerpt = (body: string, limit = 120) => {
 
 export function HomeScreen({ onNavigate }: HomeScreenProps) {
   const router = useRouter();
+  const { role } = useProfile();
   const handleNavigate = useCallback(
     (screen: string) => {
       onNavigate?.(screen);
@@ -124,6 +131,13 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     staleTime: STALE_TIMES.profile,
   });
   const avatarUrl = profileQuery.data?.avatar_url?.trim() || null;
+
+  const studyQuery = useQuery({
+    queryKey: queryKeys.studyCurrent(),
+    queryFn: getCurrentStudy,
+    staleTime: STALE_TIMES.profile,
+  });
+  const currentStudy = studyQuery.data;
 
   const notesData = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
   const highlightsData = useMemo(
@@ -331,9 +345,9 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
       },
       {
         icon: Book,
-        label: "Pre-Read",
+        label: "Weekly Study",
         href: "/pre-read",
-        subtitle: "Preview today's study.",
+        subtitle: "This week's topic and materials.",
       },
     ],
     []
@@ -409,6 +423,58 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
           <p className={styles.welcomeTagline}>
             Scripture • Wisdom • Order • Reflection • Devotion
           </p>
+
+          {role === "admin" ? (
+            <Link href="/admin" className={styles.adminEntry}>
+              <span className={styles.adminEntryIconWrap} aria-hidden="true">
+                <Shield className={styles.adminEntryIcon} />
+              </span>
+              <span className={styles.adminEntryBody}>
+                <span className={styles.adminEntryEyebrow}>Admin</span>
+                <span className={styles.adminEntryTitle}>Admin console</span>
+                <span className={styles.adminEntryMeta}>
+                  Manage weekly study, hosts, and login QR
+                </span>
+              </span>
+              <ArrowUpRight className={styles.adminEntryCta} aria-hidden="true" />
+            </Link>
+          ) : null}
+
+          <Link href="/pre-read" className={styles.studyPanel}>
+            <p className={styles.studyPanelEyebrow}>This Week&apos;s Study</p>
+            {studyQuery.isLoading ? (
+              <p className={styles.studyPanelMeta}>Loading…</p>
+            ) : currentStudy ? (
+              <>
+                <h2 className={styles.studyPanelTitle}>
+                  {currentStudy.title ||
+                    `${currentStudy.book} ${currentStudy.chapter}`}
+                </h2>
+                <p className={styles.studyPanelMeta}>
+                  {currentStudy.book} {currentStudy.chapter}
+                  {currentStudy.verses_range
+                    ? `:${currentStudy.verses_range}`
+                    : ""}
+                  {currentStudy.week_start
+                    ? ` · ${formatWeekLabel(currentStudy.week_start)}`
+                    : ""}
+                </p>
+                <span className={styles.studyPanelCta}>
+                  Open study hub
+                  <ArrowUpRight className={styles.studyPanelCtaIcon} />
+                </span>
+              </>
+            ) : (
+              <>
+                <h2 className={styles.studyPanelTitle}>
+                  No study posted this week
+                </h2>
+                <p className={styles.studyPanelMeta}>
+                  Check back once your pastor publishes materials.
+                </p>
+              </>
+            )}
+          </Link>
 
           {isVerseLoading || todaysVerse ? (
             <motion.div

@@ -17,20 +17,18 @@ export default async function AdminCreatePreReadPage() {
         <div className={pageStyles.backRow}>
           <Link href="/admin/pre-read" className={pageStyles.backLink}>
             <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
-            Back to Pre-Reads
+            Weekly Studies
           </Link>
         </div>
-        <p className={pageStyles.eyebrow}>Admin · Pre-Reads</p>
-        <h1 className={pageStyles.title}>Create Pre-Read</h1>
+        <p className={pageStyles.eyebrow}>Weekly Study</p>
+        <h2 className={pageStyles.title}>Create this week&apos;s study</h2>
         <p className={pageStyles.description}>
-          Define the passage, add reflection questions, and schedule when the
-          study should appear to members.
+          Add topic, scripture, materials, and a short summary. Use the preview
+          to check the member view before you publish.
         </p>
       </header>
 
-      <div className={pageStyles.sectionSpacer}>
-        <PreReadForm mode="create" hostOptions={hosts} />
-      </div>
+      <PreReadForm mode="create" hostOptions={hosts} />
     </main>
   );
 }

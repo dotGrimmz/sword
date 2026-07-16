@@ -11,6 +11,8 @@ export type HostProfile = {
 export type PreRead = {
   id: string;
   parent_id: string | null;
+  title: string | null;
+  week_start: string | null;
   book: string;
   chapter: number;
   verses_range: string | null;
@@ -32,6 +34,8 @@ export type PreRead = {
 };
 
 export type PreReadPayload = {
+  title: string;
+  week_start: string;
   book: string;
   chapter: number;
   verses_range: string | null;

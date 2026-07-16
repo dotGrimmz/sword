@@ -1,4 +1,9 @@
+import { NextResponse } from "next/server";
+
+import { startOfWeek, weekVisibilityWindow } from "@/lib/study/week";
+import { normalizeStudyMaterial } from "@/lib/study/materials/strategy";
 import type { PreReadPayload } from "@/types/pre-read";
+import type { StudyMaterial, WeeklyStudy } from "@/types/study";
 
 export const PRE_READ_SELECT = `
   *,
@@ -14,7 +19,7 @@ export const PRE_READ_SELECT = `
 `;
 
 export const errorStatusFromCode = (code?: string) =>
-  code === "PGRST116" ? 404 : 500;
+  code === "PGRST116" ? 404 : code === "42501" ? 403 : 500;
 
 const toTrimmedString = (value: unknown) =>
   typeof value === "string" ? value.trim() : "";
@@ -76,6 +81,18 @@ const toDateTimeString = (
   return date.toISOString();
 };
 
+const toWeekStart = (value: unknown): string => {
+  const raw = toTrimmedString(value);
+  if (!raw) {
+    throw new Error("week_start is required");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    throw new Error("week_start must be YYYY-MM-DD");
+  }
+  // Normalize to Monday of that week
+  return startOfWeek(new Date(`${raw}T12:00:00`));
+};
+
 const toStringArray = (value: unknown) => {
   if (!Array.isArray(value)) {
     return [];
@@ -99,22 +116,25 @@ export const normalizePreReadPayload = (
     throw new Error("Summary is required");
   }
 
+  const title =
+    toTrimmedString(payload.title) ||
+    `${book} ${toPositiveInteger(payload.chapter, "Chapter")}`;
+
   const chapter = toPositiveInteger(payload.chapter, "Chapter");
+  const week_start = toWeekStart(payload.week_start ?? payload.weekStart);
+  const window = weekVisibilityWindow(week_start);
 
-  const visible_from = toDateTimeString(payload.visible_from, "visible_from", {
-    required: true,
-  });
-  const visible_until = toDateTimeString(
-    payload.visible_until,
-    "visible_until",
-    { required: true },
-  );
+  // Prefer derived week window; allow explicit overrides if both provided
+  const visible_from =
+    toDateTimeString(payload.visible_from, "visible_from", {
+      required: false,
+    }) ?? window.from;
+  const visible_until =
+    toDateTimeString(payload.visible_until, "visible_until", {
+      required: false,
+    }) ?? window.until;
 
-  if (
-    visible_from &&
-    visible_until &&
-    new Date(visible_from).getTime() >= new Date(visible_until).getTime()
-  ) {
+  if (new Date(visible_from).getTime() >= new Date(visible_until).getTime()) {
     throw new Error("visible_until must be after visible_from");
   }
 
@@ -142,6 +162,8 @@ export const normalizePreReadPayload = (
   );
 
   return {
+    title,
+    week_start,
     book,
     chapter,
     verses_range: toNullableString(
@@ -159,8 +181,70 @@ export const normalizePreReadPayload = (
     ),
     stream_start_time,
     is_cancelled: toBoolean(payload.is_cancelled ?? payload.isCancelled, false),
-    visible_from: visible_from!,
-    visible_until: visible_until!,
+    visible_from,
+    visible_until,
     published: toBoolean(payload.published, false),
   };
 };
+
+export function normalizeWeeklyStudy(row: Record<string, unknown>): WeeklyStudy {
+  const materialsRaw = row.materials;
+  let materials: StudyMaterial[] | undefined;
+  if (Array.isArray(materialsRaw)) {
+    materials = materialsRaw.map((item) =>
+      normalizeStudyMaterial(item as Record<string, unknown>),
+    );
+  }
+
+  return {
+    id: String(row.id),
+    title: String(row.title ?? ""),
+    week_start: String(row.week_start ?? ""),
+    book: String(row.book),
+    chapter: Number(row.chapter),
+    verses_range: (row.verses_range as string | null) ?? null,
+    summary: String(row.summary ?? ""),
+    memory_verse: (row.memory_verse as string | null) ?? null,
+    reflection_questions: Array.isArray(row.reflection_questions)
+      ? (row.reflection_questions as string[])
+      : null,
+    poll_question: (row.poll_question as string | null) ?? null,
+    poll_options: Array.isArray(row.poll_options)
+      ? (row.poll_options as string[])
+      : null,
+    published: Boolean(row.published),
+    is_cancelled: Boolean(row.is_cancelled),
+    materials,
+  };
+}
+
+export async function requireAdmin(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return {
+      user: null as null,
+      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "admin") {
+    return {
+      user: null as null,
+      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  return { user, error: null as null };
+}

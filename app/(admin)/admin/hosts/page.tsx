@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
 import { fetchHostProfiles } from "@/lib/api/pre-reads";
 
 import pageStyles from "../AdminPage.module.css";
@@ -10,23 +7,36 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminHostsPage() {
   const hosts = await fetchHostProfiles();
+  const activeCount = hosts.filter((host) => host.is_host_active).length;
 
   return (
     <main className={pageStyles.page}>
       <header className={pageStyles.header}>
-        <div className={pageStyles.backRow}>
-          <Link href="/admin" className={pageStyles.backLink}>
-            <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
-            Back to Admin Overview
-          </Link>
-        </div>
         <p className={pageStyles.eyebrow}>Admin · Hosts</p>
-        <h1 className={pageStyles.title}>Stream Hosts</h1>
+        <h2 className={pageStyles.title}>Stream Hosts</h2>
         <p className={pageStyles.description}>
-          Configure the public-facing details for each host. Active hosts appear
-          in scheduling dropdowns across the Pre-Read workflow.
+          Configure public-facing host details. Active hosts appear in Weekly
+          Study scheduling.
         </p>
       </header>
+
+      <section className={pageStyles.statsRow} aria-label="Host counts">
+        <div className={pageStyles.statCard}>
+          <p className={pageStyles.statLabel}>Hosts</p>
+          <p className={pageStyles.statValue}>{hosts.length}</p>
+          <p className={pageStyles.statMeta}>Total profiles</p>
+        </div>
+        <div className={pageStyles.statCard}>
+          <p className={pageStyles.statLabel}>Active</p>
+          <p className={pageStyles.statValue}>{activeCount}</p>
+          <p className={pageStyles.statMeta}>Available for scheduling</p>
+        </div>
+        <div className={pageStyles.statCard}>
+          <p className={pageStyles.statLabel}>Inactive</p>
+          <p className={pageStyles.statValue}>{hosts.length - activeCount}</p>
+          <p className={pageStyles.statMeta}>Hidden from dropdowns</p>
+        </div>
+      </section>
 
       <div className={pageStyles.sectionSpacer}>
         <HostsManager initialHosts={hosts} />

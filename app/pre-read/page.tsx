@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
 import { PollWidget } from "@/components/pre-read/PollWidget";
 import { StreamHostCard } from "@/components/pre-read/StreamHostCard";
+import { StudyMaterialsList } from "@/components/pre-read/StudyMaterialsList";
 import { PRE_READ_SELECT } from "@/app/api/pre-reads/utils";
 import { fetchPollSnapshot } from "@/lib/pre-read/poll";
+import { formatWeekLabel, startOfWeek } from "@/lib/study/week";
 import { createClient } from "@/lib/supabase/server";
 
 import styles from "./PreReadPage.module.css";
@@ -39,16 +41,15 @@ export default async function PreReadPage() {
     redirect("/login");
   }
 
-  const nowIso = new Date().toISOString();
+  const weekStart = startOfWeek(new Date());
 
-  const { data: preRead, error } = await supabase
+  const { data: study, error } = await supabase
     .from("pre_reads")
     .select(PRE_READ_SELECT)
     .eq("published", true)
     .eq("is_cancelled", false)
-    .lte("visible_from", nowIso)
-    .gte("visible_until", nowIso)
-    .order("visible_from", { ascending: false })
+    .eq("week_start", weekStart)
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -56,36 +57,41 @@ export default async function PreReadPage() {
     throw new Error(error.message);
   }
 
-  if (!preRead) {
+  if (!study) {
     return (
       <main className={styles.page}>
-        <Link href="/dashboard" className={styles.backLink}>
-          <ArrowLeft className={styles.backIcon} aria-hidden="true" />
-          Back to Dashboard
-        </Link>
+        <div className={styles.topBar}>
+          <Link href="/dashboard" className={styles.backLink}>
+            <ArrowLeft className={styles.backIcon} aria-hidden="true" />
+            Today
+          </Link>
+          <p className={styles.brandMark}>SWORD</p>
+        </div>
         <section className={styles.fallback}>
-          <p className={styles.heroEyebrow}>Pre-Read</p>
-          <h1 className={styles.fallbackTitle}>No Study Scheduled Today</h1>
+          <span className={styles.fallbackIconWrap} aria-hidden="true">
+            <BookOpen className={styles.fallbackIcon} />
+          </span>
+          <h1 className={styles.fallbackTitle}>No study posted this week</h1>
           <p className={styles.fallbackText}>
-            Check back later for the next daily Pre-Read once it has been
-            scheduled and published.
+            Check back soon—your leaders are preparing this week&apos;s prep.
           </p>
+          <p className={styles.fallbackBrand}>SWORD</p>
         </section>
       </main>
     );
   }
 
-  const reflectionQuestions = ensureStringArray(preRead.reflection_questions);
+  const reflectionQuestions = ensureStringArray(study.reflection_questions);
 
   const hasPoll =
-    Array.isArray(preRead.poll_options) && preRead.poll_options.length >= 2;
+    Array.isArray(study.poll_options) && study.poll_options.length >= 2;
 
   let pollSnapshot = null;
   if (hasPoll) {
     try {
       pollSnapshot = await fetchPollSnapshot({
-        preReadId: preRead.id,
-        optionCount: preRead.poll_options!.length,
+        preReadId: study.id,
+        optionCount: study.poll_options!.length,
         supabase,
         userId: session.user.id,
       });
@@ -95,51 +101,64 @@ export default async function PreReadPage() {
   }
 
   const readerHref = `/dashboard/reader?book=${encodeURIComponent(
-    preRead.book,
-  )}&chapter=${preRead.chapter}`;
+    study.book,
+  )}&chapter=${study.chapter}`;
+
+  const weekLabel = study.week_start
+    ? formatWeekLabel(study.week_start)
+    : formatWeekLabel(weekStart);
+
+  const reference = formatReference(
+    study.book,
+    study.chapter,
+    study.verses_range,
+  );
 
   return (
     <main className={styles.page}>
-      <Link href="/dashboard" className={styles.backLink}>
-        <ArrowLeft className={styles.backIcon} aria-hidden="true" />
-        Back to Dashboard
-      </Link>
-      <section className={styles.heroCard}>
-        <p className={styles.heroEyebrow}>Today&apos;s Passage</p>
-        <div>
-          <h1 className={styles.heroTitle}>
-            {preRead.book} {preRead.chapter}
-          </h1>
-        </div>
-        <Link href={readerHref} className={styles.heroLink}>
-          Open in Reader
-          <ArrowUpRight className={styles.heroLinkIcon} aria-hidden="true" />
+      <div className={styles.topBar}>
+        <Link href="/dashboard" className={styles.backLink}>
+          <ArrowLeft className={styles.backIcon} aria-hidden="true" />
+          Today
         </Link>
+        <p className={styles.brandMark}>SWORD</p>
+      </div>
+
+      <section className={styles.hero}>
+        <p className={styles.heroEyebrow}>This Week&apos;s Study · {weekLabel}</p>
+        <h1 className={styles.heroTitle}>
+          {study.title || `${study.book} ${study.chapter}`}
+        </h1>
+        <div className={styles.scriptureRow}>
+          <p className={styles.scriptureRef}>{reference}</p>
+          <Link href={readerHref} className={styles.heroLink}>
+            Open in Reader
+            <ArrowUpRight className={styles.heroLinkIcon} aria-hidden="true" />
+          </Link>
+        </div>
       </section>
 
-      <section className={styles.section}>
-        <p className={styles.sectionEyebrow}>Summary</p>
-        <p className={styles.summaryText}>{preRead.summary}</p>
-      </section>
+      {study.summary ? (
+        <section className={styles.section}>
+          <p className={styles.sectionEyebrow}>Summary</p>
+          <p className={styles.summaryText}>{study.summary}</p>
+        </section>
+      ) : null}
 
-      {preRead.memory_verse ? (
+      <StudyMaterialsList studyId={study.id} className={styles.section} />
+
+      {study.memory_verse ? (
         <section className={styles.memoryCard}>
           <p className={styles.sectionEyebrow}>Memory Verse</p>
           <blockquote className={styles.memoryQuote}>
-            “{preRead.memory_verse}”
+            “{study.memory_verse}”
           </blockquote>
-          <p className={styles.memoryReference}>
-            {formatReference(
-              preRead.book,
-              preRead.chapter,
-              preRead.verses_range,
-            )}
-          </p>
+          <p className={styles.memoryReference}>{reference}</p>
         </section>
       ) : null}
 
       {reflectionQuestions.length > 0 ? (
-        <section className={styles.section}>
+        <section className={styles.sectionMuted}>
           <p className={styles.sectionEyebrow}>Reflection Questions</p>
           <ol className={styles.reflectionList}>
             {reflectionQuestions.map((question, index) => (
@@ -152,27 +171,27 @@ export default async function PreReadPage() {
         </section>
       ) : null}
 
-      {hasPoll && preRead.poll_question ? (
+      {hasPoll && study.poll_question ? (
         <PollWidget
-          preReadId={preRead.id}
-          question={preRead.poll_question}
-          options={preRead.poll_options!}
+          preReadId={study.id}
+          question={study.poll_question}
+          options={study.poll_options!}
           initialSnapshot={pollSnapshot}
-          className={styles.section}
+          className={styles.sectionMuted}
         />
       ) : null}
 
-      <CommentsSection preReadId={preRead.id} className={styles.section} />
+      <CommentsSection preReadId={study.id} className={styles.sectionMuted} />
 
-      {preRead.host_profile ? (
+      {study.host_profile ? (
         <section className={`${styles.section} ${styles.hostSection}`}>
           <div className={styles.sectionHeaderRow}>
-            <p className={styles.sectionEyebrow}>Today&apos;s Host</p>
+            <p className={styles.sectionEyebrow}>Host</p>
             <p className={styles.sectionHelper}>Live stream details & bio</p>
           </div>
           <StreamHostCard
-            host={preRead.host_profile}
-            streamStartTime={preRead.stream_start_time}
+            host={study.host_profile}
+            streamStartTime={study.stream_start_time}
           />
         </section>
       ) : null}

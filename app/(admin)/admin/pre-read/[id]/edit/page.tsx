@@ -26,20 +26,18 @@ export default async function AdminEditPreReadPage({
         <div className={pageStyles.backRow}>
           <Link href="/admin/pre-read" className={pageStyles.backLink}>
             <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
-            Back to Pre-Reads
+            Weekly Studies
           </Link>
         </div>
-        <p className={pageStyles.eyebrow}>Admin · Pre-Reads</p>
-        <h1 className={pageStyles.title}>Edit Pre-Read</h1>
+        <p className={pageStyles.eyebrow}>Weekly Study</p>
+        <h2 className={pageStyles.title}>Edit study</h2>
         <p className={pageStyles.description}>
-          Update schedule details, adjust poll questions, or reassign hosts for
-          this daily study entry.
+          Update the topic, scripture, materials, or publish status for this
+          week.
         </p>
       </header>
 
-      <div className={pageStyles.sectionSpacer}>
-        <PreReadForm mode="edit" initialData={preRead} hostOptions={hosts} />
-      </div>
+      <PreReadForm mode="edit" initialData={preRead} hostOptions={hosts} />
     </main>
   );
 }

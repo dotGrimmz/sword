@@ -40,4 +40,6 @@ export const queryKeys = {
   userMemory: (translationCode: string) =>
     ["user-memory-verses", translationCode] as const,
   profile: () => ["profile"] as const,
+  studyCurrent: () => ["study", "current"] as const,
+  studyMaterials: (id: string) => ["study", id, "materials"] as const,
 } as const;

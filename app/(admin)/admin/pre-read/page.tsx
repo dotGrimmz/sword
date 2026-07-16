@@ -1,147 +1,133 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarPlus, FileText } from "lucide-react";
+import { ArrowRight, CalendarPlus, FileText } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { fetchPreReads } from "@/lib/api/pre-reads";
+import { formatWeekLabel, isCurrentWeek } from "@/lib/study/week";
 import type { PreRead } from "@/types/pre-read";
 
-import pageStyles from "../AdminPage.module.css";
-import listStyles from "./PreReadList.module.css";
+import styles from "../AdminPage.module.css";
 
 export const dynamic = "force-dynamic";
 
-const formatDateTime = (value: string | null) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-};
-
-const getStatus = (preRead: PreRead) => {
-  if (preRead.is_cancelled) {
-    return { label: "Cancelled", variant: "destructive" as const };
+const getStatus = (study: PreRead) => {
+  if (study.is_cancelled) {
+    return { label: "Cancelled", className: styles.statusCancelled };
   }
-  if (!preRead.published) {
-    return { label: "Draft", variant: "secondary" as const };
+  if (!study.published) {
+    return { label: "Draft", className: styles.statusDraft };
   }
-
-  const now = Date.now();
-  const startsAt = new Date(preRead.visible_from).getTime();
-  const endsAt = new Date(preRead.visible_until).getTime();
-
-  if (now < startsAt) {
-    return { label: "Scheduled", variant: "outline" as const };
+  if (study.week_start && isCurrentWeek(study.week_start)) {
+    return { label: "Live", className: styles.statusLive };
   }
-  if (now > endsAt) {
-    return { label: "Expired", variant: "secondary" as const };
+  if (study.week_start) {
+    const weekStartMs = new Date(`${study.week_start}T12:00:00`).getTime();
+    if (weekStartMs > Date.now()) {
+      return { label: "Scheduled", className: styles.statusScheduled };
+    }
+    return { label: "Past", className: styles.statusPast };
   }
-  return { label: "Live", variant: "default" as const };
-};
-
-const formatWindow = (preRead: PreRead) => {
-  const start = formatDateTime(preRead.visible_from);
-  const end = formatDateTime(preRead.visible_until);
-  return `${start} → ${end}`;
+  return { label: "Published", className: styles.statusPublished };
 };
 
 export default async function AdminPreReadListPage() {
-  const preReads = await fetchPreReads();
+  const studies = await fetchPreReads();
+  const thisWeek =
+    studies.find(
+      (study) => study.week_start && isCurrentWeek(study.week_start),
+    ) ?? null;
 
   return (
-    <main className={pageStyles.page}>
-      <header className={pageStyles.header}>
-        <div className={pageStyles.backRow}>
-          <Link href="/admin" className={pageStyles.backLink}>
-            <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
-            Back to Admin Overview
-          </Link>
-        </div>
-        <p className={pageStyles.eyebrow}>Admin · Pre-Reads</p>
-        <h1 className={pageStyles.title}>Daily Pre-Read Sessions</h1>
-        <p className={pageStyles.description}>
-          Plan and publish the daily Pre-Read experience. Assign hosts, control
-          visibility windows, and keep members informed ahead of each study.
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <p className={styles.eyebrow}>Admin · Weekly Study</p>
+        <h2 className={styles.title}>Weekly Studies</h2>
+        <p className={styles.description}>
+          Post this week&apos;s topic, scripture, and downloadable materials for
+          members.
         </p>
-        <div className={listStyles.ctaWrapper}>
-          <Button asChild className={listStyles.ctaButton}>
-            <Link href="/admin/pre-read/new">
-              <CalendarPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-              Create Pre-Read
-            </Link>
-          </Button>
-        </div>
       </header>
 
-      <section className={`${pageStyles.panel} ${listStyles.panel}`}>
-        {preReads.length === 0 ? (
-          <div className={listStyles.emptyState}>
-            <FileText className="h-10 w-10" aria-hidden="true" />
-            <p>No Pre-Reads yet. Create your first daily study above.</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Passage</TableHead>
-                <TableHead>Host</TableHead>
-                <TableHead>Visibility Window</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {preReads.map((preRead) => {
-                const status = getStatus(preRead);
-                return (
-                  <TableRow key={preRead.id}>
-                    <TableCell className="align-top">
-                      <div className={listStyles.passageTitle}>
-                        {preRead.book} {preRead.chapter}
-                      </div>
-                      {preRead.verses_range && (
-                        <div className={listStyles.passageMeta}>
-                          Verses {preRead.verses_range}
-                        </div>
-                      )}
-                      <p className={listStyles.passageSummary}>
-                        {preRead.summary}
-                      </p>
-                    </TableCell>
-                    <TableCell className="align-top">
-                      {preRead.host_profile?.username ?? "Unassigned"}
-                    </TableCell>
-                    <TableCell className="align-top text-sm">
-                      {formatWindow(preRead)}
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <Badge variant={status.variant}>{status.label}</Badge>
-                    </TableCell>
-                    <TableCell className="align-top text-right">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/pre-read/${preRead.id}/edit`}>Edit</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
+      <section className={styles.primaryCta}>
+        <div className={styles.primaryCtaCopy}>
+          <p className={styles.primaryCtaEyebrow}>Primary action</p>
+          <h3 className={styles.primaryCtaTitle}>
+            {thisWeek
+              ? thisWeek.title || `${thisWeek.book} ${thisWeek.chapter}`
+              : "Create a weekly study"}
+          </h3>
+          <p className={styles.primaryCtaMeta}>
+            {thisWeek
+              ? "Edit this week’s study and materials for the member hub."
+              : "Add topic, scripture, and materials for this week."}
+          </p>
+        </div>
+        <Link
+          href={
+            thisWeek
+              ? `/admin/pre-read/${thisWeek.id}/edit`
+              : "/admin/pre-read/new"
+          }
+          className={styles.primaryCtaButton}
+        >
+          {thisWeek ? (
+            <>
+              Edit this week
+              <ArrowRight className={styles.primaryCtaIcon} aria-hidden="true" />
+            </>
+          ) : (
+            <>
+              <CalendarPlus className={styles.primaryCtaIcon} aria-hidden="true" />
+              Create study
+            </>
+          )}
+        </Link>
       </section>
+
+      {studies.length === 0 ? (
+        <div className={styles.emptyState}>
+          <FileText className={styles.emptyIcon} aria-hidden="true" />
+          <p>No weekly studies yet. Create your first study above.</p>
+        </div>
+      ) : (
+        <section className={styles.listStack} aria-label="All weekly studies">
+          {studies.map((study) => {
+            const status = getStatus(study);
+            return (
+              <article key={study.id} className={styles.listCard}>
+                <div className={styles.listCardBody}>
+                  <h3 className={styles.listCardTitle}>
+                    {study.title || `${study.book} ${study.chapter}`}
+                  </h3>
+                  <p className={styles.listCardMeta}>
+                    {study.book} {study.chapter}
+                    {study.verses_range ? `:${study.verses_range}` : ""}
+                    {study.week_start
+                      ? ` · ${formatWeekLabel(study.week_start)}`
+                      : ""}
+                    {` · ${study.host_profile?.username ?? "Unassigned"}`}
+                  </p>
+                  {study.summary ? (
+                    <p className={styles.listCardSummary}>{study.summary}</p>
+                  ) : null}
+                </div>
+                <div className={styles.listCardAside}>
+                  <span
+                    className={`${styles.statusBadge} ${status.className}`}
+                  >
+                    {status.label}
+                  </span>
+                  <Link
+                    href={`/admin/pre-read/${study.id}/edit`}
+                    className={styles.listCardLink}
+                  >
+                    Edit
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
     </main>
   );
 }

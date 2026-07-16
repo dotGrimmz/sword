@@ -1,0 +1,235 @@
+.shell {
+  --admin-bg: #fff5f0;
+  --admin-surface: #fff8f4;
+  --admin-surface-solid: #ffffff;
+  --admin-primary: #d91f26;
+  --admin-accent: #f28c00;
+  --admin-secondary: #ffe8dc;
+  --admin-text: #1a1a1a;
+  --admin-muted: #4a4a4a;
+  --admin-outline: #e8cfc4;
+  --admin-sidebar-width: 240px;
+
+  display: flex;
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--admin-sidebar-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-outline);
+  z-index: 40;
+}
+
+.brand {
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+.brandMark {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--admin-primary);
+  line-height: 1.1;
+}
+
+.brandLabel {
+  margin: 0.35rem 0 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  opacity: 0.75;
+}
+
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+  overflow-y: auto;
+}
+
+.navItem,
+.navItemActive {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--admin-muted);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.navItem:hover {
+  background: color-mix(in oklab, var(--admin-surface-solid) 70%, transparent);
+  color: var(--admin-primary);
+}
+
+.navItemActive {
+  font-weight: 650;
+  color: var(--admin-primary);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--admin-primary) 12%, transparent),
+    color-mix(in oklab, var(--admin-accent) 6%, transparent)
+  );
+  border-right: 3px solid var(--admin-primary);
+  border-radius: 0.75rem 0 0 0.75rem;
+}
+
+.navIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+}
+
+.navSoon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  color: color-mix(in oklab, var(--admin-muted) 45%, transparent);
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.navSoonLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.soonBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.35rem;
+  background: color-mix(in oklab, var(--admin-outline) 55%, transparent);
+}
+
+.backToApp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.75rem 1rem 1.25rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--admin-outline);
+  background: var(--admin-surface-solid);
+  color: var(--admin-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.backToApp:hover {
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+}
+
+.backIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--admin-sidebar-width);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.75rem;
+  border-bottom: 1px solid var(--admin-outline);
+  background: color-mix(in oklab, var(--admin-surface-solid) 88%, transparent);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.topCredit {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--admin-muted);
+}
+
+.content {
+  flex: 1;
+  padding: 1.5rem 1.75rem 2.5rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 860px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: sticky;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-outline);
+  }
+
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .navItemActive {
+    border-right: none;
+    border-bottom: 3px solid var(--admin-primary);
+    border-radius: 0.75rem;
+  }
+
+  .backToApp {
+    align-self: flex-start;
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 1.15rem 1rem 2rem;
+  }
+}
