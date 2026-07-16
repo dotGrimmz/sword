@@ -209,9 +209,12 @@ export default function HostsManager({ initialHosts }: HostsManagerProps) {
             <div key={host.id} className={styles.hostRow}>
               <div className={styles.header}>
                 <div className={styles.avatarGroup}>
-                  <Avatar>
+                  <Avatar className={styles.avatar}>
                     {host.form.avatar_url ? (
-                      <AvatarImage src={host.form.avatar_url} alt={host.form.username} />
+                      <AvatarImage
+                        src={host.form.avatar_url}
+                        alt={host.form.username || "Host"}
+                      />
                     ) : null}
                     <AvatarFallback>
                       {initialFallback(host.form.username || "Host")}
@@ -226,12 +229,14 @@ export default function HostsManager({ initialHosts }: HostsManagerProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className={styles.activeToggle}>
                   <Label htmlFor={`active-${host.id}`}>Active host</Label>
                   <Switch
                     id={`active-${host.id}`}
                     checked={host.form.is_host_active}
-                    onCheckedChange={(value) => handleToggleActive(host.id, value)}
+                    onCheckedChange={(value) =>
+                      handleToggleActive(host.id, value)
+                    }
                   />
                 </div>
               </div>

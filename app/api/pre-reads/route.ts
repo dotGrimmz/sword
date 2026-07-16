@@ -1,19 +1,51 @@
 import { NextResponse } from "next/server";
 
+import { startOfWeek } from "@/lib/study/week";
 import { createClient } from "@/lib/supabase/server";
 
 import {
   PRE_READ_SELECT,
   errorStatusFromCode,
   normalizePreReadPayload,
+  normalizeWeeklyStudy,
 } from "./utils";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
+  const url = new URL(request.url);
+
+  if (url.searchParams.get("current") === "1") {
+    const weekStart = startOfWeek(new Date());
+    const { data, error } = await supabase
+      .from("pre_reads")
+      .select(PRE_READ_SELECT)
+      .eq("published", true)
+      .eq("is_cancelled", false)
+      .eq("week_start", weekStart)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: errorStatusFromCode(error.code) },
+      );
+    }
+
+    if (!data) {
+      return NextResponse.json(null);
+    }
+
+    return NextResponse.json(
+      normalizeWeeklyStudy(data as unknown as Record<string, unknown>),
+    );
+  }
 
   const { data, error } = await supabase
     .from("pre_reads")
     .select(PRE_READ_SELECT)
+    .order("week_start", { ascending: false, nullsFirst: false })
     .order("visible_from", { ascending: false });
 
   if (error) {

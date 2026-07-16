@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grace Ministry Admin Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D91F26", // Red
+                        secondary: "#F28C00", // Orange
+                        surface: "#FFFFFF",
+                        "surface-container": "#FFF8F4", // Warm white
+                        "surface-canvas": "#FFF5F0", // Main Area off-white
+                        "outline-variant": "#E0E0E0",
+                        "on-surface": "#1A1A1A",
+                        "on-surface-variant": "#666666"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "12px",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Inter", "sans-serif"],
+                        display: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                        label: ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .active-gradient {
+            background: linear-gradient(90deg, rgba(217, 31, 38, 0.1) 0%, rgba(242, 140, 0, 0.05) 100%);
+            border-right: 4px solid #D91F26;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #E0E0E0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface-canvas text-on-surface antialiased overflow-hidden h-screen flex">
+<!-- SIDEBAR -->
+<!-- Content from Shared Components JSON: SideNavBar mapping -->
+<aside class="w-60 h-screen fixed left-0 top-0 bg-surface-container border-r border-outline-variant flex flex-col z-50">
+<!-- Logo Section -->
+<div class="p-6">
+<h1 class="text-2xl font-black tracking-tighter text-primary flex items-center gap-2">
+                SWORD
+            </h1>
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mt-1 opacity-70">Admin Console</p>
+</div>
+<!-- Navigation Clusters -->
+<nav class="flex-1 px-3 space-y-1 overflow-y-auto custom-scrollbar">
+<!-- Overview - Active -->
+<a class="active-gradient flex items-center gap-3 px-4 py-3 text-primary rounded-r-lg font-semibold transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<!-- Weekly Study -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/50 hover:text-primary rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:fill-current">inventory_2</span>
+<span class="text-sm">Resources</span>
+</a>
+<!-- Hosts -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/50 hover:text-primary rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:fill-current">group</span>
+<span class="text-sm">Members</span>
+</a>
+<!-- Users (Disabled / Soon) -->
+<div class="flex items-center justify-between px-4 py-3 text-on-surface-variant/40 cursor-not-allowed">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm">Finances</span>
+</div>
+<span class="text-[10px] font-bold bg-outline-variant/30 px-1.5 py-0.5 rounded uppercase tracking-tighter">Soon</span>
+</div>
+<div class="pt-4 pb-2 px-4">
+<div class="h-px bg-outline-variant/50 w-full"></div>
+</div>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/50 hover:text-primary rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:fill-current">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<!-- Footer Action -->
+<div class="p-4 mt-auto">
+<a class="flex items-center gap-2 px-4 py-3 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                Back to app
+            </a>
+</div>
+</aside>
+<!-- MAIN CONTENT WRAPPER -->
+<div class="ml-60 flex-1 flex flex-col min-h-screen relative overflow-hidden">
+<!-- HEADER -->
+<!-- Content from Shared Components JSON: TopNavBar mapping -->
+<header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<h2 class="font-headline text-xl font-bold text-on-surface">Overview</h2>
+<div class="hidden md:flex items-center bg-surface-canvas/50 border border-outline-variant rounded-full px-3 py-1.5">
+<span class="material-symbols-outlined text-sm text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm p-0 w-48 placeholder:text-on-surface-variant/50" placeholder="Search data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">help_outline</span>
+</div>
+<div class="h-8 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-3 group cursor-pointer">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface">Grace Ministry</p>
+<p class="text-[10px] text-on-surface-variant">System Admin</p>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a corporate administrator in a bright, warm-lit modern office environment. The subject wears a sharp blazer, exuding confidence and leadership. The lighting is soft and high-key, aligning with a warm white and red brand aesthetic. The background features blurred architectural elements of a contemporary ministry facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl0FnRejToGagvU-Md-vfhtqXbW3yWPJ_8Y9ZC9Cd5IXe7_U4Cr8jrzNEQy7QwOtz3x9xqWwI5ZzqrN8TtQMWvbbYYHTtHUk9PaAlLunyB-V5nm8t6ovl9oyhHuNRELZJgJUusm7wBqk3K7bVc4Nh0jPtdHu6PE7E1rFQZU9y4KQPXnGcapT94d4A_VCtXdUTDofn1XN9am55gSO1XO_ar_rfizPS8yfd_RuJMd0eyYmT5NbP-_XK07WvxPWaSzFTx20yGv3hhpjfX"/>
+</div>
+</div>
+</div>
+</header>
+<!-- CANVAS -->
+<main class="flex-1 p-8 overflow-y-auto custom-scrollbar">
+<!-- Welcome Section -->
+<div class="mb-8 flex justify-between items-end">
+<div>
+<h3 class="text-3xl font-extrabold text-on-surface tracking-tight">Ministry Analytics</h3>
+<p class="text-on-surface-variant mt-1">Reviewing the impact of Realign Ministries globally.</p>
+</div>
+<button class="bg-primary hover:bg-red-700 text-white px-6 py-2.5 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Report
+                </button>
+</div>
+<!-- BENTO GRID STATS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Card 1 -->
+<div class="bg-surface p-6 rounded-2xl border border-outline-variant hover:shadow-xl hover:shadow-primary/5 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-secondary font-bold text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            +12%
+                        </span>
+</div>
+<h4 class="text-on-surface-variant text-sm font-medium">Active Users</h4>
+<p class="text-3xl font-black text-on-surface mt-1">4,284</p>
+<div class="mt-4 w-full bg-outline-variant/30 h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-2/3"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface p-6 rounded-2xl border border-outline-variant hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-secondary/10 text-secondary">
+<span class="material-symbols-outlined">auto_stories</span>
+</div>
+<span class="text-primary font-bold text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                            On Track
+                        </span>
+</div>
+<h4 class="text-on-surface-variant text-sm font-medium">Study Completion</h4>
+<p class="text-3xl font-black text-on-surface mt-1">82.4%</p>
+<div class="mt-4 w-full bg-outline-variant/30 h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[82%]"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface p-6 rounded-2xl border border-outline-variant hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-on-surface/5 text-on-surface">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<span class="text-on-surface-variant font-bold text-xs flex items-center gap-1">
+                            New Hosts
+                        </span>
+</div>
+<h4 class="text-on-surface-variant text-sm font-medium">Host Growth</h4>
+<p class="text-3xl font-black text-on-surface mt-1">+158</p>
+<div class="mt-4 w-full bg-outline-variant/30 h-1 rounded-full overflow-hidden">
+<div class="bg-on-surface h-full w-1/4"></div>
+</div>
+</div>
+</div>
+<!-- DETAILED CONTENT AREA (Asymmetric Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+<!-- Activity Feed -->
+<div class="lg:col-span-3 bg-surface rounded-2xl border border-outline-variant overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center">
+<h5 class="font-bold text-lg">Weekly Engagement Trends</h5>
+<div class="flex gap-2">
+<button class="text-xs font-bold px-3 py-1 bg-surface-canvas rounded-lg">Week</button>
+<button class="text-xs font-medium px-3 py-1 text-on-surface-variant">Month</button>
+</div>
+</div>
+<div class="p-6 h-[300px] relative">
+<!-- Placeholder for a graph/chart visualization -->
+<div class="absolute inset-0 p-8 flex items-end justify-between gap-4">
+<div class="flex-1 bg-primary/20 rounded-t-lg h-[40%]"></div>
+<div class="flex-1 bg-primary/30 rounded-t-lg h-[65%]"></div>
+<div class="flex-1 bg-primary/10 rounded-t-lg h-[35%]"></div>
+<div class="flex-1 bg-primary/40 rounded-t-lg h-[90%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-lg h-[55%]"></div>
+<div class="flex-1 bg-secondary/30 rounded-t-lg h-[70%]"></div>
+<div class="flex-1 bg-primary/50 rounded-t-lg h-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Featured Highlight -->
+<div class="lg:col-span-2 space-y-6">
+<div class="bg-primary rounded-2xl p-6 text-white relative overflow-hidden group">
+<div class="absolute top-[-20%] right-[-10%] w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+<h5 class="text-xs font-bold uppercase tracking-widest text-white/70 mb-2">Announcement</h5>
+<p class="text-xl font-bold leading-tight mb-4">National Study Series starting next month. Ensure all Hosts are briefed.</p>
+<button class="bg-white text-primary px-4 py-2 rounded-xl text-xs font-black shadow-lg shadow-black/10">PREPARE ASSETS</button>
+</div>
+<div class="bg-surface rounded-2xl p-6 border border-outline-variant">
+<h5 class="font-bold mb-4">Recent Host Activities</h5>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">John Miller</p>
+<p class="text-[10px] text-on-surface-variant">Created new Study Group</p>
+</div>
+<span class="text-[10px] text-on-surface-variant">2m ago</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Sarah Jenkins</p>
+<p class="text-[10px] text-on-surface-variant">Verified 12 completions</p>
+</div>
+<span class="text-[10px] text-on-surface-variant">15m ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hover effect for stats
+            const cards = document.querySelectorAll('.bg-surface');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.classList.add('scale-[1.01]');
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.classList.remove('scale-[1.01]');
+                });
+            });
+        });
+    </script>
+</body></html>

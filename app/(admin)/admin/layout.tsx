@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/AppShell";
+import { AdminShell } from "@/components/admin/AdminShell";
 import type { UserRole } from "@/components/ProfileContext";
 import { resolveTheme } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/server";
@@ -34,9 +34,5 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  return (
-    <AppShell initialTheme={theme} initialRole={role}>
-      {children}
-    </AppShell>
-  );
+  return <AdminShell initialTheme={theme}>{children}</AdminShell>;
 }

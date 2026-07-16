@@ -69,7 +69,6 @@ const CommentItem = ({
       .slice(0, 2)
       .toUpperCase() ?? "M";
 
-  console.log(comment.author.avatar_url);
   return (
     <li className={styles.item}>
       <div className={styles.itemHeader}>

@@ -112,7 +112,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Guarantee a profiles row exists before we write avatar_url.
   const { profile: ensured, error: ensureError } = await ensureProfile(
     supabase,
     session.user,

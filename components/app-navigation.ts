@@ -33,7 +33,7 @@ export type DashboardScreenKey = keyof typeof dashboardScreens;
 export const dashboardSecondaryScreens = {
   "pre-read": {
     id: "pre-read",
-    label: "Pre-Read",
+    label: "Study",
     route: "/pre-read",
   },
 } as const;
