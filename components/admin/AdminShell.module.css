@@ -97,32 +97,6 @@
   flex-shrink: 0;
 }
 
-.navSoon {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.7rem 0.85rem;
-  color: color-mix(in oklab, var(--admin-muted) 45%, transparent);
-  cursor: not-allowed;
-  user-select: none;
-}
-
-.navSoonLabel {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.soonBadge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.35rem;
-  background: color-mix(in oklab, var(--admin-outline) 55%, transparent);
-}
-
 .backToApp {
   display: inline-flex;
   align-items: center;

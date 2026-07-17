@@ -1,0 +1,131 @@
+.searchInput {
+  width: 100%;
+  max-width: 20rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.row {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid #e8cfc4;
+  border-radius: 0.9rem;
+  background: #fffdfb;
+}
+
+@media (min-width: 768px) {
+  .row {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  object-fit: cover;
+  background: #fff1ea;
+  border: 1px solid #e8cfc4;
+  flex-shrink: 0;
+}
+
+.avatarFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.copy {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #8a7268;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7268;
+}
+
+.value {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #1a1a1a;
+  word-break: break-word;
+}
+
+.muted {
+  color: #8a7268;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: #8a7268;
+  font-size: 0.92rem;
+}
+
+.roleBadge {
+  display: inline-flex;
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #e8cfc4;
+  background: #ffffff;
+  color: #6b5a52;
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
