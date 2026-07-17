@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { AddMemoryVerseButton } from "@/components/pre-read/AddMemoryVerseButton";
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
 import { PollWidget } from "@/components/pre-read/PollWidget";
-import { StreamHostCard } from "@/components/pre-read/StreamHostCard";
 import { StudyMaterialsList } from "@/components/pre-read/StudyMaterialsList";
 import { fetchPollSnapshot } from "@/lib/pre-read/poll";
 import { HydrateClient } from "@/lib/query/HydrateClient";
@@ -208,19 +207,6 @@ export default async function PreReadPage() {
         ) : null}
 
         <CommentsSection preReadId={study.id} className={styles.sectionMuted} />
-
-        {study.host_profile ? (
-          <section className={`${styles.section} ${styles.hostSection}`}>
-            <div className={styles.sectionHeaderRow}>
-              <p className={styles.sectionEyebrow}>Host</p>
-              <p className={styles.sectionHelper}>Live stream details & bio</p>
-            </div>
-            <StreamHostCard
-              host={study.host_profile}
-              streamStartTime={study.stream_start_time}
-            />
-          </section>
-        ) : null}
       </main>
     </HydrateClient>
   );

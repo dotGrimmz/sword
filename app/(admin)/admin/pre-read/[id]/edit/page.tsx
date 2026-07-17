@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { fetchHostProfiles, fetchPreRead } from "@/lib/api/pre-reads";
+import { fetchPreRead } from "@/lib/api/pre-reads";
 
 import pageStyles from "../../../AdminPage.module.css";
 import PreReadForm from "../../PreReadForm";
@@ -14,11 +14,7 @@ export default async function AdminEditPreReadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
-  const [preRead, hosts] = await Promise.all([
-    fetchPreRead(id),
-    fetchHostProfiles(),
-  ]);
+  const preRead = await fetchPreRead(id);
 
   return (
     <main className={pageStyles.page}>
@@ -26,10 +22,10 @@ export default async function AdminEditPreReadPage({
         <div className={pageStyles.backRow}>
           <Link href="/admin/pre-read" className={pageStyles.backLink}>
             <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
-            Weekly Studies
+            Studies
           </Link>
         </div>
-        <p className={pageStyles.eyebrow}>Weekly Study</p>
+        <p className={pageStyles.eyebrow}>Study</p>
         <h2 className={pageStyles.title}>Edit study</h2>
         <p className={pageStyles.description}>
           Update the topic, scripture, materials, or publish status for this
@@ -37,7 +33,7 @@ export default async function AdminEditPreReadPage({
         </p>
       </header>
 
-      <PreReadForm mode="edit" initialData={preRead} hostOptions={hosts} />
+      <PreReadForm mode="edit" initialData={preRead} />
     </main>
   );
 }

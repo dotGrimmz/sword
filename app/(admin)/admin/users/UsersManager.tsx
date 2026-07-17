@@ -135,7 +135,7 @@ export default function UsersManager({ initialUsers }: UsersManagerProps) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search name, email, title…"
-          className={styles.searchInput}
+          className={`h-14 min-h-14 text-base md:h-11 md:min-h-11 ${styles.searchInput}`}
           aria-label="Search users"
         />
       </div>

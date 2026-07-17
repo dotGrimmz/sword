@@ -120,6 +120,7 @@ export function BibleReaderScreen() {
 
   const selectedBook = selectedBookId ? bookIndex.get(selectedBookId) ?? null : null;
   const skipVerseScrollRef = useRef(false);
+  const readerScrollRef = useRef<HTMLDivElement>(null);
   const queryAppliedRef = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const queryBookParam = searchParams?.get("book") ?? null;
@@ -481,11 +482,16 @@ export function BibleReaderScreen() {
     }
   };
 
+  const scrollReaderToTop = () => {
+    readerScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const goToPrevious = () => {
     if (!selectedBook) {
       return;
     }
     goToPreviousChapter(books, selectedBook.id);
+    scrollReaderToTop();
   };
 
   const goToNext = () => {
@@ -493,6 +499,7 @@ export function BibleReaderScreen() {
       return;
     }
     goToNextChapter(books, selectedBook.id);
+    scrollReaderToTop();
   };
 
   const isBusy =
@@ -602,7 +609,7 @@ export function BibleReaderScreen() {
     <div className={styles.readerPage}>
       {bookmarksPortal}
 
-      <div className={styles.readerScroll}>
+      <div ref={readerScrollRef} className={styles.readerScroll}>
       <div className={styles.toolbar}>
         <div className={styles.headerRow}>
           <div className={styles.titleBlock}>

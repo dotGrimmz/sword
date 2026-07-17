@@ -172,12 +172,15 @@
 .primaryCtaButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
-  padding: 0.75rem 1.15rem;
+  min-height: 3.5rem;
+  width: 100%;
+  padding: 0.9rem 1.25rem;
   border-radius: 0.75rem;
   background: linear-gradient(105deg, #d91f26, #f28c00);
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
@@ -189,8 +192,22 @@
 }
 
 .primaryCtaIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+@media (min-width: 720px) {
+  .primaryCtaButton {
+    width: auto;
+    min-height: 2.75rem;
+    padding: 0.75rem 1.15rem;
+    font-size: 0.9rem;
+  }
+
+  .primaryCtaIcon {
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
 .quickLinks {
@@ -317,22 +334,46 @@
   flex-shrink: 0;
 }
 
+.listCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .listCardLink {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 0.65rem;
+  flex: 1;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
   border: 1px solid color-mix(in oklab, #d91f26 28%, #e8cfc4);
   background: color-mix(in oklab, #d91f26 8%, #ffffff);
   color: #d91f26;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 650;
   text-decoration: none;
 }
 
 .listCardLink:hover {
   border-color: #d91f26;
+}
+
+@media (min-width: 720px) {
+  .listCardActions {
+    width: auto;
+  }
+
+  .listCardLink {
+    flex: none;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.65rem;
+    font-size: 0.85rem;
+  }
 }
 
 .statusBadge {
@@ -469,10 +510,9 @@
   }
 
   .listCardAside {
-    align-items: flex-start;
+    align-items: stretch;
     width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
   }
 }
 

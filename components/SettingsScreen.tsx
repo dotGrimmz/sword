@@ -65,7 +65,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { role, setRole } = useProfile();
+  const { setRole } = useProfile();
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [profileForm, setProfileForm] = useState<ProfileFormState>({
@@ -198,8 +198,6 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
 
   const memberSince = formatDateLabel(authUser?.created_at);
   const lastSignIn = formatDateLabel(authUser?.last_sign_in_at);
-  const isHostRole = role === "host" || role === "admin";
-
   const handleThemeChange = async (nextTheme: Theme) => {
     if (nextTheme === theme) {
       return;
@@ -434,8 +432,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
             </CardHeader>
             <CardContent className={styles.sectionContent}>
               <p className={styles.sectionDescription}>
-                Control what others see next to your comments and live host
-                card.
+                Control what others see next to your comments.
               </p>
               <div className={styles.formGrid}>
                 <div className={`${styles.formField} ${styles.formFieldFull}`}>
@@ -519,61 +516,9 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
                     disabled={isSavingProfile}
                   />
                   <p className={styles.formHelper}>
-                    Visible beside your comments and host summary.
+                    Visible beside your comments.
                   </p>
                 </div>
-                {isHostRole ? (
-                  <>
-                    <div className={styles.formField}>
-                      <Label
-                        htmlFor="profile_stream_tagline"
-                        className={styles.formLabel}
-                      >
-                        Stream tagline
-                      </Label>
-                      <Input
-                        id="profile_stream_tagline"
-                        className={styles.formControl}
-                        placeholder="Short teaser for your stream"
-                        value={profileForm.streamTagline}
-                        onChange={(event) =>
-                          handleProfileInputChange(
-                            "streamTagline",
-                            event.target.value
-                          )
-                        }
-                        disabled={isSavingProfile}
-                      />
-                      <p className={styles.formHelper}>
-                        Appears under your name on the live host panel.
-                      </p>
-                    </div>
-                    <div className={styles.formField}>
-                      <Label
-                        htmlFor="profile_stream_url"
-                        className={styles.formLabel}
-                      >
-                        Stream URL
-                      </Label>
-                      <Input
-                        id="profile_stream_url"
-                        className={styles.formControl}
-                        placeholder="https://youtube.com/@yoursession"
-                        value={profileForm.streamUrl}
-                        onChange={(event) =>
-                          handleProfileInputChange(
-                            "streamUrl",
-                            event.target.value
-                          )
-                        }
-                        disabled={isSavingProfile}
-                      />
-                      <p className={styles.formHelper}>
-                        Members tap this link to join your broadcast.
-                      </p>
-                    </div>
-                  </>
-                ) : null}
               </div>
               <div className={styles.formActions}>
                 <Button

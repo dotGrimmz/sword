@@ -1,101 +1,74 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { PRE_READ_SELECT } from "@/lib/study/normalize";
+import { createClient } from "@/lib/supabase/server";
 import type { HostProfile, PreRead } from "@/types/pre-read";
 
-const buildRequestInit = async (): Promise<RequestInit> => {
-  const headerStore = headers();
-  const resolvedHeaders =
-    headerStore instanceof Promise ? await headerStore : headerStore;
+const HOST_SELECT = `
+  id,
+  username,
+  avatar_url,
+  stream_tagline,
+  stream_url,
+  is_host_active,
+  role
+`;
 
-  const cookie = resolvedHeaders.get("cookie");
-
-  return {
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      ...(cookie ? { cookie } : {}),
-    },
-  };
-};
-
-const ensureLeadingSlash = (path: string) =>
-  path.startsWith("/") ? path : `/${path}`;
-
-const getBaseUrl = async () => {
-  const headerStore = headers();
-  const resolvedHeaders =
-    headerStore instanceof Promise ? await headerStore : headerStore;
-
-  const host =
-    resolvedHeaders.get("x-forwarded-host") ??
-    resolvedHeaders.get("host") ??
-    "";
-
-  if (!host) {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  }
-
-  const protocol =
-    resolvedHeaders.get("x-forwarded-proto") ??
-    (host.startsWith("localhost") || host.startsWith("127.0.0.1")
-      ? "http"
-      : "https");
-
-  return `${protocol}://${host}`;
-};
-
-const buildUrl = async (path: string) => {
-  const base = await getBaseUrl();
-  return new URL(ensureLeadingSlash(path), base).toString();
-};
-
-async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(await buildUrl(path), await buildRequestInit());
-
-  if (!response.ok) {
-    let message = `Failed to fetch ${path}`;
-
-    try {
-      const payload = (await response.json()) as { error?: string };
-      if (payload?.error) {
-        message = payload.error;
-      }
-    } catch {
-      // no-op
-    }
-
-    const error = new Error(message);
-    // @ts-expect-error augment error shape for upstream callers
-    error.status = response.status;
-    throw error;
-  }
-
-  return (await response.json()) as T;
-}
-
+/** Server-side loaders — query Supabase directly (no HTTP self-fetch). */
 export async function fetchPreReads(): Promise<PreRead[]> {
-  return fetchJson<PreRead[]>("/api/pre-reads");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pre_reads")
+    .select(PRE_READ_SELECT)
+    .order("week_start", { ascending: false, nullsFirst: false })
+    .order("visible_from", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as PreRead[];
 }
 
 export async function fetchPreRead(id: string): Promise<PreRead> {
-  try {
-    return await fetchJson<PreRead>(`/api/pre-reads/${id}`);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      // @ts-expect-error status may have been attached above
-      (error.status === 404 || error.message.toLowerCase().includes("not found"))
-    ) {
-      notFound();
-    }
-    throw error;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pre_reads")
+    .select(PRE_READ_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
   }
+
+  if (!data) {
+    notFound();
+  }
+
+  return data as PreRead;
 }
 
 export async function fetchHostProfiles(options?: {
   activeOnly?: boolean;
 }): Promise<HostProfile[]> {
-  const query = options?.activeOnly ? "?activeOnly=true" : "";
-  return fetchJson<HostProfile[]>(`/api/hosts${query}`);
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("profiles")
+    .select(HOST_SELECT)
+    .in("role", ["host", "admin"])
+    .order("username", { ascending: true, nullsFirst: false });
+
+  if (options?.activeOnly) {
+    query = query.or("role.eq.admin,and(role.eq.host,is_host_active.eq.true)");
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as HostProfile[];
 }

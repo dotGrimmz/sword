@@ -28,7 +28,7 @@ import type {
   BibleBooksResponse,
   BibleChapterResponse,
 } from "@/types/bible";
-import type { HostProfile, PreRead } from "@/types/pre-read";
+import type { PreRead } from "@/types/pre-read";
 import { formatWeekLabel, startOfWeek } from "@/lib/study/week";
 
 import {
@@ -54,7 +54,6 @@ const btnStatus =
 type PreReadFormProps = {
   mode: "create" | "edit";
   initialData?: PreRead;
-  hostOptions: HostProfile[];
 };
 
 type FormState = {
@@ -127,7 +126,6 @@ const ensureLength = (list: string[], min: number, fill = "") => {
 export default function PreReadForm({
   mode,
   initialData,
-  hostOptions: _hostOptions,
 }: PreReadFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -527,7 +525,7 @@ export default function PreReadForm({
       });
 
       if (!response.ok) {
-        let message = "Unable to save weekly study.";
+        let message = "Unable to save study.";
         try {
           const errorBody = (await response.json()) as { error?: string };
           if (errorBody?.error) {
@@ -590,7 +588,7 @@ export default function PreReadForm({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unexpected error saving weekly study.",
+          : "Unexpected error saving study.",
       );
     } finally {
       setIsSubmitting(false);
