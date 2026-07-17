@@ -9,21 +9,12 @@ import {
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
-import {
-  BookOpen,
-  Calendar,
-  Filter,
-  Heart,
-  Search,
-  Share,
-  Trash2,
-} from "lucide-react";
+import { Calendar, Filter, Search, Share, Trash2 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
 import { AppHeaderToolbar } from "./AppHeaderToolbar";
 import { Button } from "./ui/button";
 import controls from "@/components/realign/controls.module.css";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -55,8 +46,9 @@ type HighlightViewModel = {
 };
 
 const availableFilterColors = ["blue", "yellow", "green", "pink", "purple"] as const;
+type FilterColor = (typeof availableFilterColors)[number];
 
-const cardColorClasses: Record<string, string> = {
+const cardAccentClasses: Record<FilterColor, string> = {
   blue: styles.highlightCardBlue,
   yellow: styles.highlightCardYellow,
   green: styles.highlightCardGreen,
@@ -64,23 +56,16 @@ const cardColorClasses: Record<string, string> = {
   purple: styles.highlightCardPurple,
 };
 
-const fallbackCardColorClass = styles.highlightCardFallback;
-
-const colorSwatchClasses: Record<(typeof availableFilterColors)[number], string> = {
-  blue: styles.colorSwatchBlue,
-  yellow: styles.colorSwatchYellow,
-  green: styles.colorSwatchGreen,
-  pink: styles.colorSwatchPink,
-  purple: styles.colorSwatchPurple,
+const colorToneClasses: Record<FilterColor, string> = {
+  blue: styles.colorToneBlue,
+  yellow: styles.colorToneYellow,
+  green: styles.colorToneGreen,
+  pink: styles.colorTonePink,
+  purple: styles.colorTonePurple,
 };
 
-const colorOptionClasses: Record<(typeof availableFilterColors)[number], string> = {
-  blue: styles.colorOptionBlue,
-  yellow: styles.colorOptionYellow,
-  green: styles.colorOptionGreen,
-  pink: styles.colorOptionPink,
-  purple: styles.colorOptionPurple,
-};
+const resolveAccentClass = (color: string) =>
+  cardAccentClasses[color as FilterColor] ?? styles.highlightCardFallback;
 
 const divider = "-".repeat(64);
 
@@ -334,64 +319,67 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
   }, [derivedHighlights, translation?.name, translationCode]);
 
   const renderHighlightCard = (highlight: HighlightViewModel) => {
-    const colorClass = cardColorClasses[highlight.color] ?? fallbackCardColorClass;
     return (
-      <Card
+      <article
         key={highlight.raw.id}
-        className={clsx(styles.highlightCard, colorClass)}
+        className={clsx(styles.highlightCard, resolveAccentClass(highlight.color))}
       >
-        <CardHeader className={styles.highlightCardHeader}>
-          <div className={styles.highlightCardHeaderRow}>
+        <div className={styles.highlightAccent} aria-hidden="true" />
+        <div className={styles.highlightBody}>
+          <header className={styles.highlightCardHeader}>
             <div className={styles.highlightCardHeading}>
-              <CardTitle className={styles.highlightCardTitle}>
-                <BookOpen className={styles.metaIcon} />
+              <p className={styles.highlightCardTitle}>
                 {highlight.referenceLabel ?? "Reference"}
-              </CardTitle>
-              <CardDescription className={styles.highlightCardMeta}>
+              </p>
+              <p className={styles.highlightCardMeta}>
                 <span className={styles.highlightCardMetaItem}>
-                  <Calendar className={styles.metaIcon} />
+                  <Calendar className={styles.metaIcon} aria-hidden="true" />
                   {highlight.dateLabel ?? "Recently"}
                 </span>
-                <span className={styles.highlightCardMetaItem}>{highlight.bookName}</span>
-              </CardDescription>
+              </p>
             </div>
-            <div>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`${controls.btnIconDanger} ${styles.deleteButton}`}
-                onClick={() => handleDeleteHighlight(highlight.raw)}
-              >
-                <Trash2 className={styles.metaIcon} />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className={styles.cardContent}>
-          <blockquote className={clsx("scripture-text", styles.highlightQuote)}>
-            “{highlight.verseText || "Highlight text unavailable."}”
+            <Button
+              variant="outline"
+              size="icon"
+              className={`${controls.btnIconDanger} ${styles.deleteButton}`}
+              onClick={() => handleDeleteHighlight(highlight.raw)}
+              aria-label={`Remove ${highlight.referenceLabel ?? "favorite"}`}
+            >
+              <Trash2 className={styles.metaIcon} aria-hidden="true" />
+            </Button>
+          </header>
+
+          <blockquote className={styles.highlightQuote}>
+            <span className={styles.highlightQuoteMark} aria-hidden="true">
+              “
+            </span>
+            <p className={styles.highlightQuoteText}>
+              {highlight.verseText || "Highlight text unavailable."}
+            </p>
           </blockquote>
-          <div className={styles.cardMetaFooter}>
-            <Heart className={styles.cardMetaIcon} />
-            <span className={styles.colorLabel}>{highlight.color.toUpperCase()}</span>
-            <div className={styles.colorOptions}>
+
+          <footer className={styles.cardMetaFooter}>
+            <span className={styles.colorPickerLabel}>Mark color</span>
+            <div className={styles.colorOptions} role="group" aria-label="Highlight color">
               {availableFilterColors.map((color) => (
                 <button
                   type="button"
                   key={color}
                   className={clsx(
                     styles.colorOption,
-                    colorOptionClasses[color],
+                    colorToneClasses[color],
                     color === highlight.color && styles.colorOptionActive,
                   )}
                   onClick={() => handleReapplyColor(highlight.raw, color)}
                   title={`Set color to ${color}`}
+                  aria-label={`Set color to ${color}`}
+                  aria-pressed={color === highlight.color}
                 />
               ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </footer>
+        </div>
+      </article>
     );
   };
 
@@ -439,34 +427,36 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
           </Button>
         </div>
 
-        <div className={styles.filters}>
-          <Filter className={styles.filterIcon} />
-          <Button
-            variant="outline"
+        <div className={styles.filters} role="group" aria-label="Filter by color">
+          <Filter className={styles.filterIcon} aria-hidden="true" />
+          <button
+            type="button"
             onClick={() => setSelectedColor("all")}
             className={clsx(
-              controls.chip,
-              styles.filterButton,
-              selectedColor === "all" && controls.chipActive,
+              styles.filterAll,
+              selectedColor === "all" && styles.filterAllActive,
             )}
+            aria-pressed={selectedColor === "all"}
           >
-            All colors
-          </Button>
-          {availableFilterColors.map((color) => (
-            <Button
-              key={color}
-              variant="outline"
-              onClick={() => setSelectedColor(color)}
-              className={clsx(
-                controls.chip,
-                styles.filterButton,
-                selectedColor === color && controls.chipActive,
-              )}
-            >
-              <span className={clsx(styles.colorSwatch, colorSwatchClasses[color])} />
-              {color.charAt(0).toUpperCase() + color.slice(1)}
-            </Button>
-          ))}
+            All
+          </button>
+          <div className={styles.colorFilterRow}>
+            {availableFilterColors.map((color) => (
+              <button
+                type="button"
+                key={color}
+                onClick={() => setSelectedColor(color)}
+                className={clsx(
+                  styles.colorFilterSwatch,
+                  colorToneClasses[color],
+                  selectedColor === color && styles.colorFilterSwatchActive,
+                )}
+                aria-label={`Filter ${color}`}
+                aria-pressed={selectedColor === color}
+                title={color.charAt(0).toUpperCase() + color.slice(1)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -501,8 +491,12 @@ export function HighlightsScreen({ onNavigate }: HighlightsScreenProps = {}) {
           >
             <TabsList data-active={tabValue} className={styles.tabsList}>
               <span className={styles.tabHighlight} aria-hidden="true" />
-              <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="by-book">By Book</TabsTrigger>
+              <TabsTrigger value="timeline" className={styles.tabTrigger}>
+                Timeline
+              </TabsTrigger>
+              <TabsTrigger value="by-book" className={styles.tabTrigger}>
+                By Book
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="timeline" className={styles.tabsContent}>
               {filteredHighlights.map((highlight, index) => (
