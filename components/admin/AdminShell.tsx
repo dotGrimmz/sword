@@ -6,10 +6,10 @@ import type { ReactNode } from "react";
 import {
   ArrowLeft,
   CalendarDays,
+  CalendarRange,
   Contact,
   LayoutDashboard,
   QrCode,
-  Users2,
 } from "lucide-react";
 
 import { ThemeProvider, type Theme } from "@/components/ThemeContext";
@@ -31,15 +31,15 @@ const navItems = [
   },
   {
     href: "/admin/pre-read",
-    label: "Weekly Study",
+    label: "Study",
     icon: CalendarDays,
     match: (path: string) => path.startsWith("/admin/pre-read"),
   },
   {
-    href: "/admin/hosts",
-    label: "Hosts",
-    icon: Users2,
-    match: (path: string) => path.startsWith("/admin/hosts"),
+    href: "/admin/events",
+    label: "Events",
+    icon: CalendarRange,
+    match: (path: string) => path.startsWith("/admin/events"),
   },
   {
     href: "/admin/users",
@@ -56,8 +56,8 @@ const navItems = [
 ] as const;
 
 function pageTitle(pathname: string): string {
-  if (pathname.startsWith("/admin/pre-read")) return "Weekly Study";
-  if (pathname.startsWith("/admin/hosts")) return "Hosts";
+  if (pathname.startsWith("/admin/pre-read")) return "Study";
+  if (pathname.startsWith("/admin/events")) return "Events";
   if (pathname.startsWith("/admin/users")) return "Users";
   if (pathname.startsWith("/admin/qr-login")) return "Login QR";
   if (pathname.startsWith("/admin/topics")) return "Topics";

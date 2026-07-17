@@ -26,6 +26,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     showLoading,
     currentStudy,
     studyMeta,
+    eventMeta,
     todaysVerse,
     isVerseLoading,
     recentNotes,
@@ -66,7 +67,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                 <span className={styles.adminEntryEyebrow}>Admin</span>
                 <span className={styles.adminEntryTitle}>Admin console</span>
                 <span className={styles.adminEntryMeta}>
-                  Manage weekly study, hosts, and login QR
+                  Manage study, events, and login QR
                 </span>
               </span>
               <ArrowUpRight className={styles.adminEntryCta} aria-hidden="true" />
@@ -80,6 +81,21 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               <p className={styles.studyPanelMeta}>{studyMeta.reference}</p>
               <span className={styles.studyPanelCta}>
                 Open study hub
+                <ArrowUpRight className={styles.studyPanelCtaIcon} />
+              </span>
+            </Link>
+          ) : null}
+
+          {eventMeta ? (
+            <Link href={eventMeta.href} className={styles.eventPanel}>
+              <p className={styles.studyPanelEyebrow}>Upcoming event</p>
+              <h2 className={styles.studyPanelTitle}>{eventMeta.title}</h2>
+              <p className={styles.studyPanelMeta}>
+                {eventMeta.when}
+                {eventMeta.where ? ` · ${eventMeta.where}` : ""}
+              </p>
+              <span className={styles.studyPanelCta}>
+                View event
                 <ArrowUpRight className={styles.studyPanelCtaIcon} />
               </span>
             </Link>
@@ -167,6 +183,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
           </div>
 
           <motion.div
+            className={styles.notesMotion}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}

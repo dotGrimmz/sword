@@ -39,8 +39,8 @@ export default async function AdminPreReadListPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Admin · Weekly Study</p>
-        <h2 className={styles.title}>Weekly Studies</h2>
+        <p className={styles.eyebrow}>Admin · Study</p>
+        <h2 className={styles.title}>Studies</h2>
         <p className={styles.description}>
           Post this week&apos;s topic, scripture, and downloadable materials for
           members.
@@ -53,7 +53,7 @@ export default async function AdminPreReadListPage() {
           <h3 className={styles.primaryCtaTitle}>
             {thisWeek
               ? thisWeek.title || `${thisWeek.book} ${thisWeek.chapter}`
-              : "Create a weekly study"}
+              : "Create a study"}
           </h3>
           <p className={styles.primaryCtaMeta}>
             {thisWeek
@@ -86,10 +86,10 @@ export default async function AdminPreReadListPage() {
       {studies.length === 0 ? (
         <div className={styles.emptyState}>
           <FileText className={styles.emptyIcon} aria-hidden="true" />
-          <p>No weekly studies yet. Create your first study above.</p>
+          <p>No studies yet. Create your first study above.</p>
         </div>
       ) : (
-        <section className={styles.listStack} aria-label="All weekly studies">
+        <section className={styles.listStack} aria-label="All studies">
           {studies.map((study) => {
             const status = getStatus(study);
             return (
@@ -104,7 +104,6 @@ export default async function AdminPreReadListPage() {
                     {study.week_start
                       ? ` · ${formatWeekLabel(study.week_start)}`
                       : ""}
-                    {` · ${study.host_profile?.username ?? "Unassigned"}`}
                   </p>
                   {study.summary ? (
                     <p className={styles.listCardSummary}>{study.summary}</p>

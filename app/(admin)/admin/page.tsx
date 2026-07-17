@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, QrCode } from "lucide-react";
+import { ArrowRight, CalendarDays, CalendarRange, QrCode } from "lucide-react";
 
 import { fetchPreReads } from "@/lib/api/pre-reads";
 import { formatWeekLabel, isCurrentWeek, startOfWeek } from "@/lib/study/week";
@@ -24,14 +24,14 @@ export default async function AdminOverviewPage() {
         <p className={styles.eyebrow}>Admin Console</p>
         <h2 className={styles.title}>Overview</h2>
         <p className={styles.description}>
-          Publish this week&apos;s study for your church. Jump into Weekly Study
-          to add scripture and materials.
+          Publish this week&apos;s study for your church. Jump into Study to add
+          scripture and materials.
         </p>
       </header>
 
       <section className={styles.statsRow} aria-label="Quick counts">
         <div className={styles.statCard}>
-          <p className={styles.statLabel}>Weekly studies</p>
+          <p className={styles.statLabel}>Studies</p>
           <p className={styles.statValue}>{preReads.length}</p>
           <p className={styles.statMeta}>{publishedCount} published</p>
         </div>
@@ -71,7 +71,7 @@ export default async function AdminOverviewPage() {
           }
           className={styles.primaryCtaButton}
         >
-          {thisWeekStudy ? "Edit this week's study" : "Create weekly study"}
+          {thisWeekStudy ? "Edit this week's study" : "Create study"}
           <ArrowRight className={styles.primaryCtaIcon} aria-hidden="true" />
         </Link>
       </section>
@@ -80,7 +80,7 @@ export default async function AdminOverviewPage() {
         <Link href="/admin/pre-read" className={styles.quickLink}>
           <CalendarDays className={styles.quickIcon} aria-hidden="true" />
           <span>
-            <span className={styles.quickTitle}>Weekly Study</span>
+            <span className={styles.quickTitle}>Study</span>
             <span className={styles.quickMeta}>All studies & materials</span>
           </span>
         </Link>
@@ -89,6 +89,13 @@ export default async function AdminOverviewPage() {
           <span>
             <span className={styles.quickTitle}>Login QR</span>
             <span className={styles.quickMeta}>Share production login</span>
+          </span>
+        </Link>
+        <Link href="/admin/events" className={styles.quickLink}>
+          <CalendarRange className={styles.quickIcon} aria-hidden="true" />
+          <span>
+            <span className={styles.quickTitle}>Events</span>
+            <span className={styles.quickMeta}>Gatherings & recurrence</span>
           </span>
         </Link>
       </section>

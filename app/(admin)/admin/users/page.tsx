@@ -39,9 +39,6 @@ export default async function AdminUsersPage() {
     );
   }
 
-  const withEmail = users.filter((entry) => Boolean(entry.email)).length;
-  const withTitle = users.filter((entry) => Boolean(entry.title)).length;
-
   return (
     <main className={pageStyles.page}>
       <header className={pageStyles.header}>
@@ -57,16 +54,6 @@ export default async function AdminUsersPage() {
           <p className={pageStyles.statLabel}>Users</p>
           <p className={pageStyles.statValue}>{users.length}</p>
           <p className={pageStyles.statMeta}>Total accounts</p>
-        </div>
-        <div className={pageStyles.statCard}>
-          <p className={pageStyles.statLabel}>With email</p>
-          <p className={pageStyles.statValue}>{withEmail}</p>
-          <p className={pageStyles.statMeta}>Contact available</p>
-        </div>
-        <div className={pageStyles.statCard}>
-          <p className={pageStyles.statLabel}>Titled</p>
-          <p className={pageStyles.statValue}>{withTitle}</p>
-          <p className={pageStyles.statMeta}>Have a title set</p>
         </div>
       </section>
 

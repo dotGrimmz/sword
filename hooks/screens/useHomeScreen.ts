@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
-import { Book, BookOpen, Heart, Lightbulb } from "lucide-react";
+import { Book, BookOpen, CalendarRange, Heart, Lightbulb } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useProfile } from "@/components/ProfileContext";
@@ -12,6 +12,8 @@ import {
   HIGHLIGHTS_UPDATED_EVENT,
   NOTES_UPDATED_EVENT,
 } from "@/lib/events";
+import { formatEventWhen, locationLabel } from "@/lib/church-events/format";
+import { useHomeEventQuery } from "@/lib/query/events";
 import { usePassageText } from "@/lib/query/passages";
 import { useHighlightsQuery } from "@/lib/query/highlights";
 import { useNotesQuery } from "@/lib/query/notes";
@@ -110,6 +112,8 @@ export function useHomeScreen(options?: {
   const highlightsQuery = useHighlightsQuery(translationCode);
   const studyQuery = useCurrentStudyQuery();
   const currentStudy: WeeklyStudy | null | undefined = studyQuery.data;
+  const homeEventQuery = useHomeEventQuery();
+  const homeEvent = homeEventQuery.data ?? null;
 
   const notesData = notesQuery.data ?? [];
   const highlightsData = highlightsQuery.data ?? [];
@@ -268,13 +272,25 @@ export function useHomeScreen(options?: {
     if (currentStudy) {
       actions.push({
         icon: Book,
-        label: "Weekly Study",
+        label: "Study",
         href: "/pre-read",
         subtitle: "This week's topic and materials.",
       });
     }
+    if (homeEvent) {
+      actions.push({
+        icon: CalendarRange,
+        label: "Upcoming event",
+        href: `/events/${homeEvent.series_id}`,
+        subtitle: formatEventWhen(
+          homeEvent.starts_at,
+          homeEvent.ends_at,
+          homeEvent.timezone,
+        ),
+      });
+    }
     return actions;
-  }, [continueBook, continueChapter, currentStudy, readerHydrated]);
+  }, [continueBook, continueChapter, currentStudy, homeEvent, readerHydrated]);
 
   const studyMeta = currentStudy
     ? {
@@ -288,6 +304,23 @@ export function useHomeScreen(options?: {
             ? ` · ${formatWeekLabel(currentStudy.week_start)}`
             : ""
         }`,
+      }
+    : null;
+
+  const eventMeta = homeEvent
+    ? {
+        title: homeEvent.title,
+        when: formatEventWhen(
+          homeEvent.starts_at,
+          homeEvent.ends_at,
+          homeEvent.timezone,
+        ),
+        where: locationLabel(
+          homeEvent.location_type,
+          homeEvent.venue,
+          homeEvent.address,
+        ),
+        href: `/events/${homeEvent.series_id}`,
       }
     : null;
 
@@ -315,6 +348,7 @@ export function useHomeScreen(options?: {
     showLoading,
     currentStudy,
     studyMeta,
+    eventMeta,
     todaysVerse,
     isVerseLoading,
     recentNotes,

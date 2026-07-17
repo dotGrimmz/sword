@@ -1,0 +1,502 @@
+.formShell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, #d91f26 22%, #e8cfc4);
+  background: linear-gradient(
+    120deg,
+    color-mix(in oklab, #d91f26 8%, #fff8f4),
+    color-mix(in oklab, #f28c00 10%, #ffffff)
+  );
+  min-width: 0;
+  max-width: 100%;
+}
+
+.toolbarCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.toolbarEyebrow {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d91f26;
+}
+
+.toolbarTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.toolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  min-width: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #e8cfc4;
+  background: #ffffff;
+  box-shadow: 0 8px 24px color-mix(in oklab, #d91f26 5%, transparent);
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d91f26;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.sectionMeta {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #4a4a4a;
+}
+
+.fieldGrid {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 720px) {
+  .fieldGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fieldWide {
+    grid-column: 1 / -1;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field :global(input),
+.field :global(textarea),
+.field :global(select),
+.field :global(button) {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: #1a1a1a;
+}
+
+.helper {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #4a4a4a;
+}
+
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  min-height: 3rem;
+  height: auto;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  padding: 0.75rem 0.95rem;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #1a1a1a;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.control[type="date"],
+.control[type="datetime-local"],
+.control[type="time"],
+.control[type="number"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select.control {
+  cursor: pointer;
+}
+
+.control:hover:not(:disabled) {
+  border-color: color-mix(in oklab, #d91f26 35%, #e0c4b6);
+  background: #ffffff;
+}
+
+.control:focus-visible {
+  outline: none;
+  border-color: #d91f26;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px color-mix(in oklab, #d91f26 18%, transparent);
+}
+
+.control:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+textarea.control {
+  min-height: 8rem;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.segmentGroup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.segmentActive {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.segment:hover:not(:disabled) {
+  border-color: color-mix(in oklab, #d91f26 40%, #e0c4b6);
+}
+
+.segment:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.weekdayGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 400px) {
+  .weekdayGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .weekdayGrid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.weekdayChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.55rem 0.35rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.weekdayChipActive {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.coverPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.coverPreview {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0.9rem;
+  border: 1px solid #e8cfc4;
+  background: #fff1ea;
+}
+
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 7.5rem;
+  padding: 1.25rem 1rem;
+  border-radius: 0.9rem;
+  border: 2px dashed color-mix(in oklab, #d91f26 35%, #e8cfc4);
+  background: color-mix(in oklab, #fff5f0 80%, #ffffff);
+  cursor: pointer;
+  text-align: center;
+  overflow: hidden;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.dropzone:hover {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #ffe8dc 55%, #ffffff);
+}
+
+.dropzoneDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dropzoneTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.dropzoneMeta {
+  font-size: 0.8rem;
+  color: #4a4a4a;
+}
+
+.uploadInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.coverActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.occurrenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.occurrenceRow {
+  display: grid;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e8cfc4;
+  border-radius: 0.85rem;
+  background: #fffdfb;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .occurrenceRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+.occurrenceMeta {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #1a1a1a;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.cancelled {
+  text-decoration: line-through;
+  color: #8a7a72;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+  justify-content: flex-end;
+  padding: 0.35rem 0 0.25rem;
+  min-width: 0;
+}
+
+@media (max-width: 719px) {
+  .toolbar {
+    padding: 1.1rem 1rem;
+  }
+
+  .toolbarActions {
+    width: 100%;
+  }
+
+  .toolbarActions :global(button) {
+    flex: 1 1 calc(50% - 0.4rem);
+    min-height: 3.5rem;
+  }
+
+  .section {
+    padding: 1.1rem 1rem;
+  }
+
+  .control {
+    min-height: 3.5rem;
+    font-size: 1.05rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .control[type="date"],
+  .control[type="datetime-local"] {
+    font-size: 1rem;
+  }
+
+  textarea.control {
+    min-height: 9rem;
+  }
+
+  .segment,
+  .weekdayChip {
+    min-height: 3.5rem;
+    font-size: 1rem;
+  }
+
+  .segmentGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .coverActions :global(button),
+  .coverActions :global(label) {
+    flex: 1 1 100%;
+    min-height: 3.5rem;
+  }
+
+  .occurrenceRow :global(button) {
+    width: 100%;
+    min-height: 3.5rem;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions :global(button) {
+    width: 100%;
+    min-height: 3.5rem;
+  }
+
+  .formShell :global(button) {
+    min-height: 3.5rem;
+  }
+}

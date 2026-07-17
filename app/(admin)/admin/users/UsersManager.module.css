@@ -1,6 +1,21 @@
 .searchInput {
   width: 100%;
-  max-width: 20rem;
+  max-width: none;
+  min-height: 3.5rem;
+  height: 3.5rem;
+  padding-inline: 1rem;
+  font-size: 1rem;
+  border-radius: 0.75rem;
+  border-color: #e8cfc4;
+  background: #fffdfb;
+}
+
+@media (min-width: 768px) {
+  .searchInput {
+    max-width: 26rem;
+    min-height: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 .list {
