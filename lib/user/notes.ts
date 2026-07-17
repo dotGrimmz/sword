@@ -11,8 +11,16 @@ export const mapNoteRow = (row: UserNoteRow): UserNote => ({
   verseStart: row.verse_start,
   verseEnd: row.verse_end,
   body: row.body,
+  audioStoragePath: row.audio_storage_path,
+  audioMimeType: row.audio_mime_type,
+  audioByteSize: row.audio_byte_size,
+  audioDurationMs: row.audio_duration_ms,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
 
-export const sanitiseNoteBody = (body: string) => body.trim();
+export const sanitiseNoteBody = (body: string | null | undefined) =>
+  (body ?? "").trim();
+
+export const NOTE_SELECT_COLUMNS =
+  "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, audio_storage_path, audio_mime_type, audio_byte_size, audio_duration_ms, created_at, updated_at";

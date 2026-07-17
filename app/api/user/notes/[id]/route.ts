@@ -5,7 +5,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/server";
-import { sanitiseNoteBody, mapNoteRow } from "@/lib/user/notes";
+import { sanitiseNoteBody, mapNoteRow, NOTE_SELECT_COLUMNS } from "@/lib/user/notes";
 import type { NoteRouteParams } from "@/types/user";
 
 const validateUpdatePayload = (
@@ -88,9 +88,7 @@ export async function PATCH(request: Request, context: NoteRouteParams) {
     .update({ body: validation.body })
     .eq("id", noteId)
     .eq("user_id", user.id)
-    .select(
-      "id, user_id, translation_id, book_id, chapter, verse_start, verse_end, body, created_at, updated_at"
-    )
+    .select(NOTE_SELECT_COLUMNS)
     .maybeSingle();
 
   if (error) {

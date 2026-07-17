@@ -1,0 +1,40 @@
+.root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0.55rem 0.65rem;
+  align-items: end;
+  width: 100%;
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.subLabel {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: #6b5a52;
+}
+
+.separator {
+  align-self: center;
+  padding-bottom: 0.15rem;
+  color: #6b5a52;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+@media (max-width: 419px) {
+  .root {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .separator {
+    display: none;
+  }
+}

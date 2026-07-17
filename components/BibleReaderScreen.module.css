@@ -36,15 +36,262 @@
 }
 
 .readerPage {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1 1 0%;
   min-height: 0;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--canvas-gradient);
   animation: fadeInBackground 360ms ease-out both;
+}
+
+.readerScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.bookmarkSideTab {
+  /* Stay pinned in the viewport, aligned to the app frame's right edge. */
+  position: fixed;
+  top: clamp(7.5rem, 42vh, calc(100vh - 11rem));
+  right: max(0px, calc(50vw - 20rem));
+  z-index: 45;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 2.25rem;
+  padding: 0.9rem 0.3rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 28%, #e8cfc4);
+  border-right: none;
+  border-radius: 0.85rem 0 0 0.85rem;
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, #fff8f4 94%, #ffffff),
+    color-mix(in oklab, var(--card) 88%, #fff8f4)
+  );
+  box-shadow: -4px 8px 20px color-mix(in oklab, var(--primary) 14%, transparent);
+  color: var(--primary);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.bookmarkSideTab:hover,
+.bookmarkSideTab:focus-visible {
+  transform: translateX(-3px);
+  outline: none;
+  box-shadow: -6px 10px 24px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.bookmarkSideTabIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+
+.bookmarkSideTabCount {
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.bookmarkDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  animation: bookmarkOverlayIn 200ms ease-out both;
+}
+
+.bookmarkDrawer {
+  position: fixed;
+  top: 50%;
+  left: auto;
+  right: max(0.75rem, calc(50vw - 20rem + 0.5rem));
+  z-index: 70;
+  width: min(19.5rem, calc(100vw - 2rem));
+  max-width: 19.5rem;
+  max-height: min(70vh, 34rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1.1rem 0 1.15rem;
+  border-radius: 1.15rem;
+  border: 1px solid #e8cfc4;
+  background: #fff8f4;
+  box-shadow:
+    0 18px 40px color-mix(in oklab, #d91f26 14%, transparent),
+    0 8px 20px rgba(15, 23, 42, 0.12);
+  transform: translate(0, -50%);
+  animation: bookmarkDrawerIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bookmarkOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bookmarkDrawerIn {
+  from {
+    opacity: 0.85;
+    transform: translate(110%, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+.bookmarkSheetHeader {
+  border-bottom: 1px solid #e8cfc4;
+  padding: 0 1.25rem 0.85rem;
+  margin: 0;
+}
+
+.bookmarkSheetHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bookmarkSheetTitle {
+  margin: 0;
+  color: #d91f26;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.bookmarkSheetDescription {
+  margin: 0.4rem 0 0;
+  color: #6b5a52;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.bookmarkDrawerClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: -0.25rem -0.35rem 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: #6b5a52;
+  cursor: pointer;
+}
+
+.bookmarkDrawerClose:hover,
+.bookmarkDrawerClose:focus-visible {
+  background: color-mix(in oklab, #d91f26 8%, transparent);
+  color: #d91f26;
+  outline: none;
+}
+
+.bookmarkDrawerClose svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.bookmarkDrawerBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(52vh, 24rem);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.bookmarkSheetList {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.bookmarkSheetItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in oklab, #d91f26 16%, #e8cfc4);
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  color: #1a1a1a;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.bookmarkSheetItem:hover,
+.bookmarkSheetItem:focus-visible {
+  border-color: color-mix(in oklab, #d91f26 40%, #e8cfc4);
+  background: #fff8f4;
+  outline: none;
+}
+
+.bookmarkSheetItemActive {
+  border-color: color-mix(in oklab, #d91f26 45%, #e8cfc4);
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, #d91f26 8%, #ffffff),
+    #fff8f4
+  );
+}
+
+.bookmarkSheetRef {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #d91f26;
+}
+
+.bookmarkSheetMeta {
+  font-size: 0.8rem;
+  color: #6b5a52;
+}
+
+.bookmarkSheetEmpty {
+  margin: 1rem 1.15rem 0.35rem;
+  padding: 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px dashed #e8cfc4;
+  background: #ffffff;
+  color: #6b5a52;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .toolbar {

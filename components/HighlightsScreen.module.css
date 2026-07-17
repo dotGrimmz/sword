@@ -50,154 +50,181 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-  background: var(--surface-glass-gradient);
+  padding: 1.25rem 1.25rem 1.35rem;
+  border-bottom: 1px solid #e8cfc4;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, #fff8f4 92%, #ffffff),
+    #ffffff
+  );
   backdrop-filter: blur(4px);
   animation: toolbarReveal 320ms ease-out both;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 55%, transparent);
+  box-shadow: 0 1px 0 color-mix(in oklab, #e8cfc4 70%, transparent);
 }
 
 .toolbarRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-}
-
-.translationControl {
-  min-width: 160px;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .toolbarIcon {
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .exportButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 55%, transparent) 0%,
-    color-mix(in srgb, var(--secondary) 45%, transparent) 100%
-  );
-  color: var(--primary-foreground);
-  border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
-  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-}
-
-.exportButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(37, 99, 235, 0.28);
-  filter: brightness(1.08);
-}
-
-.exportButton:active {
-  transform: translateY(0);
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  flex-shrink: 0;
+  box-shadow: none;
 }
 
 .headerCopy {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .headerTitle {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--primary);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #d91f26;
 }
 
 .headerSubtitle {
   margin: 0;
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  color: #6b5a52;
 }
 
 .searchWrapper {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
-  max-width: 480px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .searchIcon {
   position: absolute;
-  left: 0.75rem;
+  left: 1rem;
   top: 50%;
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
   transform: translateY(-50%);
-  color: var(--muted-foreground);
+  color: #8a7268;
   pointer-events: none;
+  z-index: 1;
 }
 
 .searchInput {
-  padding-left: 2.5rem;
-  background-color: var(--input-background);
-  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-  width: 90%;
-  min-width: fit-content;
+  padding-left: 2.85rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .filters {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .filterIcon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--muted-foreground);
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #8a7268;
   flex-shrink: 0;
 }
 
-.filterButton {
+.filterAll {
   flex-shrink: 0;
-}
-
-.colorSwatch {
-  display: inline-block;
-  width: 0.75rem;
-  height: 0.75rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 9999px;
-  margin-right: 0.5rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #6b5a52;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.colorSwatchBlue {
+.filterAllActive {
+  border-color: #d91f26;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+}
+
+.colorFilterRow {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.colorFilterSwatch {
+  flex: 1 1 0;
+  max-width: 2.5rem;
+  aspect-ratio: 1;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklab, #1a1a1a 12%, transparent);
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.colorFilterSwatch:hover {
+  transform: translateY(-1px);
+}
+
+.colorFilterSwatchActive {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #d91f26;
+}
+
+.colorToneBlue {
   background-color: #60a5fa;
 }
 
-.colorSwatchYellow {
+.colorToneYellow {
   background-color: #facc15;
 }
 
-.colorSwatchGreen {
+.colorToneGreen {
   background-color: #34d399;
 }
 
-.colorSwatchPink {
+.colorTonePink {
   background-color: #f472b6;
 }
 
-.colorSwatchPurple {
+.colorTonePurple {
   background-color: #a855f7;
 }
 
 .contentArea {
   flex: 1 0 auto;
   min-height: 0;
-  padding-bottom: 5rem;
+  padding: 1.25rem 1.25rem 5.5rem;
   overflow-y: auto;
 }
 
@@ -218,6 +245,56 @@
 }
 
 @media (max-width: 640px) {
+  .toolbar {
+    padding: 1.15rem 1.1rem 1.25rem;
+    gap: 1.1rem;
+  }
+
+  .contentArea {
+    padding: 1.15rem 1.1rem 5.5rem;
+  }
+
+  .tabsList {
+    width: 100%;
+    margin: 0.15rem 0 0;
+    min-height: 3.25rem;
+    padding: 0.3rem;
+    border-radius: 1rem;
+  }
+
+  .tabTrigger {
+    min-height: 2.65rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .tabHighlight {
+    top: 0.3rem;
+    bottom: 0.3rem;
+    left: 0.3rem;
+    width: calc(50% - 0.3rem);
+    border-radius: 0.8rem;
+  }
+
+  .tabsList[data-active="by-book"] .tabHighlight {
+    transform: translateX(100%);
+  }
+
+  .tabsContent {
+    padding: 1.1rem 0 0;
+    gap: 1.1rem;
+  }
+
+  .colorOption {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .colorOptions {
+    gap: 0.55rem;
+  }
+
   .contentArea::-webkit-scrollbar {
     width: 6px;
   }
@@ -280,17 +357,39 @@
 }
 
 .tabsList {
-  width: calc(100% - 2rem);
-  margin: 1rem auto 0;
-  background: var(--surface-gradient-soft);
-  padding: 0.25rem;
-  border-radius: 1rem;
+  display: flex;
+  width: 100%;
+  margin: 0.35rem 0 0;
+  min-height: 2.75rem;
+  background: #fff8f4;
+  border: 1px solid #e8cfc4;
+  padding: 0.28rem;
+  border-radius: 0.9rem;
   position: relative;
   overflow: hidden;
+  height: auto;
+}
+
+.tabTrigger {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  min-height: 2.2rem;
+  border-radius: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b5a52;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tabTrigger[data-state="active"] {
+  color: #d91f26;
+  background: transparent;
 }
 
 .tabsContent {
-  padding: 1rem;
+  padding: 1.15rem 0 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -307,24 +406,24 @@
 
 .tabHighlight {
   position: absolute;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  left: 0.25rem;
-  width: calc(50% - 0.25rem);
-  border-radius: 0.75rem;
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--primary) 32%, transparent) 0%,
-    color-mix(in srgb, var(--secondary) 26%, transparent) 100%
-  );
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent);
+  top: 0.28rem;
+  bottom: 0.28rem;
+  left: 0.28rem;
+  width: calc(50% - 0.28rem);
+  border-radius: 0.7rem;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(26, 26, 26, 0.06),
+    0 4px 12px rgba(217, 31, 38, 0.08);
+  border: 1px solid color-mix(in oklab, #d91f26 18%, #e8cfc4);
+  box-sizing: border-box;
   transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   transform: translateX(0);
 }
 
 .tabsList[data-active="by-book"] .tabHighlight {
-  transform: translateX(calc(100% + 0.25rem));
+  transform: translateX(100%);
 }
 
 .groupSection {
@@ -358,151 +457,170 @@
 }
 
 .highlightCard {
-  border-width: 1px;
-  border-style: solid;
-  border-color: transparent;
-  border-radius: var(--radius-lg, 0.75rem);
-  padding: 0.25rem;
+  --highlight-accent: #facc15;
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.35rem 1fr;
+  overflow: hidden;
+  border: 1px solid #e8cfc4;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 1px 0 color-mix(in oklab, #e8cfc4 55%, transparent);
   transition: box-shadow 180ms ease, transform 180ms ease;
 }
 
 .highlightCard:hover {
   box-shadow:
-    0 16px 30px rgba(15, 23, 42, 0.16),
-    0 8px 14px rgba(15, 23, 42, 0.08);
-  transform: translateY(-2px);
+    0 10px 24px rgba(26, 26, 26, 0.08),
+    0 2px 6px rgba(26, 26, 26, 0.04);
+  transform: translateY(-1px);
+}
+
+.highlightAccent {
+  background: var(--highlight-accent);
+}
+
+.highlightBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1rem 0.95rem;
+  min-width: 0;
 }
 
 .highlightCardBlue {
-  background-color: #dbeafe;
-  border-color: #bfdbfe;
-  color: #1e40af;
+  --highlight-accent: #60a5fa;
 }
 
 .highlightCardYellow {
-  background-color: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
+  --highlight-accent: #facc15;
 }
 
 .highlightCardGreen {
-  background-color: #dcfce7;
-  border-color: #bbf7d0;
-  color: #065f46;
+  --highlight-accent: #34d399;
 }
 
 .highlightCardPink {
-  background-color: #fce7f3;
-  border-color: #fbcfe8;
-  color: #9d174d;
+  --highlight-accent: #f472b6;
 }
 
 .highlightCardPurple {
-  background-color: #ede9fe;
-  border-color: #ddd6fe;
-  color: #5b21b6;
+  --highlight-accent: #a855f7;
 }
 
 .highlightCardFallback {
-  background-color: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
+  --highlight-accent: #facc15;
 }
 
 .highlightCardHeader {
-  padding-bottom: 0.75rem;
-}
-
-.highlightCardHeaderRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .highlightCardHeading {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 .highlightCardTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--primary);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #d91f26;
+  line-height: 1.3;
 }
 
 .highlightCardMeta {
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  color: #8a7268;
 }
 
 .highlightCardMetaItem {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .metaIcon {
-  width: 0.75rem;
-  height: 0.75rem;
-  color: var(--muted-foreground);
+  width: 0.85rem;
+  height: 0.85rem;
+  color: #8a7268;
 }
 
 .deleteButton {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
-.cardContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  width: 2.15rem;
+  height: 2.15rem;
+  flex-shrink: 0;
 }
 
 .highlightQuote {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.625;
-  color: var(--foreground);
+  position: relative;
+  padding: 0.15rem 0 0.1rem;
+}
+
+.highlightQuoteMark {
+  position: absolute;
+  top: -0.35rem;
+  left: -0.1rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: color-mix(in oklab, var(--highlight-accent) 55%, #8a7268);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
+.highlightQuoteText {
+  margin: 0;
+  padding-left: 0.15rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+  line-height: 1.65;
+  color: #1a1a1a;
+  text-wrap: pretty;
 }
 
 .cardMetaFooter {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding-top: 0.15rem;
+  border-top: 1px solid color-mix(in oklab, #e8cfc4 70%, transparent);
 }
 
-.cardMetaIcon {
-  width: 0.875rem;
-  height: 0.875rem;
-  color: var(--accent);
-}
-
-.colorLabel {
-  letter-spacing: 0.08em;
+.colorPickerLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a7268;
 }
 
 .colorOptions {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.45rem;
+  align-items: center;
+  margin-left: auto;
 }
 
 .colorOption {
-  width: 1rem;
-  height: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  border: 1.5px solid color-mix(in oklab, #1a1a1a 12%, transparent);
   transition: transform 160ms ease, box-shadow 160ms ease;
   cursor: pointer;
 }
@@ -513,29 +631,10 @@
 
 .colorOptionActive {
   box-shadow:
-    0 0 0 2px var(--ring),
-    0 0 0 4px color-mix(in srgb, var(--background) 80%, transparent);
+    0 0 0 2px #ffffff,
+    0 0 0 4px #d91f26;
 }
 
-.colorOptionBlue {
-  background-color: #60a5fa;
-}
-
-.colorOptionYellow {
-  background-color: #facc15;
-}
-
-.colorOptionGreen {
-  background-color: #34d399;
-}
-
-.colorOptionPink {
-  background-color: #f472b6;
-}
-
-.colorOptionPurple {
-  background-color: #a855f7;
-}
 
 .timelineItem {
   display: flex;
@@ -546,5 +645,28 @@
 @media (max-width: 640px) {
   .toolbarRow {
     align-items: flex-start;
+  }
+
+  .highlightBody {
+    gap: 0.95rem;
+    padding: 1.05rem 1rem 1rem;
+  }
+
+  .highlightCardTitle {
+    font-size: 1.05rem;
+  }
+
+  .highlightQuoteText {
+    font-size: 1.2rem;
+    line-height: 1.7;
+  }
+
+  .highlightQuoteMark {
+    font-size: 2.7rem;
+  }
+
+  .deleteButton {
+    width: 2.4rem;
+    height: 2.4rem;
   }
 }

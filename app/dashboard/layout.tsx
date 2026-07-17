@@ -1,8 +1,13 @@
 import type { ReactNode } from "react";
+import { dehydrate } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/AppShell";
 import type { UserRole } from "@/components/ProfileContext";
+import { fetchTranslations } from "@/lib/bible/loaders";
+import { HydrateClient } from "@/lib/query/HydrateClient";
+import { getQueryClient } from "@/lib/query/get-query-client";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 import { resolveTheme, type Theme } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,9 +38,16 @@ export default async function Layout({ children }: { children: ReactNode }) {
     initialRole = data.role as UserRole;
   }
 
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.translations(),
+    queryFn: () => fetchTranslations(supabase),
+    staleTime: STALE_TIMES.translations,
+  });
+
   return (
     <AppShell initialTheme={initialTheme} initialRole={initialRole}>
-      {children}
+      <HydrateClient state={dehydrate(queryClient)}>{children}</HydrateClient>
     </AppShell>
   );
 }

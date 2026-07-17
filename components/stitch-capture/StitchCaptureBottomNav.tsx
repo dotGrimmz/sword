@@ -6,7 +6,7 @@ const navItems = [
   { id: "home", icon: LayoutDashboard, label: "Today", active: true },
   { id: "reader", icon: BookOpen, label: "Scripture", active: false },
   { id: "notes", icon: FileText, label: "Reflections", active: false },
-  { id: "highlights", icon: Heart, label: "Marked", active: false },
+  { id: "highlights", icon: Heart, label: "Favorites", active: false },
 ] as const;
 
 export function StitchCaptureBottomNav({

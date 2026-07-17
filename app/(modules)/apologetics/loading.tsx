@@ -1,10 +1,8 @@
-"use client";
-
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { PageLoading } from "@/components/PageLoading";
 
 export default function ApologeticsLoading() {
   return (
-    <LoadingScreen
+    <PageLoading
       title="Preparing Apologetics module…"
       subtitle="Gathering topics, paths, and trusted sources."
     />

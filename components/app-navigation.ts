@@ -17,7 +17,7 @@ export const dashboardScreens = {
   },
   highlights: {
     id: "highlights",
-    label: "Marked",
+    label: "Favorites",
     route: "/dashboard/highlights",
   },
   settings: {

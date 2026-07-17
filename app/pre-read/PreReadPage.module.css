@@ -170,6 +170,15 @@
   color: #d91f26;
 }
 
+.memoryAction {
+  margin-top: 1rem;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
 .reflectionList {
   list-style: none;
   padding: 0;

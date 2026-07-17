@@ -72,22 +72,33 @@
 .link {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--primary) 25%, transparent);
-  color: var(--primary-foreground);
-  padding: 0.45rem 1rem;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  letter-spacing: 0.25em;
-  transition: background 180ms ease;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3.5rem;
+  padding: 0.75rem 1.35rem;
+  border-radius: 0.8rem;
+  border: 0;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 24px color-mix(in oklab, #d91f26 28%, transparent);
+  transition: filter 150ms ease;
 }
 
 .linkIcon {
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .link:hover {
-  background: color-mix(in oklab, var(--primary) 35%, transparent);
+  filter: brightness(1.05);
+  color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .link {
+    min-height: 2.75rem;
+  }
 }

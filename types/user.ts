@@ -5,7 +5,11 @@ export type UserNote = {
   chapter: number | null;
   verseStart: number | null;
   verseEnd: number | null;
-  body: string;
+  body: string | null;
+  audioStoragePath: string | null;
+  audioMimeType: string | null;
+  audioByteSize: number | null;
+  audioDurationMs: number | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -16,11 +20,23 @@ export type CreateUserNotePayload = {
   chapter?: number | null;
   verseStart?: number | null;
   verseEnd?: number | null;
-  body: string;
+  body?: string | null;
+  audioStoragePath?: string | null;
+  audioMimeType?: string | null;
+  audioByteSize?: number | null;
+  audioDurationMs?: number | null;
 };
 
 export type UpdateUserNotePayload = {
-  body: string;
+  body?: string | null;
+  bookId?: string | null;
+  chapter?: number | null;
+  verseStart?: number | null;
+  verseEnd?: number | null;
+  audioStoragePath?: string | null;
+  audioMimeType?: string | null;
+  audioByteSize?: number | null;
+  audioDurationMs?: number | null;
 };
 
 export type UserHighlight = {

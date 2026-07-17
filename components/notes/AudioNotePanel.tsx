@@ -30,6 +30,7 @@ import {
   type AudioNoteStage,
 } from "./audioNoteStages";
 
+import controls from "@/components/realign/controls.module.css";
 import styles from "./AudioNotePanel.module.css";
 
 type SubmitPayload = {
@@ -395,7 +396,7 @@ export function AudioNotePanel({
           This browser does not support the Web Speech API. Try using Chrome, Edge,
           or another browser with speech recognition support.
         </p>
-        <Button onClick={onClose}>Close</Button>
+        <Button className={controls.btnSecondary} onClick={onClose}>Close</Button>
       </div>
     );
   }
@@ -416,10 +417,14 @@ export function AudioNotePanel({
 
       {stage === "idle" ? (
         <div className={styles.controlRow}>
-          <Button onClick={beginReferenceRecording}>
+          <Button className={controls.btnPrimary} onClick={beginReferenceRecording}>
             <Mic size={16} /> Start recording reference
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button
+            variant="outline"
+            className={controls.btnSecondary}
+            onClick={onClose}
+          >
             Cancel
           </Button>
         </div>
@@ -427,7 +432,7 @@ export function AudioNotePanel({
 
       {stage === "recording-reference" ? (
         <div className={styles.controlRow}>
-          <Button variant="destructive" onClick={handleStop}>
+          <Button className={controls.btnDanger} onClick={handleStop}>
             <Square size={16} /> Stop
           </Button>
           <div className={styles.infoBanner}>🎧 Listening for reference…</div>
@@ -449,7 +454,7 @@ export function AudioNotePanel({
                 value={selectedBookId ?? undefined}
                 onValueChange={(value) => setSelectedBookId(value)}
               >
-                <SelectTrigger id="audio-note-book">
+                <SelectTrigger id="audio-note-book" className={controls.control}>
                   <SelectValue placeholder="Select book" />
                 </SelectTrigger>
                 <SelectContent>
@@ -470,6 +475,7 @@ export function AudioNotePanel({
                 value={chapterValue}
                 onChange={(event) => setChapterValue(event.target.value)}
                 inputMode="numeric"
+                className={controls.control}
               />
             </div>
             <div className={styles.field}>
@@ -481,6 +487,7 @@ export function AudioNotePanel({
                 value={verseStartValue}
                 onChange={(event) => setVerseStartValue(event.target.value)}
                 inputMode="numeric"
+                className={controls.control}
               />
             </div>
             <div className={styles.field}>
@@ -492,21 +499,31 @@ export function AudioNotePanel({
                 value={verseEndValue}
                 onChange={(event) => setVerseEndValue(event.target.value)}
                 inputMode="numeric"
+                className={controls.control}
               />
             </div>
           </div>
           <div className={styles.actions}>
-            <Button variant="ghost" onClick={handleRestart}>
+            <Button
+              variant="outline"
+              className={controls.btnSecondary}
+              onClick={handleRestart}
+            >
               <RotateCcw size={16} /> Restart
             </Button>
-            <Button onClick={handleReferenceConfirm}>Next: record note</Button>
+            <Button
+              className={controls.btnPrimary}
+              onClick={handleReferenceConfirm}
+            >
+              Next: record note
+            </Button>
           </div>
         </>
       ) : null}
 
       {stage === "recording-note" ? (
         <div className={styles.controlRow}>
-          <Button variant="destructive" onClick={handleStop}>
+          <Button className={controls.btnDanger} onClick={handleStop}>
             <Square size={16} /> Stop
           </Button>
           <div className={styles.infoBanner}>🎙 Recording note…</div>
@@ -521,27 +538,27 @@ export function AudioNotePanel({
           <Textarea
             value={noteBody}
             onChange={(event) => setNoteBody(event.target.value)}
-            className={styles.noteTextarea}
+            className={`${controls.control} ${controls.controlTextarea} ${styles.noteTextarea}`}
             placeholder="Edit your note before saving..."
           />
           <div className={styles.actions}>
-            <Button variant="ghost" onClick={handleRestart}>
+            <Button
+              variant="outline"
+              className={controls.btnSecondary}
+              onClick={handleRestart}
+            >
               <RotateCcw size={16} /> Restart
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button
+              className={controls.btnPrimary}
+              onClick={handleSave}
+              disabled={isSaving}
+            >
               {isSaving ? <Loader2 size={16} className="animate-spin" /> : null}
               Save note
             </Button>
           </div>
         </>
-      ) : null}
-
-      {stage === "idle" ? (
-        <div className={styles.actions}>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
       ) : null}
     </div>
   );

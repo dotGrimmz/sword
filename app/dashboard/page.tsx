@@ -1,21 +1,25 @@
-"use client";
+import { dehydrate } from "@tanstack/react-query";
 
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { HomePageClient } from "@/components/dashboard/HomePageClient";
+import { fetchCurrentStudy } from "@/lib/study/loaders";
+import { createClient } from "@/lib/supabase/server";
+import { HydrateClient } from "@/lib/query/HydrateClient";
+import { getQueryClient } from "@/lib/query/get-query-client";
+import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
 
-import { HomeScreen } from "@/components/HomeScreen";
-import { getRouteForScreen } from "@/components/app-navigation";
+export default async function AppHomePage() {
+  const supabase = await createClient();
+  const queryClient = getQueryClient();
 
-export default function AppHomePage() {
-  const router = useRouter();
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.studyCurrent(),
+    queryFn: () => fetchCurrentStudy(supabase),
+    staleTime: STALE_TIMES.profile,
+  });
 
-  const handleNavigate = useCallback(
-    (screen: string) => {
-      const target = getRouteForScreen(screen);
-      router.push(target);
-    },
-    [router],
+  return (
+    <HydrateClient state={dehydrate(queryClient)}>
+      <HomePageClient />
+    </HydrateClient>
   );
-
-  return <HomeScreen onNavigate={handleNavigate} />;
 }

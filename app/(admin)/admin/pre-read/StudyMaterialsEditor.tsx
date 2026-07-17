@@ -1,6 +1,13 @@
 "use client";
 
-import { ExternalLink, FileUp, Link2, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  FileUp,
+  Link2,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -16,13 +23,13 @@ import {
 } from "./draft-materials";
 import styles from "./PreReadForm.module.css";
 
-const btnIconSize = "size-11 md:size-9";
+const btnIconSize = "size-12 md:size-9";
 const btnSecondary =
-  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
+  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26]";
 const btnPrimary =
-  "h-12 min-w-[8.5rem] px-6 text-base md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white";
+  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white";
 const uploadBtn =
-  "relative inline-flex h-12 min-w-[8.5rem] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md bg-gradient-to-br from-[#d91f26] to-[#f28c00] px-6 text-base font-bold text-white hover:brightness-105 md:h-11 md:min-w-[7.5rem] md:px-6 md:text-sm";
+  "relative inline-flex h-14 min-h-14 min-w-[8.5rem] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md bg-gradient-to-br from-[#d91f26] to-[#f28c00] px-6 text-base font-bold text-white hover:brightness-105 md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm";
 
 type StudyMaterialsEditorProps = {
   materials: DraftMaterial[];
@@ -39,6 +46,35 @@ export function StudyMaterialsEditor({
   const [isDragging, setIsDragging] = useState(false);
 
   const visible = visibleDraftMaterials(materials);
+
+  const reorderVisible = (fromLocalId: string, direction: -1 | 1) => {
+    const visibleIds = visible.map((material) => material.localId);
+    const fromIndex = visibleIds.indexOf(fromLocalId);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= visibleIds.length) {
+      return;
+    }
+
+    const nextVisibleIds = [...visibleIds];
+    const [moved] = nextVisibleIds.splice(fromIndex, 1);
+    nextVisibleIds.splice(toIndex, 0, moved!);
+
+    const visibleQueue = nextVisibleIds.map(
+      (id) => materials.find((material) => material.localId === id)!,
+    );
+    let visibleCursor = 0;
+
+    onChange(
+      materials.map((material) => {
+        if (material.markedForDelete) {
+          return material;
+        }
+        const next = visibleQueue[visibleCursor]!;
+        visibleCursor += 1;
+        return next;
+      }),
+    );
+  };
 
   const handleAddLink = () => {
     if (!linkTitle.trim() || !linkUrl.trim()) {
@@ -113,8 +149,8 @@ export function StudyMaterialsEditor({
           <p className={styles.materialsEyebrow}>4 · Materials</p>
           <h3 className={styles.materialsTitle}>Study materials</h3>
           <p className={styles.helper}>
-            Attach links and files now. They stay with this form until you save
-            the study.
+            Attach links and files now. Use the arrows to set display order
+            before you save.
           </p>
         </div>
         <div className={styles.materialsActions}>
@@ -215,7 +251,7 @@ export function StudyMaterialsEditor({
         <p className={styles.helper}>No materials yet — add a link or upload.</p>
       ) : (
         <ul className={styles.materialsList}>
-          {visible.map((material) => {
+          {visible.map((material, index) => {
             const href = material.url ?? material.previewUrl ?? "#";
             const image = isDraftImage(material);
             return (
@@ -246,18 +282,44 @@ export function StudyMaterialsEditor({
                   )}
                   {!material.persistedId ? (
                     <span className={styles.helper}>Pending save</span>
-                  ) : null}
+                  ) : (
+                    <span className={styles.helper}>Order {index + 1}</span>
+                  )}
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className={btnIconSize}
-                  onClick={() => handleRemove(material.localId)}
-                  aria-label={`Remove ${material.title}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className={styles.materialOrderActions}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => reorderVisible(material.localId, -1)}
+                    disabled={index === 0}
+                    aria-label={`Move ${material.title} up`}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => reorderVisible(material.localId, 1)}
+                    disabled={index === visible.length - 1}
+                    aria-label={`Move ${material.title} down`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => handleRemove(material.localId)}
+                    aria-label={`Remove ${material.title}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </li>
             );
           })}

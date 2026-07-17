@@ -26,14 +26,18 @@ const mapComment = (
     string,
     { username: string | null; avatar_url: string | null }
   >,
-) => ({
-  ...comment,
-  author: {
-    username: profileMap.get(comment.user_id)?.username ?? "Member",
-    avatar_url: profileMap.get(comment.user_id)?.avatar_url ?? null,
-  },
-  can_delete: isAdmin || comment.user_id === currentUserId,
-});
+) => {
+  const canModerate = isAdmin || comment.user_id === currentUserId;
+  return {
+    ...comment,
+    author: {
+      username: profileMap.get(comment.user_id)?.username ?? "Member",
+      avatar_url: profileMap.get(comment.user_id)?.avatar_url ?? null,
+    },
+    can_delete: canModerate,
+    can_edit: canModerate,
+  };
+};
 
 const buildProfileMap = (
   rows: Array<{ id: string; username: string | null; avatar_url: string | null }> | null,

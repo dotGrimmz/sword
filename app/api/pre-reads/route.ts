@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { startOfWeek } from "@/lib/study/week";
+import { fetchCurrentStudy, LoaderError } from "@/lib/study/loaders";
 import { createClient } from "@/lib/supabase/server";
 
 import {
   PRE_READ_SELECT,
   errorStatusFromCode,
   normalizePreReadPayload,
-  normalizeWeeklyStudy,
 } from "./utils";
 
 export async function GET(request: Request) {
@@ -15,31 +14,18 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
 
   if (url.searchParams.get("current") === "1") {
-    const weekStart = startOfWeek(new Date());
-    const { data, error } = await supabase
-      .from("pre_reads")
-      .select(PRE_READ_SELECT)
-      .eq("published", true)
-      .eq("is_cancelled", false)
-      .eq("week_start", weekStart)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
+    try {
+      const study = await fetchCurrentStudy(supabase);
+      return NextResponse.json(study);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load study";
+      const code = error instanceof LoaderError ? error.code : undefined;
       return NextResponse.json(
-        { error: error.message },
-        { status: errorStatusFromCode(error.code) },
+        { error: message },
+        { status: errorStatusFromCode(code) },
       );
     }
-
-    if (!data) {
-      return NextResponse.json(null);
-    }
-
-    return NextResponse.json(
-      normalizeWeeklyStudy(data as unknown as Record<string, unknown>),
-    );
   }
 
   const { data, error } = await supabase

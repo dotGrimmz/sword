@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useShallow } from "zustand/react/shallow";
 
 const STORAGE_KEY = "sword-reader-state";
 
@@ -105,9 +106,11 @@ export const useReaderStore = create<ReaderState>()(
 
 /** Selector hook — only re-renders when reading position changes. */
 export const useReaderPosition = () =>
-  useReaderStore((state) => ({
-    bookId: state.bookId,
-    chapter: state.chapter,
-    selectedVerse: state.selectedVerse,
-    hasHydrated: state._hasHydrated,
-  }));
+  useReaderStore(
+    useShallow((state) => ({
+      bookId: state.bookId,
+      chapter: state.chapter,
+      selectedVerse: state.selectedVerse,
+      hasHydrated: state._hasHydrated,
+    })),
+  );

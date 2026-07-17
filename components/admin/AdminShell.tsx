@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import {
   ArrowLeft,
   CalendarDays,
+  Contact,
   LayoutDashboard,
   QrCode,
   Users2,
@@ -41,6 +42,12 @@ const navItems = [
     match: (path: string) => path.startsWith("/admin/hosts"),
   },
   {
+    href: "/admin/users",
+    label: "Users",
+    icon: Contact,
+    match: (path: string) => path.startsWith("/admin/users"),
+  },
+  {
     href: "/admin/qr-login",
     label: "Login QR",
     icon: QrCode,
@@ -51,6 +58,7 @@ const navItems = [
 function pageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/pre-read")) return "Weekly Study";
   if (pathname.startsWith("/admin/hosts")) return "Hosts";
+  if (pathname.startsWith("/admin/users")) return "Users";
   if (pathname.startsWith("/admin/qr-login")) return "Login QR";
   if (pathname.startsWith("/admin/topics")) return "Topics";
   if (pathname.startsWith("/admin/paths")) return "Paths";
@@ -87,11 +95,6 @@ export function AdminShell({ children, initialTheme }: AdminShellProps) {
                 </Link>
               );
             })}
-
-            <div className={styles.navSoon} aria-disabled="true">
-              <span className={styles.navSoonLabel}>Users</span>
-              <span className={styles.soonBadge}>Soon</span>
-            </div>
           </nav>
 
           <Link href="/dashboard" className={styles.backToApp}>

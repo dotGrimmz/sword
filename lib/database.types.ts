@@ -235,7 +235,11 @@ export type Database = {
           chapter: number | null;
           verse_start: number | null;
           verse_end: number | null;
-          body: string;
+          body: string | null;
+          audio_storage_path: string | null;
+          audio_mime_type: string | null;
+          audio_byte_size: number | null;
+          audio_duration_ms: number | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -247,7 +251,11 @@ export type Database = {
           chapter?: number | null;
           verse_start?: number | null;
           verse_end?: number | null;
-          body: string;
+          body?: string | null;
+          audio_storage_path?: string | null;
+          audio_mime_type?: string | null;
+          audio_byte_size?: number | null;
+          audio_duration_ms?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -259,7 +267,11 @@ export type Database = {
           chapter?: number | null;
           verse_start?: number | null;
           verse_end?: number | null;
-          body?: string;
+          body?: string | null;
+          audio_storage_path?: string | null;
+          audio_mime_type?: string | null;
+          audio_byte_size?: number | null;
+          audio_duration_ms?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
         };

@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-import {
-  createLinkMaterial,
-  normalizeStudyMaterial,
-} from "@/lib/study/materials/strategy";
+import { createLinkMaterial } from "@/lib/study/materials/strategy";
+import { fetchStudyMaterials, LoaderError } from "@/lib/study/loaders";
 import { createClient } from "@/lib/supabase/server";
 
 import { errorStatusFromCode, requireAdmin } from "../../utils";
@@ -15,25 +13,18 @@ export async function GET(
   const { id } = await context.params;
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("study_materials")
-    .select("*")
-    .eq("pre_read_id", id)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
-
-  if (error) {
+  try {
+    const materials = await fetchStudyMaterials(supabase, id);
+    return NextResponse.json(materials);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to load materials";
+    const code = error instanceof LoaderError ? error.code : undefined;
     return NextResponse.json(
-      { error: error.message },
-      { status: errorStatusFromCode(error.code) },
+      { error: message },
+      { status: errorStatusFromCode(code) },
     );
   }
-
-  return NextResponse.json(
-    (data ?? []).map((row) =>
-      normalizeStudyMaterial(row as unknown as Record<string, unknown>),
-    ),
-  );
 }
 
 export async function POST(

@@ -1,0 +1,396 @@
+.root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1.5px solid #e0c4b6;
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, #fff8f4 88%, #ffffff),
+    #ffffff
+  );
+  box-shadow: 0 8px 22px color-mix(in oklab, #d91f26 6%, transparent);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rangeBlock {
+  min-width: 0;
+  flex: 1;
+}
+
+.rangeEyebrow {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d91f26;
+}
+
+.rangeLabel {
+  margin: 0.25rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.25;
+  color: #1a1a1a;
+  overflow-wrap: anywhere;
+}
+
+.rangeMeta {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: #6b5a52;
+}
+
+.badge,
+.badgeButton {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge {
+  background: color-mix(in oklab, #d91f26 12%, #ffe8dc);
+  color: #d91f26;
+}
+
+.badgeButton {
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.badgeButton:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+  color: #d91f26;
+}
+
+.badgeButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.navRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.navButton svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.navButton:hover:not(:disabled) {
+  border-color: #d91f26;
+  color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dayStrip {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.2rem;
+  min-width: 0;
+  border-radius: 0.85rem;
+  background: #fff5f0;
+  border: 1px solid #f0ddd4;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.45rem 0.15rem;
+  border-radius: 0.6rem;
+}
+
+.dayCell[data-today] {
+  background: color-mix(in oklab, #d91f26 12%, #ffffff);
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, #d91f26 35%, transparent);
+}
+
+.dayName {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b5a52;
+}
+
+.dayNumber {
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.dayCell[data-today] .dayNumber {
+  color: #d91f26;
+}
+
+.calendarTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 3.25rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.calendarTrigger:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+  color: #d91f26;
+}
+
+.calendarTrigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.calendarIcon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.popover {
+  width: min(calc(100vw - 2rem), 22rem);
+  padding: 0.85rem;
+  border-radius: 1rem;
+  border: 1.5px solid #e8cfc4;
+  background: #ffffff;
+  box-shadow:
+    0 18px 40px color-mix(in oklab, #1a1a1a 12%, transparent),
+    0 2px 8px color-mix(in oklab, #d91f26 8%, transparent);
+}
+
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.monthTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 750;
+  color: #1a1a1a;
+}
+
+.monthNav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.7rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.monthNav svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.monthNav:hover {
+  border-color: #d91f26;
+  color: #d91f26;
+}
+
+.calendarHint {
+  margin: 0.65rem 0 0.55rem;
+  font-size: 0.78rem;
+  color: #6b5a52;
+  text-align: center;
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.15rem;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b5a52;
+}
+
+.monthGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.1rem;
+  border-radius: 0.65rem;
+  padding: 0.1rem;
+  transition: background 120ms ease;
+}
+
+.weekRow[data-hovered] {
+  background: color-mix(in oklab, #d91f26 8%, #fff5f0);
+}
+
+.weekRow[data-selected] {
+  background: color-mix(in oklab, #d91f26 14%, #ffe8dc);
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, #d91f26 40%, transparent);
+}
+
+.weekRow[data-current]:not([data-selected]) {
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, #f28c00 45%, transparent);
+}
+
+.dayButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  min-height: 2.35rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.dayButton[data-outside] {
+  color: #b5a49b;
+  font-weight: 500;
+}
+
+.dayButton[data-today] {
+  color: #d91f26;
+  font-weight: 800;
+}
+
+.dayButton:hover,
+.dayButton:focus-visible {
+  outline: none;
+  background: color-mix(in oklab, #d91f26 10%, transparent);
+}
+
+.todayButton {
+  margin-top: 0.7rem;
+  width: 100%;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.todayButton:hover {
+  border-color: #d91f26;
+  color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+}
+
+@media (min-width: 720px) {
+  .rangeLabel {
+    font-size: 1.25rem;
+  }
+
+  .navButton {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .calendarTrigger {
+    min-height: 2.85rem;
+  }
+}
+
+@media (max-width: 419px) {
+  .dayName {
+    font-size: 0.55rem;
+  }
+
+  .dayNumber {
+    font-size: 0.85rem;
+  }
+
+  .navButton {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+}

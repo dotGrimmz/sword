@@ -1,0 +1,282 @@
+/* Shared Realign form controls — mirrors admin PreReadForm .control / buttons */
+
+.control {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  min-height: 3.5rem;
+  height: auto;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  padding: 0.85rem 1rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: #1a1a1a;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.control::placeholder {
+  color: #8a7268;
+}
+
+.control:hover:not(:disabled) {
+  border-color: color-mix(in oklab, #d91f26 35%, #e0c4b6);
+  background: #ffffff;
+}
+
+.control:focus-visible {
+  outline: none;
+  border-color: #d91f26;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px color-mix(in oklab, #d91f26 18%, transparent);
+}
+
+.control:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+textarea.control,
+.controlTextarea {
+  min-height: 8.5rem;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3.5rem;
+  min-width: 8.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px color-mix(in oklab, #d91f26 28%, transparent);
+  cursor: pointer;
+  transition: filter 150ms ease, color 150ms ease;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+  color: #ffffff;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3.5rem;
+  min-width: 8.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid transparent;
+  background: color-mix(in oklab, #d91f26 10%, transparent);
+  color: #d91f26;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: color-mix(in oklab, #d91f26 18%, transparent);
+  border-color: color-mix(in oklab, #d91f26 25%, transparent);
+}
+
+.btnDanger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid transparent;
+  background: color-mix(in oklab, #b91c1c 10%, transparent);
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.btnDanger:hover:not(:disabled) {
+  background: color-mix(in oklab, #b91c1c 22%, transparent);
+  border-color: color-mix(in oklab, #b91c1c 30%, transparent);
+  color: #ffffff;
+}
+
+.btnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.btnIcon:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.btnIconDanger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  border-radius: 0.8rem;
+  border: 1.5px solid color-mix(in oklab, #b91c1c 25%, #e0c4b6);
+  background: color-mix(in oklab, #b91c1c 8%, #ffffff);
+  color: #b91c1c;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.btnIconDanger:hover:not(:disabled) {
+  border-color: #b91c1c;
+  background: color-mix(in oklab, #b91c1c 18%, #ffffff);
+  color: #991b1b;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 3rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+  color: #d91f26;
+}
+
+.chipActive {
+  border-color: #d91f26;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  box-shadow: 0 8px 18px color-mix(in oklab, #d91f26 24%, transparent);
+}
+
+.chipActive:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: linear-gradient(160deg, #d91f26, #f28c00);
+  color: #ffffff;
+  filter: brightness(1.05);
+}
+
+@media (min-width: 768px) {
+  .control {
+    min-height: 3rem;
+    padding: 0.75rem 0.95rem;
+    font-size: 1rem;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    min-height: 2.75rem;
+    font-size: 0.95rem;
+  }
+
+  .btnIcon,
+  .btnIconDanger {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .chip {
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.85rem;
+  }
+
+  textarea.control,
+  .controlTextarea {
+    min-height: 8rem;
+  }
+}
