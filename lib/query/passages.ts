@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
 import { getPassage } from "@/lib/api/bible";
 import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
@@ -30,8 +30,46 @@ const passageTextFromResponse = async (
 };
 
 /**
+ * Single passage text via TanStack Query (`queryKeys.passage`).
+ */
+export const usePassageText = (
+  translationCode: string | null,
+  bookName: string | null | undefined,
+  chapter: number | null | undefined,
+  verseStart: number | null | undefined,
+  verseEnd?: number | null,
+) => {
+  const endVerse = verseEnd ?? verseStart;
+  const enabled = Boolean(
+    translationCode && bookName && chapter && verseStart,
+  );
+
+  return useQuery({
+    queryKey: enabled
+      ? queryKeys.passage(
+          translationCode!,
+          bookName!,
+          chapter!,
+          verseStart!,
+          chapter!,
+          endVerse!,
+        )
+      : (["passage", "disabled"] as const),
+    queryFn: () =>
+      passageTextFromResponse(
+        translationCode!,
+        bookName!,
+        { chapter: chapter!, verse: verseStart! },
+        { chapter: chapter!, verse: endVerse! },
+      ),
+    staleTime: STALE_TIMES.bible,
+    enabled,
+  });
+};
+
+/**
  * Batch-load passage text for a list of items via TanStack Query.
- * Reuses cached passages across Notes, Highlights, and Home screens.
+ * Reuses cached passages across Notes, Highlights, Memory, and Home.
  */
 export const usePassageTextsMap = (
   translationCode: string | null,

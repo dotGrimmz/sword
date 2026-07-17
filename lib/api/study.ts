@@ -31,17 +31,40 @@ export const uploadStudyFileMaterial = async (
   studyId: string,
   file: File,
   title?: string,
+  sortOrder?: number,
 ): Promise<StudyMaterial> => {
   const formData = new FormData();
   formData.append("file", file, file.name);
   if (title?.trim()) {
     formData.append("title", title.trim());
   }
+  if (typeof sortOrder === "number") {
+    formData.append("sort_order", String(sortOrder));
+  }
   return apiFetch<StudyMaterial>(
     `/api/pre-reads/${studyId}/materials/upload`,
     {
       method: "POST",
       body: formData,
+    },
+  );
+};
+
+export const updateStudyMaterial = async (
+  studyId: string,
+  materialId: string,
+  input: { title?: string; url?: string; sortOrder?: number },
+): Promise<StudyMaterial> => {
+  return apiFetch<StudyMaterial>(
+    `/api/pre-reads/${studyId}/materials/${materialId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: input.title,
+        url: input.url,
+        sort_order: input.sortOrder,
+      }),
     },
   );
 };

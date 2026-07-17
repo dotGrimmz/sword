@@ -37,9 +37,9 @@ const quickActions = [
   },
   {
     icon: Heart,
-    label: "Marked",
+    label: "Favorites",
     subtitle: "12 saved",
-    detail: "Review and reflect on verses you marked.",
+    detail: "Review and reflect on verses you've saved.",
   },
   {
     icon: Lightbulb,

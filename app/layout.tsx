@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SWORD Bible Study",
   description:
-    "SWORD for Realign Ministries — Scripture, reflections, and marked passages.",
+    "SWORD for Realign Ministries — Scripture, reflections, and favorites.",
   icons: {
     icon: "/sword_logo.png",
     shortcut: "/sword_logo.png",

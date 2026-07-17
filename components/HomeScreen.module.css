@@ -216,17 +216,27 @@
   flex-direction: column;
   gap: 6px;
   padding: 16px 18px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: var(--card);
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 16%, #e8cfc4);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in oklab, #fff8f4 94%, #ffffff) 0%,
+      color-mix(in oklab, var(--card) 88%, #fff8f4) 100%
+    );
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--primary) 8%, transparent);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   flex-shrink: 0;
 }
 
 .studyPanel:hover {
-  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+  border-color: color-mix(in oklab, var(--primary) 32%, #e8cfc4);
+  box-shadow: 0 14px 30px color-mix(in oklab, var(--primary) 12%, transparent);
   transform: translateY(-1px);
 }
 

@@ -21,6 +21,10 @@ import { getUserMemoryVerses } from "@/lib/api/memory";
 import { getUserBookmarks } from "@/lib/api/bookmarks";
 import type { BibleBookSummary, BibleTranslationSummary } from "@/types/bible";
 import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import {
+  ACTIVE_TRANSLATION_COOKIE,
+  ACTIVE_TRANSLATION_STORAGE_KEY,
+} from "@/lib/translation/cookie";
 
 type TranslationContextValue = {
   translations: BibleTranslationSummary[];
@@ -37,7 +41,13 @@ type TranslationContextValue = {
 
 const TranslationContext = createContext<TranslationContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "sword-active-translation";
+const STORAGE_KEY = ACTIVE_TRANSLATION_STORAGE_KEY;
+
+const persistTranslationPreference = (code: string) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, code);
+  document.cookie = `${ACTIVE_TRANSLATION_COOKIE}=${encodeURIComponent(code)}; path=/; max-age=31536000; samesite=lax`;
+};
 
 const getInitialStoredTranslation = () => {
   if (typeof window === "undefined") {
@@ -57,9 +67,7 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
   const selectTranslation = useCallback((code: string) => {
     setTranslationCode(code);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, code);
-    }
+    persistTranslationPreference(code);
   }, []);
 
   const {
@@ -121,15 +129,13 @@ export function TranslationProvider({ children }: TranslationProviderProps) {
 
       const stored = getInitialStoredTranslation();
       if (stored && translations.some((item) => item.code === stored)) {
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(STORAGE_KEY, stored);
-        }
+        persistTranslationPreference(stored);
         return stored;
       }
 
       const fallback = translations[0]?.code ?? null;
-      if (fallback && typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_KEY, fallback);
+      if (fallback) {
+        persistTranslationPreference(fallback);
       }
       return fallback;
     });

@@ -409,6 +409,13 @@ textarea.control {
   min-width: 0;
 }
 
+.materialOrderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
 .materialInfo {
   display: flex;
   flex-direction: column;

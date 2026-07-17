@@ -1,30 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
-  Calendar,
   Edit,
+  Lightbulb,
   Loader2,
+  Mic,
   Plus,
   Search,
   Trash2,
-  BookOpen,
-  Sparkles,
 } from "lucide-react";
 
+import { AppHeaderToolbar } from "./AppHeaderToolbar";
 import { useTranslationContext } from "./TranslationContext";
-import { TranslationSwitcher } from "./TranslationSwitcher";
 import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
 import {
   Modal,
   ModalBody,
@@ -45,18 +36,16 @@ import {
 import { Textarea } from "./ui/textarea";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { buildReferenceLabel } from "@/lib/api/bible";
-import {
-  createUserNote,
-  deleteUserNote,
-  getUserNotes,
-  updateUserNote,
-} from "@/lib/api/notes";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserNote } from "@/types/user";
-import { NOTES_UPDATED_EVENT, dispatchNotesUpdated } from "@/lib/events";
+import { NOTES_UPDATED_EVENT } from "@/lib/events";
 import { AudioNotePanel, type AudioNotePayload } from "./notes/AudioNotePanel";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import {
+  useCreateNoteMutation,
+  useDeleteNoteMutation,
+  useNotesQuery,
+  useUpdateNoteMutation,
+} from "@/lib/query/notes";
 import { usePassageTextsMap } from "@/lib/query/passages";
 import controls from "@/components/realign/controls.module.css";
 import styles from "./NotesScreen.module.css";
@@ -84,10 +73,31 @@ const formatDate = (iso: string | null) => {
     return null;
   }
 
+  const now = new Date();
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  const startOfDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+  const dayDiff = Math.round(
+    (startOfToday.getTime() - startOfDate.getTime()) / 86_400_000,
+  );
+
+  if (dayDiff === 0) return "Today";
+  if (dayDiff === 1) return "Yesterday";
+  if (dayDiff > 1 && dayDiff < 7) {
+    return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date);
+  }
+
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
-    year: "numeric",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
   }).format(date);
 };
 
@@ -104,8 +114,6 @@ const extractTitle = (body: string) => {
 const normaliseBody = (body: string | null | undefined) => (body ?? "").trim();
 
 export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
-  void onNavigate;
-
   const {
     books,
     translation,
@@ -115,30 +123,14 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   } = useTranslationContext();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const queryClient = useQueryClient();
-  const notesQueryKey = queryKeys.userNotes(translationKey);
+  const notesQuery = useNotesQuery(translationCode);
+  const createMutation = useCreateNoteMutation(translationCode);
+  const updateMutation = useUpdateNoteMutation(translationCode);
+  const deleteMutation = useDeleteNoteMutation(translationCode);
+  const notes = notesQuery.data ?? [];
 
-  const notesQuery = useQuery({
-    queryKey: notesQueryKey,
-    queryFn: () => getUserNotes(undefined, translationCode ?? undefined),
-    staleTime: STALE_TIMES.user,
-    enabled: fetchEnabled,
-  });
-  const notes = useMemo(() => notesQuery.data ?? [], [notesQuery.data]);
-
-  const setNotesCache = useCallback(
-    (
-      value:
-        | UserNote[]
-        | ((previous: UserNote[] | undefined) => UserNote[]),
-    ) => {
-      queryClient.setQueryData<UserNote[]>(notesQueryKey, value);
-    },
-    [notesQueryKey, queryClient],
-  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAudioNoteOpen, setIsAudioNoteOpen] = useState(false);
   const [createBookId, setCreateBookId] = useState<string | null>(null);
@@ -147,12 +139,13 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
   const [createVerseEnd, setCreateVerseEnd] = useState("1");
   const [createBody, setCreateBody] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
-  const [isSavingCreate, setIsSavingCreate] = useState(false);
 
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
   const [editBody, setEditBody] = useState("");
   const [editError, setEditError] = useState<string | null>(null);
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const isSavingCreate = createMutation.isPending;
+  const isSavingEdit = updateMutation.isPending;
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -340,13 +333,12 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       return;
     }
 
-    setIsSavingCreate(true);
     setCreateError(null);
 
     try {
       const activeTranslationId = translation?.id ?? translationCode;
 
-      const newNote = await createUserNote({
+      await createMutation.mutateAsync({
         translationId: activeTranslationId,
         bookId: createBookId,
         chapter: chapterValue,
@@ -355,16 +347,12 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         body,
       });
 
-      setNotesCache((prev) => [newNote, ...(prev ?? [])]);
       setIsCreateOpen(false);
       toast.success("Note saved");
-      dispatchNotesUpdated({ source: "notes-screen" });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not create note";
       toast.error(message);
-    } finally {
-      setIsSavingCreate(false);
     }
   };
 
@@ -376,7 +364,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
 
       const activeTranslationId = translation?.id ?? translationCode;
 
-      const newNote = await createUserNote({
+      await createMutation.mutateAsync({
         translationId: activeTranslationId,
         bookId: payload.bookId,
         chapter: payload.chapter,
@@ -384,11 +372,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         verseEnd: payload.verseEnd,
         body: payload.body,
       });
-
-      setNotesCache((prev) => [newNote, ...(prev ?? [])]);
-      dispatchNotesUpdated({ source: "notes-screen" });
     },
-    [setNotesCache, translation?.id, translationCode]
+    [createMutation, translation?.id, translationCode]
   );
 
   const handleEdit = (note: UserNote) => {
@@ -409,23 +394,19 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       return;
     }
 
-    setIsSavingEdit(true);
     setEditError(null);
 
     try {
-      const updated = await updateUserNote(editingNote.id, { body: nextBody });
-      setNotesCache((prev) =>
-        (prev ?? []).map((note) => (note.id === updated.id ? updated : note))
-      );
+      await updateMutation.mutateAsync({
+        id: editingNote.id,
+        payload: { body: nextBody },
+      });
       setEditingNote(null);
       toast.success("Note updated");
-      dispatchNotesUpdated({ source: "notes-screen" });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not update note";
       toast.error(message);
-    } finally {
-      setIsSavingEdit(false);
     }
   };
 
@@ -439,19 +420,13 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       return;
     }
 
-    const previousNotes = notes;
-
-    setNotesCache((prev) => (prev ?? []).filter((item) => item.id !== note.id));
-
     try {
-      await deleteUserNote(note.id);
+      await deleteMutation.mutateAsync(note);
       toast.success("Note deleted");
-      dispatchNotesUpdated({ source: "notes-screen" });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not delete note";
       toast.error(message);
-      setNotesCache(previousNotes);
     }
   };
 
@@ -464,48 +439,59 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
     !fetchEnabled ||
     notesQuery.isLoading;
 
+  const noteCountLabel =
+    derivedNotes.length === 0
+      ? "Capture what God is showing you"
+      : `${derivedNotes.length} reflection${derivedNotes.length === 1 ? "" : "s"}`;
+
+  const canCompose = books.length > 0 && Boolean(translationCode);
+
   return (
     <div className={styles.screen}>
-      <div className={styles.header}>
+      <header className={styles.header}>
         <div className={styles.headerBar}>
           <div className={styles.headerTitleWrap}>
+            <p className={styles.headerEyebrow}>Journal</p>
             <h1 className={styles.headerTitle}>Reflections</h1>
+            <p className={styles.headerSubtitle}>{noteCountLabel}</p>
           </div>
-          <div className={styles.headerActions}>
-            <TranslationSwitcher
-              className={styles.translationControl}
-              size="compact"
-              hideLabel
-            />
-            <Button
-              variant="outline"
-              className={controls.btnSecondary}
-              disabled={books.length === 0 || !translationCode}
-              onClick={() => setIsAudioNoteOpen(true)}
-            >
-              Record Note
-            </Button>
-            <Button
-              className={controls.btnPrimary}
-              disabled={books.length === 0 || !translationCode}
-              onClick={() => setIsCreateOpen(true)}
-            >
-              <Plus className={styles.addButtonIcon} />
-              New Note
-            </Button>
-          </div>
+          <AppHeaderToolbar
+            onNavigateProfile={() => onNavigate?.("settings")}
+          />
+        </div>
+
+        <div className={styles.headerActions}>
+          <Button
+            variant="outline"
+            size="icon"
+            className={`${controls.btnIcon} ${styles.recordButton}`}
+            disabled={!canCompose}
+            onClick={() => setIsAudioNoteOpen(true)}
+            aria-label="Record a voice note"
+            title="Record note"
+          >
+            <Mic className={styles.addButtonIcon} aria-hidden="true" />
+          </Button>
+          <Button
+            className={`${controls.btnPrimary} ${styles.newButton}`}
+            disabled={!canCompose}
+            onClick={() => setIsCreateOpen(true)}
+          >
+            <Plus className={styles.addButtonIcon} aria-hidden="true" />
+            New reflection
+          </Button>
         </div>
 
         <div className={styles.searchWrap}>
           <Search className={styles.searchIcon} aria-hidden="true" />
           <Input
-            placeholder="Search your reflections..."
+            placeholder="Search reflections…"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className={`${controls.control} ${styles.searchInput}`}
           />
         </div>
-      </div>
+      </header>
 
       <Modal open={isAudioNoteOpen} onOpenChange={setIsAudioNoteOpen}>
         <ModalContent size="lg">
@@ -526,41 +512,15 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       <Modal open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <ModalContent size="lg">
           <ModalHeader className={styles.dialogHeader}>
-            <ModalTitle>Create Note</ModalTitle>
+            <ModalTitle>New reflection</ModalTitle>
             <ModalDescription className={styles.dialogDescription}>
-              Capture reflections, prayers, and applications as you study
-              Scripture.
+              Anchor a thought, prayer, or takeaway to Scripture.
             </ModalDescription>
           </ModalHeader>
 
           <ModalBody>
-            <motion.div
-              className={styles.dialogHero}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              <span className={styles.dialogHeroIcon}>
-                <Sparkles aria-hidden="true" />
-              </span>
-              <div>
-                <p className={styles.dialogHeroTitle}>
-                  Build a richer study archive
-                </p>
-                <p className={styles.dialogHeroSubtitle}>
-                  Anchor each insight to the passage you&apos;re exploring and
-                  watch themes emerge.
-                </p>
-              </div>
-            </motion.div>
-
             <div className={styles.formStack}>
-              <motion.div
-                className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: "easeOut", delay: 0.08 }}
-              >
+              <div className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Book</span>
                   <Select
@@ -572,7 +532,7 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       setCreateVerseEnd("1");
                     }}
                   >
-                    <SelectTrigger className={`${controls.control} ${styles.selectTrigger}`}>
+                    <SelectTrigger className={controls.control}>
                       <SelectValue placeholder="Select book" />
                     </SelectTrigger>
                     <SelectContent className={`${styles.selectContent} z-[9999]`}>
@@ -587,13 +547,6 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className={styles.dialogHint}>
-                    {books.length > 0
-                      ? `${books.length} books available in ${
-                          translation?.name ?? translationCode?.toUpperCase() ?? "your library"
-                        }`
-                      : "Books will appear once a translation is loaded."}
-                  </p>
                 </div>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Chapter</span>
@@ -605,48 +558,38 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                       setCreateVerseEnd("1");
                     }}
                   >
-                    <SelectTrigger className={`${controls.control} ${styles.selectTrigger}`}>
+                    <SelectTrigger className={controls.control}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className={`${styles.selectContent} z-[9999]`}>
-                      {Array.from({ length: chapterOptions }, (_, index) => index + 1).map(
-                        (chapterNumber) => (
-                          <SelectItem
-                            key={chapterNumber}
-                            value={`${chapterNumber}`}
-                            className={styles.selectItem}
-                          >
-                            {chapterNumber}
-                          </SelectItem>
-                        )
-                      )}
+                      {Array.from(
+                        { length: chapterOptions },
+                        (_, index) => index + 1,
+                      ).map((chapterNumber) => (
+                        <SelectItem
+                          key={chapterNumber}
+                          value={`${chapterNumber}`}
+                          className={styles.selectItem}
+                        >
+                          {chapterNumber}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  <p className={styles.dialogHint}>
-                    {selectedBook
-                      ? `${selectedBook.chapters} chapters in ${selectedBook.name}`
-                      : "Pick a book to see chapter options."}
-                  </p>
                 </div>
-              </motion.div>
-              <motion.div
-                className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: "easeOut", delay: 0.12 }}
-              >
+              </div>
+              <div className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Verse start</span>
                   <Input
                     type="number"
                     min={1}
                     value={createVerseStart}
-                    onChange={(event) => setCreateVerseStart(event.target.value)}
-                    className={`${controls.control} ${styles.input}`}
+                    onChange={(event) =>
+                      setCreateVerseStart(event.target.value)
+                    }
+                    className={controls.control}
                   />
-                  <p className={styles.dialogHint}>
-                    We&apos;ll fetch the verse text automatically.
-                  </p>
                 </div>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Verse end</span>
@@ -655,58 +598,32 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     min={createVerseStart}
                     value={createVerseEnd}
                     onChange={(event) => setCreateVerseEnd(event.target.value)}
-                    className={`${controls.control} ${styles.input}`}
+                    className={controls.control}
                   />
-                  <p className={styles.dialogHint}>
-                    Use the same number to capture a single verse.
-                  </p>
                 </div>
-              </motion.div>
-              <motion.div
-                className={styles.fieldGroup}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
-              >
+              </div>
+              <div className={styles.fieldGroup}>
                 <span className={styles.fieldLabel}>Reflection</span>
                 <Textarea
                   value={createBody}
                   onChange={(event) => setCreateBody(event.target.value)}
-                  placeholder="Write your insights, prayers, and observations..."
+                  placeholder="What stood out? How will you respond?"
                   className={`${controls.control} ${controls.controlTextarea} ${styles.textarea}`}
                 />
-                <p className={styles.dialogHint}>
-                  Focus on what stood out, why it matters, and how you&apos;ll respond.
-                </p>
-              </motion.div>
+              </div>
               {createError ? (
-                <motion.p
-                  className={styles.errorMessage}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                >
-                  {createError}
-                </motion.p>
+                <p className={styles.errorMessage}>{createError}</p>
               ) : null}
-              <motion.div
-                className={styles.saveButtonWrap}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.32, ease: "easeOut", delay: 0.2 }}
+              <Button
+                className={`${controls.btnPrimary} ${styles.saveButton}`}
+                onClick={handleCreateNote}
+                disabled={isSavingCreate}
               >
-                <Button
-                  className={`${controls.btnPrimary} ${styles.saveButton}`}
-                  onClick={handleCreateNote}
-                  disabled={isSavingCreate}
-                >
-                  {isSavingCreate ? <Loader2 className={styles.spinner} /> : null}
-                  Save Note
-                </Button>
-                <p className={styles.dialogTip}>
-                  Tip: tag key verses so your notes surface alongside memory reviews.
-                </p>
-              </motion.div>
+                {isSavingCreate ? (
+                  <Loader2 className={styles.spinner} aria-hidden="true" />
+                ) : null}
+                Save reflection
+              </Button>
             </div>
           </ModalBody>
         </ModalContent>
@@ -716,99 +633,103 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
         {showLoadingState ? (
           <LoadingScreen
             variant="section"
-            title="Loading your notes…"
-            subtitle="We’re gathering your reflections and Scripture references."
+            title="Loading reflections…"
+            subtitle="Gathering your notes and Scripture references."
           />
         ) : filteredNotes.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyBadge}>
-              <Image
-                src="/sword_logo.png"
-                alt="Sword logo"
-                width={90}
-                height={90}
-                className={styles.emptyBadgeImage}
-              />
-            </div>
-            <h3 className={styles.emptyTitle}>Your study journal is ready</h3>
+            <span className={styles.emptyIconWrap} aria-hidden="true">
+              <Lightbulb className={styles.emptyIcon} />
+            </span>
+            <h2 className={styles.emptyTitle}>
+              {searchQuery.trim()
+                ? "No matches"
+                : "Nothing captured yet"}
+            </h2>
             <p className={styles.emptyCopy}>
-              Capture a reflection or prayer to begin building your archive
-              that surfaces alongside your studies.
+              {searchQuery.trim()
+                ? "Try a different word, book, or verse."
+                : "Jot a takeaway, prayer, or question after you read."}
             </p>
+            {!searchQuery.trim() ? (
+              <div className={styles.emptyActions}>
+                <Button
+                  className={controls.btnPrimary}
+                  disabled={!canCompose}
+                  onClick={() => setIsCreateOpen(true)}
+                >
+                  <Plus className={styles.addButtonIcon} aria-hidden="true" />
+                  Write a reflection
+                </Button>
+                <Button
+                  variant="outline"
+                  className={controls.btnSecondary}
+                  disabled={!canCompose}
+                  onClick={() => setIsAudioNoteOpen(true)}
+                >
+                  <Mic className={styles.addButtonIcon} aria-hidden="true" />
+                  Record
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : (
-          filteredNotes.map((note, index) => (
-            <motion.div
-              key={note.raw.id}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, delay: index * 0.04 }}
-            >
-              <Card className={styles.noteCard}>
-                <CardHeader className={styles.noteHeader}>
-                  <div className={styles.noteHeaderRow}>
-                    <div className={styles.noteTitleWrap}>
-                      <CardTitle className={styles.noteTitle}>
-                        {note.title}
-                      </CardTitle>
-                      <CardDescription className={styles.noteMeta}>
-                        {note.referenceLabel ? (
-                          <span className={styles.noteMetaItem}>
-                            <BookOpen
-                              className={styles.noteMetaIcon}
-                              aria-hidden="true"
-                            />
-                            {note.referenceLabel}
-                          </span>
-                        ) : null}
-                        {note.dateLabel ? (
-                          <span className={styles.noteMetaItem}>
-                            <Calendar
-                              className={styles.noteMetaIcon}
-                              aria-hidden="true"
-                            />
-                            {note.dateLabel}
-                          </span>
-                        ) : null}
-                      </CardDescription>
-                    </div>
-                    <div className={styles.noteActions}>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={controls.btnIcon}
-                        onClick={() => handleEdit(note.raw)}
-                        aria-label="Edit reflection"
-                      >
-                        <Edit className={styles.noteActionIcon} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={controls.btnIconDanger}
-                        onClick={() => handleDelete(note.raw)}
-                        aria-label="Delete reflection"
-                      >
-                        <Trash2 className={styles.noteActionIcon} />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className={styles.noteContent}>
-                  {note.verseText ? (
-                    <blockquote
-                      className={`${styles.noteVerse} scripture-text`}
+          <ul className={styles.noteList}>
+            {filteredNotes.map((note, index) => (
+              <motion.li
+                key={note.raw.id}
+                className={styles.noteItem}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, delay: Math.min(index, 8) * 0.04 }}
+              >
+                <div className={styles.noteItemTop}>
+                  <div className={styles.noteMetaCol}>
+                    <p
+                      className={
+                        note.referenceLabel
+                          ? styles.noteReference
+                          : `${styles.noteReference} ${styles.noteReferenceMuted}`
+                      }
                     >
-                      “{note.verseText}”
-                    </blockquote>
-                  ) : null}
-                  {note.body ? (
-                    <p className={styles.noteBody}>{note.body}</p>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))
+                      {note.referenceLabel ?? "Open reflection"}
+                    </p>
+                    {note.dateLabel ? (
+                      <p className={styles.noteDate}>{note.dateLabel}</p>
+                    ) : null}
+                  </div>
+                  <div className={styles.noteActions}>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={controls.btnIcon}
+                      onClick={() => handleEdit(note.raw)}
+                      aria-label="Edit reflection"
+                    >
+                      <Edit className={styles.noteActionIcon} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={controls.btnIconDanger}
+                      onClick={() => handleDelete(note.raw)}
+                      aria-label="Delete reflection"
+                    >
+                      <Trash2 className={styles.noteActionIcon} />
+                    </Button>
+                  </div>
+                </div>
+                {note.body ? (
+                  <p className={styles.noteBody}>{note.body}</p>
+                ) : null}
+                {note.verseText ? (
+                  <blockquote className={`${styles.noteVerse} scripture-text`}>
+                    “{note.verseText}”
+                  </blockquote>
+                ) : null}
+              </motion.li>
+            ))}
+          </ul>
         )}
       </div>
 
@@ -818,10 +739,9 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
       >
         <ModalContent size="md">
           <ModalHeader className={styles.dialogHeader}>
-            <ModalTitle>Edit Note</ModalTitle>
+            <ModalTitle>Edit reflection</ModalTitle>
             <ModalDescription className={styles.dialogDescription}>
-              Refine your reflection and keep it aligned with what you&apos;re
-              learning.
+              Update what you wrote. Your passage link stays the same.
             </ModalDescription>
           </ModalHeader>
           <ModalBody tight>
@@ -847,7 +767,9 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
               onClick={handleUpdateNote}
               disabled={isSavingEdit}
             >
-              {isSavingEdit ? <Loader2 className={styles.spinner} /> : null}
+              {isSavingEdit ? (
+                <Loader2 className={styles.spinner} aria-hidden="true" />
+              ) : null}
               Save changes
             </Button>
           </ModalFooter>

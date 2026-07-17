@@ -33,3 +33,73 @@ export const getProfile = async (): Promise<ProfileResponse | null> => {
 
   return (await response.json()) as ProfileResponse;
 };
+
+export type UpdateProfileInput = {
+  displayName: string;
+  streamTagline: string;
+  streamUrl: string;
+};
+
+export const updateProfile = async (
+  input: UpdateProfileInput,
+): Promise<ProfileResponse> => {
+  const response = await fetch("/api/profile", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | ProfileResponse
+    | { error?: string }
+    | null;
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === "object" && "error" in payload
+        ? (payload as { error?: string }).error ?? "Unable to update profile."
+        : "Unable to update profile.";
+    throw new Error(message);
+  }
+
+  if (!payload || typeof payload !== "object" || !("id" in payload)) {
+    throw new Error("Unexpected response while updating profile.");
+  }
+
+  return payload as ProfileResponse;
+};
+
+export const uploadProfileAvatar = async (
+  file: File,
+): Promise<{ avatar_url: string }> => {
+  const formData = new FormData();
+  formData.append("file", file, file.name);
+
+  const response = await fetch("/api/profile/avatar", {
+    method: "POST",
+    body: formData,
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | { avatar_url?: string; error?: string }
+    | null;
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error ?? "Unable to upload photo.",
+    );
+  }
+
+  return { avatar_url: payload?.avatar_url ?? "" };
+};
+
+export const deleteProfileAvatar = async (): Promise<void> => {
+  const response = await fetch("/api/profile/avatar", {
+    method: "DELETE",
+  });
+  const payload = (await response.json().catch(() => null)) as
+    | { error?: string }
+    | null;
+
+  if (!response.ok) {
+    throw new Error(payload?.error ?? "Unable to remove photo.");
+  }
+};

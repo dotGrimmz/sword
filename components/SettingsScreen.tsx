@@ -10,13 +10,18 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { User, Palette, Shield, LogOut, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { AppHeaderToolbar } from "./AppHeaderToolbar";
 import { useTheme, themeOptions, type Theme } from "./ThemeContext";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, type UserRole } from "@/components/ProfileContext";
 import { clearCachedAccessToken } from "@/lib/api/session";
-import { getProfile, type ProfileResponse } from "@/lib/api/profile";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import type { ProfileResponse } from "@/lib/api/profile";
+import {
+  useDeleteAvatarMutation,
+  useProfileQuery,
+  useUpdateProfileMutation,
+  useUploadAvatarMutation,
+} from "@/lib/query/profile";
 import styles from "./SettingsScreen.module.css";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -76,31 +81,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     streamUrl: "",
   });
   const [profileLoaded, setProfileLoaded] = useState(false);
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
-  const queryClient = useQueryClient();
-  const profileQueryKey = queryKeys.profile();
-
-  const profileQuery = useQuery({
-    queryKey: profileQueryKey,
-    queryFn: getProfile,
-    staleTime: STALE_TIMES.profile,
-    enabled: Boolean(authUser),
-  });
-
-  const setProfileCache = (
-    value:
-      | ProfileResponse
-      | null
-      | ((
-          previous: ProfileResponse | null | undefined,
-        ) => ProfileResponse | null),
-  ) => {
-    queryClient.setQueryData<ProfileResponse | null>(profileQueryKey, value);
-  };
+  const profileQuery = useProfileQuery({ enabled: Boolean(authUser) });
+  const updateProfileMutation = useUpdateProfileMutation();
+  const uploadAvatarMutation = useUploadAvatarMutation();
+  const deleteAvatarMutation = useDeleteAvatarMutation();
+  const isSavingProfile = updateProfileMutation.isPending;
+  const isUploadingAvatar =
+    uploadAvatarMutation.isPending || deleteAvatarMutation.isPending;
 
   useEffect(() => {
     const loadAuthUser = async () => {
@@ -253,37 +243,12 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       return;
     }
 
-    setIsSavingProfile(true);
-
     try {
-      const response = await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          displayName: profileForm.displayName.trim(),
-          streamTagline: profileForm.streamTagline.trim(),
-          streamUrl: profileForm.streamUrl.trim(),
-        }),
+      const profile = await updateProfileMutation.mutateAsync({
+        displayName: profileForm.displayName.trim(),
+        streamTagline: profileForm.streamTagline.trim(),
+        streamUrl: profileForm.streamUrl.trim(),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | ProfileResponse
-        | { error?: string }
-        | null;
-
-      if (!response.ok) {
-        const message =
-          payload && typeof payload === "object" && "error" in payload
-            ? (payload as { error?: string }).error ?? "Unable to update profile."
-            : "Unable to update profile.";
-        throw new Error(message);
-      }
-
-      if (!payload || typeof payload !== "object") {
-        throw new Error("Unexpected response while updating profile.");
-      }
-
-      const profile = payload as ProfileResponse;
-      setProfileCache(profile);
 
       const normalizedForm = profileToForm(profile);
 
@@ -312,8 +277,6 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
           ? error.message
           : "Unable to update profile settings.";
       toast.error(message);
-    } finally {
-      setIsSavingProfile(false);
     }
   };
 
@@ -341,44 +304,16 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
       return;
     }
 
-    setIsUploadingAvatar(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-
-      const response = await fetch("/api/profile/avatar", {
-        method: "POST",
-        body: formData,
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { avatar_url?: string; error?: string }
-        | null;
-
-      if (!response.ok) {
-        const message =
-          payload && typeof payload === "object" && "error" in payload
-            ? (payload as { error?: string }).error ??
-              "Unable to upload photo."
-            : "Unable to upload photo.";
-        throw new Error(message);
-      }
-
-      const nextUrl = payload?.avatar_url ?? "";
+      const { avatar_url: nextUrl } =
+        await uploadAvatarMutation.mutateAsync(file);
       setProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: nextUrl }));
-      setProfileCache((current) =>
-        current
-          ? { ...current, avatar_url: nextUrl || null }
-          : null,
-      );
-      await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo updated.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Unable to upload photo.",
       );
-    } finally {
-      setIsUploadingAvatar(false);
     }
   };
 
@@ -386,37 +321,15 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
     if (isUploadingAvatar) {
       return;
     }
-    setIsUploadingAvatar(true);
     try {
-      const response = await fetch("/api/profile/avatar", {
-        method: "DELETE",
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { avatar_url?: string; error?: string }
-        | null;
-
-      if (!response.ok) {
-        const message =
-          payload && typeof payload === "object" && "error" in payload
-            ? (payload as { error?: string }).error ??
-              "Unable to remove photo."
-            : "Unable to remove photo.";
-        throw new Error(message);
-      }
-
+      await deleteAvatarMutation.mutateAsync();
       setProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
       setInitialProfileForm((prev) => ({ ...prev, avatarUrl: "" }));
-      setProfileCache((current) =>
-        current ? { ...current, avatar_url: null } : null,
-      );
-      await queryClient.invalidateQueries({ queryKey: profileQueryKey });
       toast.success("Photo removed.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Unable to remove photo.",
       );
-    } finally {
-      setIsUploadingAvatar(false);
     }
   };
 
@@ -452,6 +365,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
               {isLoadingProfile ? "Loading profile…" : `Signed in as ${email}`}
             </p>
           </div>
+          <AppHeaderToolbar showProfile={false} />
         </motion.div>
       </div>
 

@@ -1,10 +1,8 @@
 "use client";
 
 import { Download, ExternalLink, FileText, Link2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
-import { listStudyMaterials } from "@/lib/api/study";
-import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import { useStudyMaterialsQuery } from "@/lib/query/study";
 
 import styles from "@/app/pre-read/PreReadPage.module.css";
 
@@ -17,11 +15,7 @@ export function StudyMaterialsList({
   studyId,
   className,
 }: StudyMaterialsListProps) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: queryKeys.studyMaterials(studyId),
-    queryFn: () => listStudyMaterials(studyId),
-    staleTime: STALE_TIMES.profile,
-  });
+  const { data, isLoading, isError } = useStudyMaterialsQuery(studyId);
 
   const materials = data ?? [];
 

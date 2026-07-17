@@ -64,13 +64,11 @@
 
 .toolbarRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-}
-
-.translationControl {
-  min-width: 160px;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .toolbarIcon {
@@ -78,8 +76,16 @@
   height: 1.1rem;
 }
 
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
+}
+
 .exportButton {
-  /* Realign icon button styles applied via controls.module.css */
+  flex-shrink: 0;
   box-shadow: none;
 }
 
@@ -106,6 +112,7 @@
 
 .searchWrapper {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
   max-width: 100%;
   min-width: 0;

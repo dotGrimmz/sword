@@ -1,6 +1,13 @@
 "use client";
 
-import { ExternalLink, FileUp, Link2, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  FileUp,
+  Link2,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -39,6 +46,35 @@ export function StudyMaterialsEditor({
   const [isDragging, setIsDragging] = useState(false);
 
   const visible = visibleDraftMaterials(materials);
+
+  const reorderVisible = (fromLocalId: string, direction: -1 | 1) => {
+    const visibleIds = visible.map((material) => material.localId);
+    const fromIndex = visibleIds.indexOf(fromLocalId);
+    const toIndex = fromIndex + direction;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= visibleIds.length) {
+      return;
+    }
+
+    const nextVisibleIds = [...visibleIds];
+    const [moved] = nextVisibleIds.splice(fromIndex, 1);
+    nextVisibleIds.splice(toIndex, 0, moved!);
+
+    const visibleQueue = nextVisibleIds.map(
+      (id) => materials.find((material) => material.localId === id)!,
+    );
+    let visibleCursor = 0;
+
+    onChange(
+      materials.map((material) => {
+        if (material.markedForDelete) {
+          return material;
+        }
+        const next = visibleQueue[visibleCursor]!;
+        visibleCursor += 1;
+        return next;
+      }),
+    );
+  };
 
   const handleAddLink = () => {
     if (!linkTitle.trim() || !linkUrl.trim()) {
@@ -113,8 +149,8 @@ export function StudyMaterialsEditor({
           <p className={styles.materialsEyebrow}>4 · Materials</p>
           <h3 className={styles.materialsTitle}>Study materials</h3>
           <p className={styles.helper}>
-            Attach links and files now. They stay with this form until you save
-            the study.
+            Attach links and files now. Use the arrows to set display order
+            before you save.
           </p>
         </div>
         <div className={styles.materialsActions}>
@@ -215,7 +251,7 @@ export function StudyMaterialsEditor({
         <p className={styles.helper}>No materials yet — add a link or upload.</p>
       ) : (
         <ul className={styles.materialsList}>
-          {visible.map((material) => {
+          {visible.map((material, index) => {
             const href = material.url ?? material.previewUrl ?? "#";
             const image = isDraftImage(material);
             return (
@@ -246,18 +282,44 @@ export function StudyMaterialsEditor({
                   )}
                   {!material.persistedId ? (
                     <span className={styles.helper}>Pending save</span>
-                  ) : null}
+                  ) : (
+                    <span className={styles.helper}>Order {index + 1}</span>
+                  )}
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className={btnIconSize}
-                  onClick={() => handleRemove(material.localId)}
-                  aria-label={`Remove ${material.title}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className={styles.materialOrderActions}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => reorderVisible(material.localId, -1)}
+                    disabled={index === 0}
+                    aria-label={`Move ${material.title} up`}
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => reorderVisible(material.localId, 1)}
+                    disabled={index === visible.length - 1}
+                    aria-label={`Move ${material.title} down`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={btnIconSize}
+                    onClick={() => handleRemove(material.localId)}
+                    aria-label={`Remove ${material.title}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </li>
             );
           })}

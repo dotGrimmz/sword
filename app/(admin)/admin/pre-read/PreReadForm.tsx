@@ -14,10 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { parseVerseRangeValue } from "@/lib/bible/verseRange";
+import { AdminPollResults } from "@/components/pre-read/AdminPollResults";
+import { CommentsSection } from "@/components/pre-read/CommentsSection";
 import {
   createStudyLinkMaterial,
   deleteStudyMaterial,
   listStudyMaterials,
+  updateStudyMaterial,
   uploadStudyFileMaterial,
 } from "@/lib/api/study";
 import type {
@@ -543,8 +546,8 @@ export default function PreReadForm({
       const toDelete = materials.filter(
         (material) => material.markedForDelete && material.persistedId,
       );
-      const toCreate = materials.filter(
-        (material) => !material.markedForDelete && !material.persistedId,
+      const orderedVisible = materials.filter(
+        (material) => !material.markedForDelete,
       );
 
       for (const material of toDelete) {
@@ -553,22 +556,27 @@ export default function PreReadForm({
         }
       }
 
-      let sortOrder = 0;
-      for (const material of toCreate) {
+      for (const [sortOrder, material] of orderedVisible.entries()) {
+        if (material.persistedId) {
+          await updateStudyMaterial(studyId, material.persistedId, {
+            sortOrder,
+          });
+          continue;
+        }
+
         if (material.kind === "link" && material.url) {
           await createStudyLinkMaterial(studyId, {
             title: material.title,
             url: material.url,
             sortOrder,
           });
-          sortOrder += 1;
         } else if (material.kind === "file" && material.file) {
           await uploadStudyFileMaterial(
             studyId,
             material.file,
             material.title,
+            sortOrder,
           );
-          sortOrder += 1;
         }
       }
 
@@ -906,7 +914,24 @@ export default function PreReadForm({
               Add option
             </Button>
           </div>
+
+          {mode === "edit" &&
+          initialData?.id &&
+          hasPoll &&
+          form.pollOptions.filter((option) => option.trim()).length >= 2 ? (
+            <AdminPollResults
+              preReadId={initialData.id}
+              question={form.pollQuestion.trim()}
+              options={form.pollOptions
+                .map((option) => option.trim())
+                .filter(Boolean)}
+            />
+          ) : null}
         </section>
+
+        {mode === "edit" && initialData?.id ? (
+          <CommentsSection preReadId={initialData.id} moderation />
+        ) : null}
 
         <div className={styles.actions}>
           <Button

@@ -1,13 +1,10 @@
-"use client";
+import { PageLoading } from "@/components/PageLoading";
 
-import { LoadingScreen } from "@/components/LoadingScreen";
-
-export default function TopicLoading() {
+export default function ApologeticsTopicLoading() {
   return (
-    <LoadingScreen
+    <PageLoading
       title="Loading topic…"
-      subtitle="Gathering evidence, counters, and sources."
-      variant="page"
+      subtitle="Preparing this apologetics study."
     />
   );
 }

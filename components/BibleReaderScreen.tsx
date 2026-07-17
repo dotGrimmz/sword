@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -11,10 +12,10 @@ import {
   Heart,
   Loader2,
   MessageSquare,
+  X,
 } from "lucide-react";
 
 import { useSearchParams } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslationContext } from "./TranslationContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -22,6 +23,7 @@ import {
   Modal,
   ModalBody,
   ModalContent,
+  ModalDescription,
   ModalHeader,
   ModalTitle,
 } from "./ui/modal";
@@ -35,25 +37,24 @@ import {
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { TranslationSwitcher } from "@/components/TranslationSwitcher";
+import { AppHeaderToolbar } from "@/components/AppHeaderToolbar";
 import bibleSelectStyles from "@/components/TranslationSwitcher.module.css";
-import { getChapterContent } from "@/lib/api/bible";
+import { buildReferenceLabel } from "@/lib/api/bible";
+import { useChapterQuery } from "@/lib/query/bible";
 import {
-  createUserHighlight,
-  deleteUserHighlight,
-  getUserHighlights,
-} from "@/lib/api/highlights";
-import { createUserNote } from "@/lib/api/notes";
+  useCreateHighlightMutation,
+  useDeleteHighlightMutation,
+  useHighlightsQuery,
+} from "@/lib/query/highlights";
 import {
-  deleteUserBookmark,
-  getUserBookmarks,
-  upsertUserBookmark,
-} from "@/lib/api/bookmarks";
-import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+  useBookmarksQuery,
+  useDeleteBookmarkMutation,
+  useUpsertBookmarkMutation,
+} from "@/lib/query/bookmarks";
+import { useCreateNoteMutation } from "@/lib/query/notes";
 import { useReaderStore } from "@/lib/stores/reader-store";
 import type { BibleBookSummary, BibleVerse } from "@/types/bible";
 import type { UserBookmark, UserHighlight } from "@/types/user";
-import { dispatchHighlightsUpdated, dispatchNotesUpdated } from "@/lib/events";
 import styles from "./BibleReaderScreen.module.css";
 
 const HIGHLIGHT_COLOR = "yellow" as const;
@@ -80,9 +81,6 @@ export function BibleReaderScreen() {
   const goToPreviousChapter = useReaderStore((state) => state.goToPrevious);
   const goToNextChapter = useReaderStore((state) => state.goToNext);
 
-  const translationKey = translationCode ?? "none";
-  const fetchEnabled = Boolean(translationCode);
-
   const [highlightingVerse, setHighlightingVerse] = useState<number | null>(
     null
   );
@@ -91,8 +89,13 @@ export function BibleReaderScreen() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [noteVerse, setNoteVerse] = useState<number | null>(null);
   const [noteBody, setNoteBody] = useState("");
-  const [isSavingNote, setIsSavingNote] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [bookmarksOpen, setBookmarksOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const translationsByCode = useMemo(() => {
     const index = new Map<string, (typeof translations)[number]>();
@@ -122,73 +125,35 @@ export function BibleReaderScreen() {
   const queryBookParam = searchParams?.get("book") ?? null;
   const queryChapterParam = searchParams?.get("chapter") ?? null;
 
-  const queryClient = useQueryClient();
-  const highlightsQueryKey = queryKeys.userHighlights(translationKey);
-  const bookmarksQueryKey = queryKeys.userBookmarks(translationKey);
-
-  const chapterQuery = useQuery({
-    queryKey: queryKeys.chapter(
-      translationKey,
-      selectedBook?.name ?? "none",
-      chapter,
-    ),
-    queryFn: async () => {
-      const response = await getChapterContent(
-        translationCode!,
-        selectedBook!.name,
-        chapter,
-      );
-      return response.verses;
-    },
-    staleTime: STALE_TIMES.bible,
-    enabled: Boolean(translationCode && selectedBook),
-  });
-
-  const highlightsQuery = useQuery({
-    queryKey: highlightsQueryKey,
-    queryFn: () => getUserHighlights(translationCode ?? undefined),
-    staleTime: STALE_TIMES.user,
-    enabled: fetchEnabled,
-  });
-
-  const bookmarksQuery = useQuery({
-    queryKey: bookmarksQueryKey,
-    queryFn: () => getUserBookmarks(translationCode ?? undefined),
-    staleTime: STALE_TIMES.user,
-    enabled: fetchEnabled,
-  });
-
-  const verses = useMemo(() => chapterQuery.data ?? [], [chapterQuery.data]);
-  const highlights = useMemo(
-    () => highlightsQuery.data ?? [],
-    [highlightsQuery.data],
+  const chapterQuery = useChapterQuery(
+    translationCode,
+    selectedBook?.name,
+    chapter,
   );
-  const bookmarks = useMemo(
-    () => bookmarksQuery.data ?? [],
-    [bookmarksQuery.data],
+  const highlightsQuery = useHighlightsQuery(translationCode);
+  const bookmarksQuery = useBookmarksQuery(translationCode);
+  const createHighlightMutation = useCreateHighlightMutation(
+    translationCode,
+    "reader",
   );
+  const deleteHighlightMutation = useDeleteHighlightMutation(
+    translationCode,
+    "reader",
+  );
+  const upsertBookmarkMutation = useUpsertBookmarkMutation(
+    translationCode,
+    "reader",
+  );
+  const deleteBookmarkMutation = useDeleteBookmarkMutation(
+    translationCode,
+    "reader",
+  );
+  const createNoteMutation = useCreateNoteMutation(translationCode, "reader");
 
-  const setHighlightsCache = useCallback(
-    (
-      value:
-        | UserHighlight[]
-        | ((previous: UserHighlight[] | undefined) => UserHighlight[]),
-    ) => {
-      queryClient.setQueryData<UserHighlight[]>(highlightsQueryKey, value);
-    },
-    [highlightsQueryKey, queryClient],
-  );
-
-  const setBookmarksCache = useCallback(
-    (
-      value:
-        | UserBookmark[]
-        | ((previous: UserBookmark[] | undefined) => UserBookmark[]),
-    ) => {
-      queryClient.setQueryData<UserBookmark[]>(bookmarksQueryKey, value);
-    },
-    [bookmarksQueryKey, queryClient],
-  );
+  const verses = chapterQuery.data ?? [];
+  const highlights = highlightsQuery.data ?? [];
+  const bookmarks = bookmarksQuery.data ?? [];
+  const isSavingNote = createNoteMutation.isPending;
 
   const chapterError = chapterQuery.isError
     ? chapterQuery.error instanceof Error
@@ -335,6 +300,57 @@ export function BibleReaderScreen() {
     );
   }, [bookmarks, selectedBookId, chapter]);
 
+  const bookmarkEntries = useMemo(() => {
+    return [...bookmarks]
+      .map((bookmark) => {
+        const book = bookmark.bookId
+          ? bookIndex.get(bookmark.bookId)
+          : undefined;
+        const label =
+          buildReferenceLabel(
+            book,
+            bookmark.chapter,
+            bookmark.verse,
+            bookmark.verse,
+          ) ??
+          bookmark.label ??
+          "Saved place";
+        const isActive =
+          bookmark.bookId === selectedBookId &&
+          bookmark.chapter === chapter &&
+          (bookmark.verse == null || bookmark.verse === selectedVerse);
+        return { bookmark, label, isActive };
+      })
+      .sort((left, right) => {
+        const leftTime = new Date(left.bookmark.createdAt ?? 0).getTime();
+        const rightTime = new Date(right.bookmark.createdAt ?? 0).getTime();
+        return rightTime - leftTime;
+      });
+  }, [bookmarks, bookIndex, selectedBookId, chapter, selectedVerse]);
+
+  const handleOpenBookmark = (bookmark: UserBookmark) => {
+    if (!bookmark.bookId || !bookmark.chapter) {
+      toast.error("This bookmark is missing a passage.");
+      return;
+    }
+    setPosition(bookmark.bookId, bookmark.chapter);
+    if (bookmark.verse && bookmark.verse >= 1) {
+      setSelectedVerse(bookmark.verse);
+    }
+    setBookmarksOpen(false);
+  };
+
+  useEffect(() => {
+    if (!bookmarksOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setBookmarksOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [bookmarksOpen]);
+
   const handleToggleHighlight = async (verseNumber: number) => {
     if (!selectedBookId) {
       toast.error("Pick a book before marking.");
@@ -350,19 +366,13 @@ export function BibleReaderScreen() {
     const existingHighlight = highlightsByVerse.get(verseNumber);
 
     if (existingHighlight) {
-      const previous = highlights;
-      setHighlightsCache((prev) =>
-        (prev ?? []).filter((item) => item.id !== existingHighlight.id),
-      );
       try {
-        await deleteUserHighlight(existingHighlight.id);
-        toast.success("Mark removed");
-        dispatchHighlightsUpdated({ source: "reader" });
+        await deleteHighlightMutation.mutateAsync(existingHighlight);
+        toast.success("Removed from favorites");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Unable to remove mark";
         toast.error(message);
-        setHighlightsCache(() => previous);
       } finally {
         setHighlightingVerse(null);
       }
@@ -370,18 +380,15 @@ export function BibleReaderScreen() {
     }
 
     try {
-      const translationIdentifier = activeTranslationId ?? translationCode;
-      const newHighlight = await createUserHighlight({
-        translationId: translationIdentifier,
+      await createHighlightMutation.mutateAsync({
+        translationId: activeTranslationId ?? translationCode,
         bookId: selectedBookId,
         chapter,
         verseStart: verseNumber,
         verseEnd: verseNumber,
         color: HIGHLIGHT_COLOR,
       });
-      setHighlightsCache((prev) => [newHighlight, ...(prev ?? [])]);
-      toast.success("Verse marked");
-      dispatchHighlightsUpdated({ source: "reader" });
+      toast.success("Added to favorites");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to mark verse";
@@ -405,18 +412,13 @@ export function BibleReaderScreen() {
     setBookmarkingVerse(verseNumber);
 
     if (currentBookmark && currentBookmark.verse === verseNumber) {
-      const previous = bookmarks;
-      setBookmarksCache((prev) =>
-        (prev ?? []).filter((item) => item.id !== currentBookmark.id),
-      );
       try {
-        await deleteUserBookmark(currentBookmark.id);
+        await deleteBookmarkMutation.mutateAsync(currentBookmark);
         toast.success("Bookmark removed");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Unable to remove bookmark";
         toast.error(message);
-        setBookmarksCache(() => previous);
       } finally {
         setBookmarkingVerse(null);
       }
@@ -424,20 +426,12 @@ export function BibleReaderScreen() {
     }
 
     try {
-      const bookmark = await upsertUserBookmark({
+      await upsertBookmarkMutation.mutateAsync({
         translationId: activeTranslationId ?? translationCode,
         bookId: selectedBookId,
         chapter,
         verse: verseNumber,
       });
-
-      setBookmarksCache((prev) => {
-        const others = (prev ?? []).filter(
-          (item) => item.bookId !== selectedBookId || item.chapter !== chapter,
-        );
-        return [bookmark, ...others];
-      });
-
       toast.success("Bookmark saved");
     } catch (error) {
       const message =
@@ -467,11 +461,10 @@ export function BibleReaderScreen() {
       return;
     }
 
-    setIsSavingNote(true);
     setNoteError(null);
 
     try {
-      await createUserNote({
+      await createNoteMutation.mutateAsync({
         translationId: activeTranslationId ?? translationCode,
         bookId: selectedBookId,
         chapter,
@@ -481,13 +474,10 @@ export function BibleReaderScreen() {
       });
       toast.success("Reflection saved");
       setNoteDialogOpen(false);
-      dispatchNotesUpdated({ source: "reader" });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to save note";
       toast.error(message);
-    } finally {
-      setIsSavingNote(false);
     }
   };
 
@@ -515,8 +505,104 @@ export function BibleReaderScreen() {
   const translationLabel =
     activeTranslation?.name ?? translationCode ?? "Select translation";
 
+  const bookmarksPortal =
+    hasMounted &&
+    createPortal(
+      <>
+        <button
+          type="button"
+          className={styles.bookmarkSideTab}
+          aria-label={`Open bookmarks (${bookmarks.length})`}
+          title="Bookmarks"
+          onClick={() => setBookmarksOpen(true)}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <Bookmark
+            className={styles.bookmarkSideTabIcon}
+            aria-hidden="true"
+          />
+          <span className={styles.bookmarkSideTabCount}>
+            {bookmarks.length}
+          </span>
+        </button>
+        {bookmarksOpen ? (
+          <>
+            <button
+              type="button"
+              className={styles.bookmarkDrawerOverlay}
+              aria-label="Close bookmarks"
+              onClick={() => setBookmarksOpen(false)}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="bookmarks-drawer-title"
+              className={styles.bookmarkDrawer}
+            >
+              <div className={styles.bookmarkSheetHeader}>
+                <div className={styles.bookmarkSheetHeaderRow}>
+                  <h2
+                    id="bookmarks-drawer-title"
+                    className={styles.bookmarkSheetTitle}
+                  >
+                    Bookmarks
+                  </h2>
+                  <button
+                    type="button"
+                    className={styles.bookmarkDrawerClose}
+                    aria-label="Close bookmarks"
+                    onClick={() => setBookmarksOpen(false)}
+                  >
+                    <X aria-hidden="true" />
+                  </button>
+                </div>
+                <p className={styles.bookmarkSheetDescription}>
+                  Jump back to any place you&apos;ve saved in Scripture.
+                </p>
+              </div>
+              <div className={styles.bookmarkDrawerBody}>
+                {bookmarkEntries.length === 0 ? (
+                  <p className={styles.bookmarkSheetEmpty}>
+                    No bookmarks yet. Tap the bookmark icon on a verse to save
+                    your place.
+                  </p>
+                ) : (
+                  <ul className={styles.bookmarkSheetList}>
+                    {bookmarkEntries.map(({ bookmark, label, isActive }) => (
+                      <li key={bookmark.id}>
+                        <button
+                          type="button"
+                          className={clsx(styles.bookmarkSheetItem, {
+                            [styles.bookmarkSheetItemActive]: isActive,
+                          })}
+                          onClick={() => handleOpenBookmark(bookmark)}
+                        >
+                          <span className={styles.bookmarkSheetRef}>
+                            {label}
+                          </span>
+                          {bookmark.label ? (
+                            <span className={styles.bookmarkSheetMeta}>
+                              {bookmark.label}
+                            </span>
+                          ) : null}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </>
+        ) : null}
+      </>,
+      document.body,
+    );
+
   return (
     <div className={styles.readerPage}>
+      {bookmarksPortal}
+
+      <div className={styles.readerScroll}>
       <div className={styles.toolbar}>
         <div className={styles.headerRow}>
           <div className={styles.titleBlock}>
@@ -550,15 +636,7 @@ export function BibleReaderScreen() {
             </Select>
           </div>
 
-          <div className={bibleSelectStyles.toolbar}>
-            <TranslationSwitcher
-              className={styles.translationSwitcher}
-              selectClassName={bibleSelectStyles.toolbarTrigger}
-              hideLabel
-              showCodeOnly
-              size="compact"
-            />
-          </div>
+          <AppHeaderToolbar />
         </div>
 
         <div className={styles.chapterVerseRow}>
@@ -661,7 +739,7 @@ export function BibleReaderScreen() {
           <LoadingScreen
             variant="section"
             title="Loading Scripture…"
-            subtitle="We’re fetching this passage and syncing your marks."
+            subtitle="We’re fetching this passage and syncing your favorites."
           />
         ) : chapterError ? (
           <div className={clsx(styles.statusCard, styles.statusCardError)}>
@@ -716,6 +794,11 @@ export function BibleReaderScreen() {
                       className={styles.actionButton}
                       onClick={() => handleToggleHighlight(verse.verse)}
                       disabled={highlightingVerse === verse.verse}
+                      aria-label={
+                        isHighlighted
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
                     >
                       {highlightingVerse === verse.verse ? (
                         <Loader2 className={styles.actionSpinner} />
@@ -781,7 +864,7 @@ export function BibleReaderScreen() {
               {selectedBook ? ` (${selectedBook.chapters} chapters)` : ""}
             </p>
             <p>
-              {highlightsForChapter.length} mark
+              {highlightsForChapter.length} favorite
               {highlightsForChapter.length === 1 ? "" : "s"} in this chapter •{" "}
               {currentBookmark?.verse
                 ? `Bookmarked verse ${currentBookmark.verse}`
@@ -816,6 +899,7 @@ export function BibleReaderScreen() {
             />
           </Button>
         </div>
+      </div>
       </div>
 
       <Modal open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>

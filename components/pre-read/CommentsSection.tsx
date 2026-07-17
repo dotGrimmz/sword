@@ -17,6 +17,7 @@ type CommentRecord = {
   parent_id: string | null;
   user_id: string;
   can_delete: boolean;
+  can_edit?: boolean;
   author: {
     username: string | null;
     avatar_url: string | null;
@@ -26,6 +27,8 @@ type CommentRecord = {
 interface CommentsSectionProps {
   preReadId: string;
   className?: string;
+  /** Admin moderation copy and emphasis on edit/delete. */
+  moderation?: boolean;
 }
 
 const formatTimestamp = (value: string) => {
@@ -46,10 +49,15 @@ type CommentItemProps = {
   replies: CommentRecord[];
   replyingTo: string | null;
   replyValue: string;
+  editingId: string | null;
+  editValue: string;
   onReplyToggle: (id: string | null) => void;
   onReplySubmit: (parentId: string) => void;
   onDelete: (id: string) => Promise<void>;
+  onEditToggle: (id: string | null, content?: string) => void;
+  onEditSubmit: (id: string) => void;
   setReplyValue: (value: string) => void;
+  setEditValue: (value: string) => void;
 };
 
 const CommentItem = ({
@@ -57,11 +65,19 @@ const CommentItem = ({
   replies,
   replyingTo,
   replyValue,
+  editingId,
+  editValue,
   onReplyToggle,
   onReplySubmit,
   onDelete,
+  onEditToggle,
+  onEditSubmit,
   setReplyValue,
+  setEditValue,
 }: CommentItemProps) => {
+  const isEditing = editingId === comment.id;
+  const canEdit = Boolean(comment.can_edit);
+
   return (
     <li className={styles.item}>
       <div className={styles.itemHeader}>
@@ -82,27 +98,66 @@ const CommentItem = ({
           </span>
         </div>
       </div>
-      <p className={styles.itemBody}>{comment.content}</p>
-      <div className={styles.itemActions}>
-        <button
-          type="button"
-          className={controls.btnGhost}
-          onClick={() =>
-            onReplyToggle(replyingTo === comment.id ? null : comment.id)
-          }
-        >
-          {replyingTo === comment.id ? "Cancel" : "Reply"}
-        </button>
-        {comment.can_delete ? (
+      {isEditing ? (
+        <div className={styles.replyTrail}>
+          <Textarea
+            value={editValue}
+            onChange={(event) => setEditValue(event.target.value)}
+            rows={3}
+            className={`${controls.control} ${controls.controlTextarea}`}
+          />
+          <div className={styles.replyActions}>
+            <Button
+              type="button"
+              className={controls.btnPrimary}
+              onClick={() => onEditSubmit(comment.id)}
+            >
+              Save
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className={controls.btnSecondary}
+              onClick={() => onEditToggle(null)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className={styles.itemBody}>{comment.content}</p>
+      )}
+      {!isEditing ? (
+        <div className={styles.itemActions}>
           <button
             type="button"
-            className={controls.btnDanger}
-            onClick={() => onDelete(comment.id)}
+            className={controls.btnGhost}
+            onClick={() =>
+              onReplyToggle(replyingTo === comment.id ? null : comment.id)
+            }
           >
-            Delete
+            {replyingTo === comment.id ? "Cancel" : "Reply"}
           </button>
-        ) : null}
-      </div>
+          {canEdit ? (
+            <button
+              type="button"
+              className={controls.btnGhost}
+              onClick={() => onEditToggle(comment.id, comment.content)}
+            >
+              Edit
+            </button>
+          ) : null}
+          {comment.can_delete ? (
+            <button
+              type="button"
+              className={controls.btnDanger}
+              onClick={() => onDelete(comment.id)}
+            >
+              Delete
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       {replyingTo === comment.id ? (
         <div className={styles.replyTrail}>
           <Textarea
@@ -140,10 +195,15 @@ const CommentItem = ({
               replies={[]}
               replyingTo={replyingTo}
               replyValue={replyValue}
+              editingId={editingId}
+              editValue={editValue}
               onReplyToggle={onReplyToggle}
               onReplySubmit={onReplySubmit}
               onDelete={onDelete}
+              onEditToggle={onEditToggle}
+              onEditSubmit={onEditSubmit}
               setReplyValue={setReplyValue}
+              setEditValue={setEditValue}
             />
           ))}
         </ul>
@@ -155,12 +215,15 @@ const CommentItem = ({
 export function CommentsSection({
   preReadId,
   className,
+  moderation = false,
 }: CommentsSectionProps) {
   const [comments, setComments] = useState<CommentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchComments = useCallback(async () => {
@@ -176,7 +239,7 @@ export function CommentsSection({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unexpected error loading comments."
+          : "Unexpected error loading comments.",
       );
     } finally {
       setLoading(false);
@@ -246,7 +309,7 @@ export function CommentsSection({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unexpected error posting comment."
+          : "Unexpected error posting comment.",
       );
     } finally {
       setSubmitting(false);
@@ -281,7 +344,49 @@ export function CommentsSection({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Unexpected error deleting comment."
+          : "Unexpected error deleting comment.",
+      );
+    }
+  };
+
+  const saveEdit = async (commentId: string) => {
+    if (!editContent.trim()) {
+      toast.error("Please enter some text.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/pre-reads/comments/${commentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editContent.trim() }),
+      });
+
+      if (!response.ok) {
+        let message = "Unable to update comment.";
+        try {
+          const payload = (await response.json()) as { error?: string };
+          if (payload?.error) {
+            message = payload.error;
+          }
+        } catch {
+          // ignore
+        }
+        throw new Error(message);
+      }
+
+      const data = (await response.json()) as CommentRecord;
+      setComments((prev) =>
+        prev.map((comment) => (comment.id === commentId ? data : comment)),
+      );
+      setEditingId(null);
+      setEditContent("");
+      toast.success("Comment updated.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unexpected error updating comment.",
       );
     }
   };
@@ -294,21 +399,43 @@ export function CommentsSection({
     }
     setReplyingTo(commentId);
     setReplyContent("");
+    setEditingId(null);
+  };
+
+  const handleEditToggle = (commentId: string | null, content?: string) => {
+    if (!commentId) {
+      setEditingId(null);
+      setEditContent("");
+      return;
+    }
+    setEditingId(commentId);
+    setEditContent(content ?? "");
+    setReplyingTo(null);
   };
 
   return (
     <section className={`${styles.card} ${className ?? ""}`}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Comments</p>
-        <h3 className={styles.title}>Share your reflections</h3>
+        <p className={styles.eyebrow}>
+          {moderation ? "Moderation" : "Comments"}
+        </p>
+        <h3 className={styles.title}>
+          {moderation ? "Manage discussion" : "Share your reflections"}
+        </h3>
         <p className={styles.subtitle}>
-          Join the discussion with one level of replies per thread.
+          {moderation
+            ? "Edit or remove comments, and reply as an admin when needed."
+            : "Join the discussion with one level of replies per thread."}
         </p>
       </header>
 
       <div className={styles.editor}>
         <Textarea
-          placeholder="Share what stood out to you..."
+          placeholder={
+            moderation
+              ? "Post an admin note or reply…"
+              : "Share what stood out to you..."
+          }
           value={newComment}
           onChange={(event) => setNewComment(event.target.value)}
           rows={3}
@@ -341,10 +468,15 @@ export function CommentsSection({
               replies={grouped.repliesMap.get(comment.id) ?? []}
               replyingTo={replyingTo}
               replyValue={replyContent}
+              editingId={editingId}
+              editValue={editContent}
               onReplyToggle={handleReplyToggle}
               onReplySubmit={(parentId) => postComment(replyContent, parentId)}
               onDelete={deleteComment}
+              onEditToggle={handleEditToggle}
+              onEditSubmit={(id) => void saveEdit(id)}
               setReplyValue={setReplyContent}
+              setEditValue={setEditContent}
             />
           ))
         )}

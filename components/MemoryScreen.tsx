@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { useTranslationContext } from "./TranslationContext";
-import { TranslationSwitcher } from "./TranslationSwitcher";
+import { AppHeaderToolbar } from "./AppHeaderToolbar";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -46,24 +46,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { buildReferenceLabel, getPassage } from "@/lib/api/bible";
+import { buildReferenceLabel } from "@/lib/api/bible";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import {
-  createUserMemoryVerse,
-  deleteUserMemoryVerse,
-  getUserMemoryVerses,
-  reviewUserMemoryVerse,
-} from "@/lib/api/memory";
 import {
   calculateNextReview,
   type ReviewRating,
 } from "@/lib/memory/scheduling";
 import type { BibleBookSummary } from "@/types/bible";
 import type { UserMemoryVerse } from "@/types/user";
-import { MEMORY_UPDATED_EVENT, dispatchMemoryUpdated } from "@/lib/events";
+import { MEMORY_UPDATED_EVENT } from "@/lib/events";
 import styles from "./MemoryScreen.module.css";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { queryKeys, STALE_TIMES } from "@/lib/query/keys";
+import {
+  useCreateMemoryVerseMutation,
+  useDeleteMemoryVerseMutation,
+  useMemoryVersesQuery,
+  useReviewMemoryVerseMutation,
+} from "@/lib/query/memory";
+import { usePassageTextsMap } from "@/lib/query/passages";
 
 interface MemoryScreenProps {
   onNavigate?: (screen: string) => void;
@@ -119,7 +118,6 @@ const formatIntervalLabel = (days: number | null | undefined) => {
 };
 
 export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
-  void onNavigate;
 
   const {
     books,
@@ -129,36 +127,16 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
     isLoadingBooks,
   } = useTranslationContext();
 
-  const translationKey = translationCode ?? "none";
   const fetchEnabled = Boolean(translationCode);
 
-  const queryClient = useQueryClient();
-  const memoryQueryKey = queryKeys.userMemory(translationKey);
-
-  const memoryQuery = useQuery({
-    queryKey: memoryQueryKey,
-    queryFn: () => getUserMemoryVerses(translationCode ?? undefined),
-    staleTime: STALE_TIMES.user,
-    enabled: fetchEnabled,
-  });
-  const memoryVerses = useMemo(
-    () => memoryQuery.data ?? [],
-    [memoryQuery.data],
-  );
-
-  const setMemoryCache = useCallback(
-    (
-      value:
-        | UserMemoryVerse[]
-        | ((previous: UserMemoryVerse[] | undefined) => UserMemoryVerse[]),
-    ) => {
-      queryClient.setQueryData<UserMemoryVerse[]>(memoryQueryKey, value);
-    },
-    [memoryQueryKey, queryClient],
-  );
+  const memoryQuery = useMemoryVersesQuery(translationCode);
+  const createMutation = useCreateMemoryVerseMutation(translationCode);
+  const deleteMutation = useDeleteMemoryVerseMutation(translationCode);
+  const reviewMutation = useReviewMemoryVerseMutation(translationCode);
+  const memoryVerses = memoryQuery.data ?? [];
   const { refetch: refetchMemory } = memoryQuery;
-  const [searchQuery, setSearchQuery] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createBookId, setCreateBookId] = useState<string | null>(null);
   const [createChapter, setCreateChapter] = useState("1");
@@ -166,24 +144,8 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
   const [createVerseEnd, setCreateVerseEnd] = useState("1");
   const [createLabel, setCreateLabel] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
-  const [isSavingCreate, setIsSavingCreate] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
-  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const [initialReviewCount, setInitialReviewCount] = useState(0);
-
-  const [verseTexts, setVerseTexts] = useState<Record<string, string>>({});
-  const verseTextsRef = useRef(verseTexts);
-  const pendingPassages = useRef(new Set<string>());
-
-  useEffect(() => {
-    verseTextsRef.current = verseTexts;
-  }, [verseTexts]);
-
-  useEffect(() => {
-    setVerseTexts({});
-    verseTextsRef.current = {};
-    pendingPassages.current.clear();
-  }, [translationCode]);
 
   const bookIndex = useMemo(() => {
     const index = new Map<string, BibleBookSummary>();
@@ -192,6 +154,24 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
     }
     return index;
   }, [books]);
+
+  const passageRequests = useMemo(
+    () =>
+      memoryVerses.map((verse) => {
+        const book = verse.bookId ? bookIndex.get(verse.bookId) : undefined;
+        return {
+          id: verse.id,
+          bookName: book?.name,
+          chapter: verse.chapter,
+          verseStart: verse.verseStart,
+          verseEnd: verse.verseEnd,
+        };
+      }),
+    [bookIndex, memoryVerses],
+  );
+  const verseTexts = usePassageTextsMap(translationCode, passageRequests);
+  const isSavingCreate = createMutation.isPending;
+  const isReviewSubmitting = reviewMutation.isPending;
 
   const resetCreateForm = useCallback(() => {
     const firstBook = books[0]?.id ?? null;
@@ -254,52 +234,6 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
       toast.error(message);
     }
   }, [memoryQuery.error, memoryQuery.isError]);
-
-  useEffect(() => {
-    if (!translationCode) {
-      return;
-    }
-
-    for (const verse of memoryVerses) {
-      const key = verse.id;
-      if (verseTextsRef.current[key] !== undefined) {
-        continue;
-      }
-
-      if (pendingPassages.current.has(key)) {
-        continue;
-      }
-
-      const book = verse.bookId ? bookIndex.get(verse.bookId) : null;
-
-      if (!book || !verse.chapter || !verse.verseStart) {
-        setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        continue;
-      }
-
-      pendingPassages.current.add(key);
-
-      void getPassage(
-        translationCode,
-        book.name,
-        { chapter: verse.chapter, verse: verse.verseStart },
-        {
-          chapter: verse.chapter,
-          verse: verse.verseEnd ?? verse.verseStart,
-        }
-      )
-        .then((response) => {
-          const text = response.verses.map((entry) => entry.text).join(" ");
-          setVerseTexts((prev) => ({ ...prev, [key]: text }));
-        })
-        .catch(() => {
-          setVerseTexts((prev) => ({ ...prev, [key]: "" }));
-        })
-        .finally(() => {
-          pendingPassages.current.delete(key);
-        });
-    }
-  }, [memoryVerses, translationCode, bookIndex]);
 
   const derivedVerses = useMemo<MemoryVerseViewModel[]>(() => {
     return memoryVerses.map((verse) => {
@@ -489,11 +423,10 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
       return;
     }
 
-    setIsSavingCreate(true);
     setCreateError(null);
 
     try {
-      const created = await createUserMemoryVerse({
+      await createMutation.mutateAsync({
         translationId: activeTranslationId,
         bookId: createBookId,
         chapter: chapterValue,
@@ -501,47 +434,25 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
         verseEnd: verseEndValue,
         label: createLabel.trim() || null,
       });
-
-      setMemoryCache((prev) => [created, ...(prev ?? [])]);
-      setVerseTexts((prev) => {
-        const next = { ...prev };
-        delete next[created.id];
-        return next;
-      });
       setIsCreateOpen(false);
       toast.success("Memory verse added");
-      dispatchMemoryUpdated({ source: "memory-screen" });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to save memory verse";
       toast.error(message);
-    } finally {
-      setIsSavingCreate(false);
     }
   };
 
   const handleDelete = async (verse: UserMemoryVerse) => {
-    const previous = memoryVerses;
-    setMemoryCache((prev) =>
-      (prev ?? []).filter((item) => item.id !== verse.id)
-    );
-    setVerseTexts((prev) => {
-      const next = { ...prev };
-      delete next[verse.id];
-      return next;
-    });
-
     try {
-      await deleteUserMemoryVerse(verse.id);
+      await deleteMutation.mutateAsync(verse);
       toast.success("Memory verse removed");
-      dispatchMemoryUpdated({ source: "memory-screen" });
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "Unable to remove memory verse";
       toast.error(message);
-      setMemoryCache(() => previous);
     }
   };
 
@@ -555,9 +466,6 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
 
   const handleReviewOpenChange = useCallback((open: boolean) => {
     setIsReviewOpen(open);
-    if (!open) {
-      setIsReviewSubmitting(false);
-    }
   }, []);
 
   const handleReviewAction = useCallback(
@@ -566,20 +474,13 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
         return;
       }
 
-      setIsReviewSubmitting(true);
       const remainingAfterCurrent = Math.max(0, dueVerses.length - 1);
 
       try {
-        const updated = await reviewUserMemoryVerse({
+        const updated = await reviewMutation.mutateAsync({
           id: activeReview.id,
           rating,
         });
-
-        setMemoryCache((prev) =>
-          prev ? prev.map((item) => (item.id === updated.id ? updated : item)) : []
-        );
-
-        dispatchMemoryUpdated({ source: "memory-screen" });
 
         if (remainingAfterCurrent <= 0) {
           toast.success("You’re all caught up!");
@@ -597,11 +498,9 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
             ? error.message
             : "Unable to update review schedule";
         toast.error(message);
-      } finally {
-        setIsReviewSubmitting(false);
       }
     },
-    [activeReview, dueVerses.length, setMemoryCache, activeReviewReference]
+    [activeReview, dueVerses.length, reviewMutation, activeReviewReference]
   );
 
   const selectedBook = createBookId ? bookIndex.get(createBookId) : null;
@@ -624,11 +523,6 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
             </p>
           </div>
           <div className={styles.headerActions}>
-            <TranslationSwitcher
-              className={styles.translationControl}
-              size="compact"
-              hideLabel
-            />
             <Button
               size="lg"
               variant="secondary"
@@ -927,6 +821,9 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                 </ModalBody>
               </ModalContent>
             </Modal>
+            <AppHeaderToolbar
+              onNavigateProfile={() => onNavigate?.("settings")}
+            />
           </div>
         </div>
 
