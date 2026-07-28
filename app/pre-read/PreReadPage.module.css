@@ -1,6 +1,8 @@
 .page {
+  box-sizing: border-box;
   width: 100%;
-  max-width: 720px;
+  max-width: min(720px, 100%);
+  min-width: 0;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -10,6 +12,7 @@
   z-index: 0;
   padding: 1rem 1rem 2.5rem;
   background: #fff5f0;
+  overflow-x: clip;
 }
 
 .topBar {
@@ -17,6 +20,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -47,6 +52,7 @@
 
 .brandMark {
   margin: 0;
+  flex-shrink: 0;
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -57,6 +63,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 0;
+  max-width: 100%;
   padding: 0.25rem 0.15rem 0.5rem;
 }
 
@@ -67,6 +75,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #4a4a4a;
+  overflow-wrap: anywhere;
 }
 
 .heroTitle {
@@ -75,6 +84,8 @@
   font-weight: 750;
   line-height: 1.15;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .scriptureRow {
@@ -82,13 +93,19 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.65rem 1rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .scriptureRef {
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
   font-size: 1.05rem;
   font-weight: 700;
   color: #d91f26;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .heroLink {
@@ -115,21 +132,33 @@
   font-size: 1.02rem;
   line-height: 1.7;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .section {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 1rem;
   border: 1px solid #e8cfc4;
   background: #ffffff;
   box-shadow: 0 8px 28px color-mix(in oklab, #d91f26 7%, transparent);
   padding: 1.15rem 1.2rem;
+  overflow-wrap: anywhere;
 }
 
 .sectionMuted {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 1rem;
   border: 1px solid #e8cfc4;
   background: color-mix(in oklab, #ffe8dc 35%, #ffffff);
   padding: 1.15rem 1.2rem;
+  overflow-wrap: anywhere;
 }
 
 .sectionEyebrow {
@@ -142,6 +171,10 @@
 }
 
 .memoryCard {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 1rem;
   border: 1px solid color-mix(in oklab, #d91f26 25%, #e8cfc4);
   background: linear-gradient(
@@ -151,6 +184,7 @@
   );
   box-shadow: 0 12px 32px color-mix(in oklab, #d91f26 12%, transparent);
   padding: 1.35rem 1.25rem;
+  overflow-wrap: anywhere;
 }
 
 .memoryQuote {
@@ -160,6 +194,8 @@
   font-weight: 600;
   line-height: 1.45;
   color: #1a1a1a;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .memoryReference {
@@ -188,12 +224,17 @@
 }
 
 .reflectionItem {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 0.85rem;
   border: 1px solid #e8cfc4;
   background: #fff8f4;
   padding: 0.9rem 1rem;
   font-size: 0.95rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .reflectionBadge {
@@ -288,6 +329,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.materialsList > li {
   min-width: 0;
   max-width: 100%;
 }

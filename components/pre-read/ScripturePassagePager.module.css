@@ -1,4 +1,8 @@
 .card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 1rem;
   border: 1px solid #e8cfc4;
   background: #ffffff;
@@ -7,6 +11,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  overflow-x: clip;
+  overflow-wrap: anywhere;
 }
 
 .eyebrow {
@@ -37,6 +43,10 @@
 }
 
 .scrollPane {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   max-height: min(22rem, 48vh);
   overflow-x: hidden;
   overflow-y: auto;
@@ -60,6 +70,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .verseItem {
@@ -87,4 +99,5 @@
   line-height: 1.65;
   color: #1a1a1a;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
