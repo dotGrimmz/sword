@@ -160,10 +160,12 @@
 }
 
 .cardCover {
+  display: block;
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   border-radius: 0.75rem;
   margin-bottom: 0.35rem;
   background: #ffe8dc;
@@ -231,10 +233,12 @@
 }
 
 .cover {
+  display: block;
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   border-radius: 0.85rem;
   background: #ffe8dc;
 }

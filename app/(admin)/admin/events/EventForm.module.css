@@ -370,8 +370,9 @@ textarea.control {
   display: block;
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   border-radius: 0.9rem;
   border: 1px solid #e8cfc4;
   background: #fff1ea;
