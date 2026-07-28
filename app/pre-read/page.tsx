@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { AddMemoryVerseButton } from "@/components/pre-read/AddMemoryVerseButton";
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
 import { PollWidget } from "@/components/pre-read/PollWidget";
+import { ScripturePassagePager } from "@/components/pre-read/ScripturePassagePager";
 import { StudyMaterialsList } from "@/components/pre-read/StudyMaterialsList";
 import { fetchPollSnapshot } from "@/lib/pre-read/poll";
 import { HydrateClient } from "@/lib/query/HydrateClient";
@@ -155,6 +156,12 @@ export default async function PreReadPage() {
             </Link>
           </div>
         </section>
+
+        <ScripturePassagePager
+          book={study.book}
+          chapter={study.chapter}
+          versesRange={study.verses_range}
+        />
 
         {study.summary ? (
           <section className={styles.section}>

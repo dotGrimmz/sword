@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, BookOpen, Download, ExternalLink, FileText, Link2 } from "lucide-react";
 
+import { ScripturePassagePager } from "@/components/pre-read/ScripturePassagePager";
 import { formatWeekLabel, startOfWeek } from "@/lib/study/week";
 
 import {
@@ -123,6 +124,14 @@ export function StudyHubPreview({
                 ) : null}
               </div>
             </div>
+
+            {book.trim() && Number.parseInt(chapter, 10) >= 1 ? (
+              <ScripturePassagePager
+                book={book}
+                chapter={Number.parseInt(chapter, 10)}
+                versesRange={versesRange.trim() || null}
+              />
+            ) : null}
 
             {summary.trim() ? (
               <section className={styles.card}>
