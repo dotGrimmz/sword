@@ -780,75 +780,76 @@ export function BibleReaderScreen() {
                   })}
                 >
                   <div className={styles.verseContent}>
-                    <span
-                      className={clsx("scripture-text", styles.verseNumber)}
-                    >
-                      {verse.verse}
-                    </span>
+                    <div className={styles.verseRail}>
+                      <span
+                        className={clsx("scripture-text", styles.verseNumber)}
+                      >
+                        {verse.verse}
+                      </span>
+                      <div
+                        className={clsx(styles.verseActions, {
+                          [styles.verseActionsVisible]: isHighlighted,
+                        })}
+                      >
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={styles.actionButton}
+                          onClick={() => handleToggleHighlight(verse.verse)}
+                          disabled={highlightingVerse === verse.verse}
+                          aria-label={
+                            isHighlighted
+                              ? "Remove from favorites"
+                              : "Add to favorites"
+                          }
+                        >
+                          {highlightingVerse === verse.verse ? (
+                            <Loader2 className={styles.actionSpinner} />
+                          ) : (
+                            <Heart
+                              className={clsx(styles.verseActionIcon, {
+                                [styles.verseActionIconHighlighted]: isHighlighted,
+                                [styles.verseActionIconMuted]: !isHighlighted,
+                              })}
+                            />
+                          )}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={styles.actionButton}
+                          onClick={() => openNoteDialog(verse.verse)}
+                        >
+                          <MessageSquare
+                            className={clsx(
+                              styles.verseActionIcon,
+                              styles.verseActionIconMuted
+                            )}
+                          />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={styles.actionButton}
+                          onClick={() => handleToggleBookmark(verse.verse)}
+                          disabled={bookmarkingVerse === verse.verse}
+                        >
+                          {bookmarkingVerse === verse.verse ? (
+                            <Loader2 className={styles.actionSpinner} />
+                          ) : (
+                            <Bookmark
+                              className={clsx(styles.verseActionIcon, {
+                                [styles.bookmarkIconActive]: isBookmarked,
+                                [styles.verseActionIconMuted]: !isBookmarked,
+                              })}
+                            />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                     <p className={clsx("scripture-text", styles.verseText)}>
                       {verse.text}
                     </p>
-                  </div>
-
-                  <div
-                    className={clsx(styles.verseActions, {
-                      [styles.verseActionsVisible]: isHighlighted,
-                    })}
-                  >
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className={styles.actionButton}
-                      onClick={() => handleToggleHighlight(verse.verse)}
-                      disabled={highlightingVerse === verse.verse}
-                      aria-label={
-                        isHighlighted
-                          ? "Remove from favorites"
-                          : "Add to favorites"
-                      }
-                    >
-                      {highlightingVerse === verse.verse ? (
-                        <Loader2 className={styles.actionSpinner} />
-                      ) : (
-                        <Heart
-                          className={clsx(styles.verseActionIcon, {
-                            [styles.verseActionIconHighlighted]: isHighlighted,
-                            [styles.verseActionIconMuted]: !isHighlighted,
-                          })}
-                        />
-                      )}
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className={styles.actionButton}
-                      onClick={() => openNoteDialog(verse.verse)}
-                    >
-                      <MessageSquare
-                        className={clsx(
-                          styles.verseActionIcon,
-                          styles.verseActionIconMuted
-                        )}
-                      />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className={styles.actionButton}
-                      onClick={() => handleToggleBookmark(verse.verse)}
-                      disabled={bookmarkingVerse === verse.verse}
-                    >
-                      {bookmarkingVerse === verse.verse ? (
-                        <Loader2 className={styles.actionSpinner} />
-                      ) : (
-                        <Bookmark
-                          className={clsx(styles.verseActionIcon, {
-                            [styles.bookmarkIconActive]: isBookmarked,
-                            [styles.verseActionIconMuted]: !isBookmarked,
-                          })}
-                        />
-                      )}
-                    </Button>
                   </div>
                 </motion.div>
               );

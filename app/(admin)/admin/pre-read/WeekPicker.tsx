@@ -10,14 +10,12 @@ import {
 } from "@/components/ui/popover";
 import {
   buildMonthWeeks,
-  daysOfWeek,
   formatWeekRangeDetailed,
   isCurrentWeek,
   shiftMonth,
   shiftWeek,
   startOfMonth,
   startOfWeek,
-  todayYmd,
 } from "@/lib/study/week";
 
 import styles from "./WeekPicker.module.css";
@@ -29,8 +27,6 @@ export type WeekPickerProps = {
   disabled?: boolean;
 };
 
-const WEEKDAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 export function WeekPicker({
   value,
   onValueChange,
@@ -39,20 +35,27 @@ export function WeekPicker({
 }: WeekPickerProps) {
   const selectedWeek = value || startOfWeek(new Date());
   const current = isCurrentWeek(selectedWeek);
-  const days = useMemo(() => daysOfWeek(selectedWeek), [selectedWeek]);
   const rangeLabel = formatWeekRangeDetailed(selectedWeek);
-  const today = useMemo(() => todayYmd(), []);
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(selectedWeek),
   );
-  const [hoveredWeek, setHoveredWeek] = useState<string | null>(null);
 
-  const monthWeeks = useMemo(
-    () => buildMonthWeeks(visibleMonth),
-    [visibleMonth],
-  );
+  const monthWeekOptions = useMemo(() => {
+    const weeks = buildMonthWeeks(visibleMonth);
+    return weeks
+      .filter((week) => week.some((day) => day.inMonth))
+      .map((week) => {
+        const weekStart = week[0]?.weekStart ?? "";
+        return {
+          weekStart,
+          label: formatWeekRangeDetailed(weekStart),
+          isCurrent: isCurrentWeek(weekStart),
+          isSelected: weekStart === selectedWeek,
+        };
+      });
+  }, [visibleMonth, selectedWeek]);
 
   const monthTitle = useMemo(() => {
     const date = new Date(`${visibleMonth}T12:00:00`);
@@ -66,7 +69,6 @@ export function WeekPicker({
     onValueChange(weekStart);
     setVisibleMonth(startOfMonth(weekStart));
     setCalendarOpen(false);
-    setHoveredWeek(null);
   };
 
   const goToCurrentWeek = () => {
@@ -109,18 +111,14 @@ export function WeekPicker({
             <ChevronLeft aria-hidden="true" />
           </button>
 
-          <ol className={styles.dayStrip} aria-label={`Week of ${rangeLabel}`}>
-            {days.map((day) => (
-              <li
-                key={day.ymd}
-                className={styles.dayCell}
-                data-today={day.isToday ? "" : undefined}
-              >
-                <span className={styles.dayName}>{day.weekdayShort}</span>
-                <span className={styles.dayNumber}>{day.dayOfMonth}</span>
-              </li>
-            ))}
-          </ol>
+          <div
+            className={styles.weekBlock}
+            aria-label={`Selected week ${rangeLabel}`}
+            data-current={current ? "" : undefined}
+          >
+            <span className={styles.weekBlockEyebrow}>Week of</span>
+            <span className={styles.weekBlockLabel}>{rangeLabel}</span>
+          </div>
 
           <button
             type="button"
@@ -139,7 +137,6 @@ export function WeekPicker({
             setCalendarOpen(open);
             if (open) {
               setVisibleMonth(startOfMonth(selectedWeek));
-              setHoveredWeek(null);
             }
           }}
         >
@@ -181,52 +178,28 @@ export function WeekPicker({
             </div>
 
             <p className={styles.calendarHint}>
-              Tap any day to select that whole week
+              Select a full Mon–Sun study week
             </p>
 
-            <div className={styles.weekdayRow} aria-hidden="true">
-              {WEEKDAY_HEADERS.map((label) => (
-                <span key={label}>{label}</span>
-              ))}
-            </div>
-
-            <div className={styles.monthGrid} role="grid" aria-label={monthTitle}>
-              {monthWeeks.map((week) => {
-                const weekStart = week[0]?.weekStart ?? "";
-                const isSelected = weekStart === selectedWeek;
-                const isHovered = hoveredWeek === weekStart;
-                const isThisWeek = isCurrentWeek(weekStart);
-                return (
-                  <div
-                    key={weekStart}
-                    role="row"
-                    className={styles.weekRow}
-                    data-selected={isSelected ? "" : undefined}
-                    data-hovered={isHovered && !isSelected ? "" : undefined}
-                    data-current={isThisWeek ? "" : undefined}
-                    onMouseEnter={() => setHoveredWeek(weekStart)}
-                    onMouseLeave={() => setHoveredWeek(null)}
+            <ul className={styles.weekList} aria-label={`Weeks in ${monthTitle}`}>
+              {monthWeekOptions.map((option) => (
+                <li key={option.weekStart}>
+                  <button
+                    type="button"
+                    className={styles.weekOption}
+                    data-selected={option.isSelected ? "" : undefined}
+                    data-current={option.isCurrent ? "" : undefined}
+                    aria-pressed={option.isSelected}
+                    onClick={() => selectWeek(option.weekStart)}
                   >
-                    {week.map((cell) => (
-                      <button
-                        key={cell.ymd}
-                        type="button"
-                        role="gridcell"
-                        className={styles.dayButton}
-                        data-outside={cell.inMonth ? undefined : ""}
-                        data-today={cell.ymd === today ? "" : undefined}
-                        aria-label={`Select week of ${formatWeekRangeDetailed(weekStart)}`}
-                        aria-selected={isSelected}
-                        onClick={() => selectWeek(weekStart)}
-                        onFocus={() => setHoveredWeek(weekStart)}
-                      >
-                        {cell.dayOfMonth}
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
+                    <span className={styles.weekOptionLabel}>{option.label}</span>
+                    {option.isCurrent ? (
+                      <span className={styles.weekOptionBadge}>This week</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
 
             <button
               type="button"

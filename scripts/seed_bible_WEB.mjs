@@ -1,9 +1,45 @@
 #!/usr/bin/env node
 
 import { createClient } from "@supabase/supabase-js";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_URL;
+/** Load KEY=VALUE pairs from .env / .env.local without printing values. */
+function loadEnvFiles() {
+  for (const file of [".env", ".env.local"]) {
+    const path = resolve(process.cwd(), file);
+    if (!existsSync(path)) continue;
+    const text = readFileSync(path, "utf8");
+    for (const rawLine of text.split("\n")) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith("#")) continue;
+      const eq = line.indexOf("=");
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      let value = line.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      // Prefer already-exported process env over file values
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
+loadEnvFiles();
+
+const SUPABASE_URL =
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_KEY;
+
 if (!SUPABASE_URL) {
   console.error(
     "❌ Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) environment variable."
@@ -13,7 +49,7 @@ if (!SUPABASE_URL) {
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error(
-    "❌ Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY) environment variable."
+    "❌ Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_KEY / NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY)."
   );
   process.exit(1);
 }
@@ -56,12 +92,31 @@ const TRANSLATIONS = [
       Song_of_Solomon: "Song Of Solomon",
     },
   },
+  {
+    code: "NLT",
+    name: "New Living Translation",
+    language: "English",
+    version: "NLT",
+    source: SOURCE_API_BIBLE,
+    bibleId: "d6e14a625393b4da-01",
+  },
+  {
+    code: "NKJV",
+    name: "New King James Version",
+    language: "English",
+    version: "NKJV",
+    source: SOURCE_API_BIBLE,
+    bibleId: "63097d2a0a2f7db3-01",
+  },
 ];
 
-const requestedCodes = process.argv
-  .slice(2)
-  .map((code) => code.trim().toUpperCase())
-  .filter(Boolean);
+const cliArgs = process.argv.slice(2).map((arg) => arg.trim()).filter(Boolean);
+const resetRequested = cliArgs.some(
+  (arg) => arg === "--reset" || arg === "--wipe"
+);
+const requestedCodes = cliArgs
+  .filter((arg) => !arg.startsWith("--"))
+  .map((code) => code.toUpperCase());
 
 const translationsToSeed =
   requestedCodes.length > 0
@@ -72,9 +127,9 @@ const translationsToSeed =
 
 const MAX_FETCH_RETRIES = 6;
 const BASE_RETRY_DELAY_MS = 1500;
-const CHAPTER_FETCH_DELAY_MS = 1000;
+const CHAPTER_FETCH_DELAY_MS = 350;
 const API_BIBLE_BASE_URL = "https://api.scripture.api.bible/v1/";
-const API_BIBLE_KEY = "";
+const API_BIBLE_KEY = process.env.API_BIBLE_KEY || "";
 
 const missingCodes = requestedCodes.filter(
   (code) => !translationsToSeed.some((translation) => translation.code === code)
@@ -454,18 +509,33 @@ const parseApiBiblePlainTextContent = (content) => {
   const normalized = content
     .replace(/\r/g, "")
     .replace(/\u00a0/g, " ")
+    // API.Bible plain text uses "[1] In the beginning..." markers
+    .replace(/¶/g, " ")
     .trim();
 
   const verseMatches = [];
-  const versePattern = /(?:^|\n)(\d{1,3})\s/g;
+  // Prefer bracket markers from API.Bible text content-type
+  const bracketPattern = /\[(\d{1,3})\]\s*/g;
   let match;
 
-  while ((match = versePattern.exec(normalized)) !== null) {
+  while ((match = bracketPattern.exec(normalized)) !== null) {
     verseMatches.push({
       verseNumber: Number(match[1]),
       index: match.index,
       length: match[0].length,
     });
+  }
+
+  // Fallback: newline-prefixed verse numbers (legacy / other bibles)
+  if (verseMatches.length === 0) {
+    const linePattern = /(?:^|\n)(\d{1,3})\s+/g;
+    while ((match = linePattern.exec(normalized)) !== null) {
+      verseMatches.push({
+        verseNumber: Number(match[1]),
+        index: match.index,
+        length: match[0].length,
+      });
+    }
   }
 
   if (verseMatches.length === 0) {
@@ -485,6 +555,7 @@ const parseApiBiblePlainTextContent = (content) => {
     const text = normalized
       .slice(start, end)
       .replace(/\s+/g, " ")
+      // Strip leftover footnote-style brackets, not verse markers (already consumed)
       .replace(/\[[^\]]*]/g, "")
       .trim();
 
@@ -709,6 +780,42 @@ async function ensureTranslation(translation) {
   return { id: inserted.id, created: true };
 }
 
+/**
+ * Wipe scripture_chunks for a translation. Attempts to delete books too, but
+ * keeps going if FKs (notes/highlights/etc.) block book deletion — ensureBook
+ * will reuse existing rows and fill missing books.
+ */
+async function resetTranslationData(translationId, code) {
+  console.log(`[${code}] 🧹 Resetting existing chunks (and books if possible)...`);
+
+  const { error: chunksError } = await supabase
+    .from("scripture_chunks")
+    .delete()
+    .eq("translation_id", translationId);
+
+  if (chunksError) {
+    throw new Error(
+      `Failed to delete scripture_chunks for ${code}: ${chunksError.message}`
+    );
+  }
+
+  const { error: booksError } = await supabase
+    .from("bible_books")
+    .delete()
+    .eq("translation_id", translationId);
+
+  if (booksError) {
+    console.warn(
+      `[${code}] ⚠️  Could not delete bible_books (likely FK refs): ${booksError.message}. Reusing existing book rows.`
+    );
+  } else {
+    console.log(`[${code}] ✅ Deleted books + chunks`);
+    return;
+  }
+
+  console.log(`[${code}] ✅ Deleted chunks; book rows retained`);
+}
+
 async function ensureBook(translationId, bookKey, orderIndex) {
   const name = normaliseName(bookKey);
   const abbreviation = makeAbbreviation(name);
@@ -725,6 +832,17 @@ async function ensureBook(translationId, bookKey, orderIndex) {
   }
 
   if (data) {
+    const { error: updateError } = await supabase
+      .from("bible_books")
+      .update({ order_index: orderIndex, abbreviation })
+      .eq("id", data.id);
+
+    if (updateError) {
+      console.warn(
+        `⚠️  Failed to refresh metadata for book ${name}: ${updateError.message}`
+      );
+    }
+
     return { id: data.id, created: false };
   }
 
@@ -835,6 +953,10 @@ async function seedTranslation(translation) {
     );
   }
 
+  if (resetRequested) {
+    await resetTranslationData(translationId, translation.code);
+  }
+
   const totals = {
     booksCreated: 0,
     booksExisting: 0,
@@ -905,6 +1027,11 @@ async function seedTranslation(translation) {
 
 async function main() {
   console.log("🕊️  Seeding Bible translations into Supabase...");
+  console.log(
+    `   Target: ${SUPABASE_URL} | translations: ${translationsToSeed
+      .map((t) => t.code)
+      .join(", ")}${resetRequested ? " | --reset" : ""}`
+  );
 
   for (const translation of translationsToSeed) {
     await seedTranslation(translation);

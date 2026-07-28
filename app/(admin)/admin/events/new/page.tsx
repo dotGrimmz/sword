@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
+import { listEventLocations } from "@/lib/church-events/locations";
 import { createClient } from "@/lib/supabase/server";
 import type { PreRead } from "@/types/pre-read";
 
@@ -11,11 +12,14 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminNewEventPage() {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("pre_reads")
-    .select("id, title, book, chapter, week_start")
-    .order("week_start", { ascending: false })
-    .limit(40);
+  const [{ data }, locations] = await Promise.all([
+    supabase
+      .from("pre_reads")
+      .select("id, title, book, chapter, week_start")
+      .order("week_start", { ascending: false })
+      .limit(40),
+    listEventLocations(supabase).catch(() => []),
+  ]);
 
   const studies = (data ?? []) as Pick<
     PreRead,
@@ -37,7 +41,11 @@ export default async function AdminNewEventPage() {
           Create a one-time or recurring gathering.
         </p>
       </header>
-      <EventForm mode="create" studies={studies} />
+      <EventForm
+        mode="create"
+        studies={studies}
+        initialLocations={locations}
+      />
     </main>
   );
 }

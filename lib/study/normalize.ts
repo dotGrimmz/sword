@@ -32,6 +32,7 @@ export function normalizeWeeklyStudy(row: Record<string, unknown>): WeeklyStudy 
     verses_range: (row.verses_range as string | null) ?? null,
     summary: String(row.summary ?? ""),
     memory_verse: (row.memory_verse as string | null) ?? null,
+    memory_verses_range: (row.memory_verses_range as string | null) ?? null,
     reflection_questions: Array.isArray(row.reflection_questions)
       ? (row.reflection_questions as string[])
       : null,

@@ -1,0 +1,56 @@
+---
+description: Prefer presence checks over typeof; braced multi-line control flow
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Presence checks & readable control flow
+
+## Presence / truthiness checks — never `typeof`
+
+Do not use `typeof` checks. Prefer presence / duck-typing (`value`, `value?.trim`, `value?.split`, `Set.has`). Trust callers and TypeScript types; coerce lightly at boundaries. Only validate real invariants (required fields, range bounds).
+
+```typescript
+// ❌ BAD — typeof noise
+if (typeof value === "string" && value.trim()) {
+  return value.trim();
+}
+
+if (typeof value === "object") { /* ... */ }
+
+.filter((o) => typeof o === "string")
+
+// ✅ GOOD — presence / duck-typing
+if (candidate?.trim?.()) {
+  return candidate.trim();
+}
+
+if (value) {
+  const { chapter, verse } = value as QuizVerseRef;
+}
+
+.map((o) => (o as string)?.trim?.()).filter(Boolean)
+```
+
+For string vs object shapes, try the object fields first; fall back to `` `${value}`.split(...) `` — do not branch on `value.split` (functions are always truthy when typed as string).
+
+Do not add per-param typeof helpers (`asDifficulty`, `asFocus`, etc.) when a shared `pick` / default is enough. Keep snake_case aliases only at the request boundary.
+
+## No one-line returns / throws
+
+Always use braces. Put `return` / `throw` on their own line so the branch is easy to scan.
+
+```typescript
+// ❌ BAD
+if (c && v) return { chapter: c, verse: v };
+if (!bookName) throw new QuizGenerateError("book is required");
+
+// ✅ GOOD
+if (c && v) {
+  return { chapter: c, verse: v };
+}
+
+if (!bookName) {
+  throw new QuizGenerateError("book is required");
+}
+```

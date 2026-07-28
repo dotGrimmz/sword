@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { AddMemoryVerseButton } from "@/components/pre-read/AddMemoryVerseButton";
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
 import { PollWidget } from "@/components/pre-read/PollWidget";
+import { ScripturePassagePager } from "@/components/pre-read/ScripturePassagePager";
 import { StudyMaterialsList } from "@/components/pre-read/StudyMaterialsList";
 import { fetchPollSnapshot } from "@/lib/pre-read/poll";
 import { HydrateClient } from "@/lib/query/HydrateClient";
@@ -156,6 +157,12 @@ export default async function PreReadPage() {
           </div>
         </section>
 
+        <ScripturePassagePager
+          book={study.book}
+          chapter={study.chapter}
+          versesRange={study.verses_range}
+        />
+
         {study.summary ? (
           <section className={styles.section}>
             <p className={styles.sectionEyebrow}>Summary</p>
@@ -171,11 +178,19 @@ export default async function PreReadPage() {
             <blockquote className={styles.memoryQuote}>
               “{study.memory_verse}”
             </blockquote>
-            <p className={styles.memoryReference}>{reference}</p>
+            <p className={styles.memoryReference}>
+              {formatReference(
+                study.book,
+                study.chapter,
+                study.memory_verses_range ?? study.verses_range,
+              )}
+            </p>
             <AddMemoryVerseButton
               book={study.book}
               chapter={study.chapter}
-              versesRange={study.verses_range}
+              versesRange={
+                study.memory_verses_range ?? study.verses_range
+              }
               memoryVerse={study.memory_verse}
               className={styles.memoryAction}
             />

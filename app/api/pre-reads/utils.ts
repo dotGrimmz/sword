@@ -164,6 +164,9 @@ export const normalizePreReadPayload = (
     memory_verse: toNullableString(
       payload.memory_verse ?? payload.memoryVerse,
     ),
+    memory_verses_range: toNullableString(
+      payload.memory_verses_range ?? payload.memoryVersesRange,
+    ),
     reflection_questions,
     poll_question: pollQuestion,
     poll_options,

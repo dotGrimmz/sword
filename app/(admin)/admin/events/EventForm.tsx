@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import EventLocationModal from "@/components/admin/EventLocationModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/lib/api/events";
 import { formatEventWhen } from "@/lib/church-events/format";
 import type {
+  EventLocation,
   EventLocationType,
   EventRecurrenceEndType,
   EventRecurrenceFrequency,
@@ -38,7 +40,11 @@ type EventFormProps = {
   mode: "create" | "edit";
   initialSeries?: EventSeriesWithOccurrences | null;
   studies: Pick<PreRead, "id" | "title" | "book" | "chapter" | "week_start">[];
+  initialLocations?: EventLocation[];
 };
+
+const truncateOption = (value: string, max = 42) =>
+  value.length > max ? `${value.slice(0, max - 1)}…` : value;
 
 const WEEKDAYS = [
   { value: 0, label: "Sun" },
@@ -50,18 +56,44 @@ const WEEKDAYS = [
   { value: 6, label: "Sat" },
 ];
 
-const toLocalInput = (iso: string | null | undefined) => {
-  if (!iso) return "";
-  const date = new Date(iso);
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const formatLocalInput = (date: Date) => {
   if (Number.isNaN(date.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
+
+const toLocalInput = (iso: string | null | undefined) => {
+  if (!iso) return "";
+  return formatLocalInput(new Date(iso));
+};
+
+const localDatePart = (value: string) =>
+  value.length >= 10 ? value.slice(0, 10) : "";
+
+const localTimePart = (value: string) =>
+  value.length >= 16 ? value.slice(11, 16) : "";
+
+const combineLocal = (date: string, time: string) =>
+  date && time ? `${date}T${time}` : "";
+
+const isSameLocalDay = (a: string, b: string) =>
+  Boolean(a && b && localDatePart(a) === localDatePart(b));
+
+const addHoursLocal = (value: string, hours: number) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setHours(date.getHours() + hours);
+  return formatLocalInput(date);
+};
+
+const DEFAULT_DURATION_HOURS = 2;
 
 export default function EventForm({
   mode,
   initialSeries,
   studies,
+  initialLocations = [],
 }: EventFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialSeries?.title ?? "");
@@ -70,6 +102,14 @@ export default function EventForm({
   );
   const [locationType, setLocationType] = useState<EventLocationType>(
     initialSeries?.location_type ?? "in_person",
+  );
+  const [locations, setLocations] = useState(initialLocations);
+  const [locationId, setLocationId] = useState(
+    initialSeries?.location_id ?? "",
+  );
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<EventLocation | null>(
+    null,
   );
   const [venue, setVenue] = useState(initialSeries?.venue ?? "");
   const [address, setAddress] = useState(initialSeries?.address ?? "");
@@ -82,10 +122,25 @@ export default function EventForm({
     initialSeries?.status ?? "draft",
   );
   const [preReadId, setPreReadId] = useState(initialSeries?.pre_read_id ?? "");
-  const [startsAt, setStartsAt] = useState(
-    toLocalInput(initialSeries?.starts_at) || toLocalInput(new Date().toISOString()),
-  );
-  const [endsAt, setEndsAt] = useState(toLocalInput(initialSeries?.ends_at));
+  const [startsAt, setStartsAt] = useState(() => {
+    return (
+      toLocalInput(initialSeries?.starts_at) ||
+      formatLocalInput(new Date())
+    );
+  });
+  const [endsAt, setEndsAt] = useState(() => {
+    const existing = toLocalInput(initialSeries?.ends_at);
+    if (existing) return existing;
+    const start =
+      toLocalInput(initialSeries?.starts_at) || formatLocalInput(new Date());
+    return addHoursLocal(start, DEFAULT_DURATION_HOURS);
+  });
+  const [sameDay, setSameDay] = useState(() => {
+    const start = toLocalInput(initialSeries?.starts_at);
+    const end = toLocalInput(initialSeries?.ends_at);
+    if (!end) return true;
+    return isSameLocalDay(start, end);
+  });
   const [frequency, setFrequency] = useState<EventRecurrenceFrequency>(
     initialSeries?.recurrence_frequency ?? "none",
   );
@@ -117,10 +172,105 @@ export default function EventForm({
       .slice(0, 12);
   }, [occurrences]);
 
+  const sortedLocations = useMemo(
+    () =>
+      [...locations].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      ),
+    [locations],
+  );
+
+  const selectedLocation = useMemo(
+    () => locations.find((item) => item.id === locationId) ?? null,
+    [locations, locationId],
+  );
+
+  const applyLocation = (location: EventLocation | null) => {
+    if (!location) {
+      setLocationId("");
+      return;
+    }
+    setLocationId(location.id);
+    setVenue(location.name);
+    setAddress(location.address);
+  };
+
+  const handleLocationSelect = (nextId: string) => {
+    if (!nextId) {
+      setLocationId("");
+      return;
+    }
+    const match = locations.find((item) => item.id === nextId) ?? null;
+    applyLocation(match);
+  };
+
+  const openCreateLocation = () => {
+    setEditingLocation(null);
+    setLocationModalOpen(true);
+  };
+
+  const openEditLocation = () => {
+    if (!selectedLocation) return;
+    setEditingLocation(selectedLocation);
+    setLocationModalOpen(true);
+  };
+
+  const handleLocationSaved = (saved: EventLocation) => {
+    setLocations((prev) => {
+      const exists = prev.some((item) => item.id === saved.id);
+      return exists
+        ? prev.map((item) => (item.id === saved.id ? saved : item))
+        : [...prev, saved];
+    });
+    applyLocation(saved);
+  };
+
+  const handleLocationDeleted = (id: string) => {
+    setLocations((prev) => prev.filter((item) => item.id !== id));
+    if (locationId === id) {
+      setLocationId("");
+    }
+  };
+
   const toggleWeekday = (day: number) => {
     setWeekdays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort(),
     );
+  };
+
+  const snapEndToSameDay = (start: string, previousEnd: string) => {
+    if (!start) return previousEnd;
+    const preferredTime =
+      localTimePart(previousEnd) ||
+      localTimePart(addHoursLocal(start, DEFAULT_DURATION_HOURS));
+    let next = combineLocal(localDatePart(start), preferredTime);
+    if (!next || next <= start) {
+      next = addHoursLocal(start, DEFAULT_DURATION_HOURS);
+    }
+    return next;
+  };
+
+  const handleStartsAtChange = (next: string) => {
+    setStartsAt(next);
+    if (!sameDay || !next) return;
+    setEndsAt((prev) => snapEndToSameDay(next, prev));
+  };
+
+  const handleSameDayToggle = () => {
+    if (sameDay) {
+      setSameDay(false);
+      return;
+    }
+    setSameDay(true);
+    setEndsAt((prev) => snapEndToSameDay(startsAt, prev));
+  };
+
+  const handleEndsTimeChange = (time: string) => {
+    if (!startsAt || !time) {
+      setEndsAt("");
+      return;
+    }
+    setEndsAt(combineLocal(localDatePart(startsAt), time));
   };
 
   const handleSubmit = async (nextStatus?: EventSeriesStatus) => {
@@ -138,6 +288,7 @@ export default function EventForm({
       title: title.trim(),
       description: description.trim() || null,
       location_type: locationType,
+      location_id: locationId || null,
       venue: venue.trim() || null,
       address: address.trim() || null,
       join_url: joinUrl.trim() || null,
@@ -384,21 +535,49 @@ export default function EventForm({
                 className={styles.control}
                 type="datetime-local"
                 value={startsAt}
-                onChange={(e) => setStartsAt(e.target.value)}
+                onChange={(e) => handleStartsAtChange(e.target.value)}
                 required
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="event-ends">
-                Ends
-              </label>
-              <Input
-                id="event-ends"
-                className={styles.control}
-                type="datetime-local"
-                value={endsAt}
-                onChange={(e) => setEndsAt(e.target.value)}
-              />
+              <div className={styles.labelRow}>
+                <label className={styles.label} htmlFor="event-ends">
+                  Ends
+                </label>
+                <button
+                  type="button"
+                  className={`${styles.sameDayChip} ${
+                    sameDay ? styles.sameDayChipActive : ""
+                  }`}
+                  onClick={handleSameDayToggle}
+                  disabled={busy || !startsAt}
+                  aria-pressed={sameDay}
+                >
+                  Same day
+                </button>
+              </div>
+              {sameDay ? (
+                <Input
+                  id="event-ends"
+                  className={styles.control}
+                  type="time"
+                  value={localTimePart(endsAt)}
+                  onChange={(e) => handleEndsTimeChange(e.target.value)}
+                />
+              ) : (
+                <Input
+                  id="event-ends"
+                  className={styles.control}
+                  type="datetime-local"
+                  value={endsAt}
+                  onChange={(e) => setEndsAt(e.target.value)}
+                />
+              )}
+              <p className={styles.helper}>
+                {sameDay
+                  ? "Usual case: ends later the same day. Turn off Same day to span multiple days."
+                  : "Full end date and time for multi-day events."}
+              </p>
             </div>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="event-tz">
@@ -439,6 +618,49 @@ export default function EventForm({
                 ))}
               </div>
             </div>
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <div className={styles.labelRow}>
+                <label className={styles.label} htmlFor="event-location">
+                  Saved location
+                </label>
+                <div className={styles.locationActions}>
+                  <button
+                    type="button"
+                    className={styles.sameDayChip}
+                    onClick={openCreateLocation}
+                    disabled={busy}
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.sameDayChip}
+                    onClick={openEditLocation}
+                    disabled={busy || !selectedLocation}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+              <select
+                id="event-location"
+                className={styles.control}
+                value={locationId}
+                onChange={(e) => handleLocationSelect(e.target.value)}
+                disabled={busy}
+              >
+                <option value="">Custom / none</option>
+                {sortedLocations.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {truncateOption(`${item.name} — ${item.address}`)}
+                  </option>
+                ))}
+              </select>
+              <p className={styles.helper}>
+                Pick a reused place (park, study house) or leave Custom to type
+                venue and address for this event only.
+              </p>
+            </div>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="event-venue">
                 Venue
@@ -449,6 +671,7 @@ export default function EventForm({
                 value={venue}
                 onChange={(e) => setVenue(e.target.value)}
                 placeholder="Fellowship Hall"
+                disabled={busy || Boolean(locationId)}
               />
             </div>
             <div className={styles.field}>
@@ -460,6 +683,7 @@ export default function EventForm({
                 className={styles.control}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                disabled={busy || Boolean(locationId)}
               />
             </div>
             <div className={`${styles.field} ${styles.fieldWide}`}>
@@ -739,6 +963,14 @@ export default function EventForm({
           </Button>
         </div>
       </form>
+
+      <EventLocationModal
+        open={locationModalOpen}
+        onOpenChange={setLocationModalOpen}
+        location={editingLocation}
+        onSaved={handleLocationSaved}
+        onDeleted={handleLocationDeleted}
+      />
     </div>
   );
 }

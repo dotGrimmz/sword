@@ -19,6 +19,10 @@ export type VerseRangePickerProps = {
   disabled?: boolean;
   className?: string;
   triggerClassName?: string;
+  /** Inclusive lower bound (defaults to 1). */
+  minVerse?: number;
+  /** Inclusive upper bound (defaults to verseCount). */
+  maxVerse?: number;
 };
 
 export { formatVerseRange, parseVerseRangeValue } from "@/lib/bible/verseRange";
@@ -33,28 +37,42 @@ export function VerseRangePicker({
   disabled = false,
   className,
   triggerClassName,
+  minVerse,
+  maxVerse,
 }: VerseRangePickerProps) {
-  const ready = typeof verseCount === "number" && verseCount > 0;
+  const lowerBound = Math.max(1, minVerse ?? 1);
+  const upperBound =
+    typeof verseCount === "number" && verseCount > 0
+      ? Math.min(verseCount, maxVerse ?? verseCount)
+      : null;
+  const ready =
+    typeof upperBound === "number" &&
+    upperBound > 0 &&
+    upperBound >= lowerBound;
   const parsed = parseVerseRangeValue(value);
   const start = parsed?.start;
   const end = parsed?.end;
 
   const startOptions = useMemo(() => {
-    if (!ready || !verseCount) return [];
-    return Array.from({ length: verseCount }, (_value, index) => {
-      const verse = index + 1;
-      return {
-        value: String(verse),
-        label: String(verse),
-        keywords: [String(verse)],
-      };
-    });
-  }, [ready, verseCount]);
+    if (!ready || upperBound == null) return [];
+    return Array.from(
+      { length: upperBound - lowerBound + 1 },
+      (_value, index) => {
+        const verse = lowerBound + index;
+        return {
+          value: String(verse),
+          label: String(verse),
+          keywords: [String(verse)],
+        };
+      },
+    );
+  }, [ready, lowerBound, upperBound]);
 
   const endOptions = useMemo(() => {
-    if (!ready || !verseCount) return [];
-    const min = start && start >= 1 ? start : 1;
-    return Array.from({ length: verseCount - min + 1 }, (_value, index) => {
+    if (!ready || upperBound == null) return [];
+    const min =
+      start && start >= lowerBound ? Math.max(start, lowerBound) : lowerBound;
+    return Array.from({ length: upperBound - min + 1 }, (_value, index) => {
       const verse = min + index;
       return {
         value: String(verse),
@@ -62,26 +80,36 @@ export function VerseRangePicker({
         keywords: [String(verse)],
       };
     });
-  }, [ready, verseCount, start]);
+  }, [ready, lowerBound, upperBound, start]);
 
   const isDisabled = disabled || !ready;
 
   const handleStartChange = (nextStartRaw: string) => {
-    if (!verseCount) return;
+    if (upperBound == null) return;
     const nextStart = Number.parseInt(nextStartRaw, 10);
     if (!Number.isFinite(nextStart)) return;
+    const clampedStart = Math.min(
+      Math.max(nextStart, lowerBound),
+      upperBound,
+    );
     const nextEnd =
-      end && end >= nextStart ? end : Math.max(nextStart, end ?? nextStart);
-    const clampedEnd = Math.min(Math.max(nextEnd, nextStart), verseCount);
-    onValueChange(formatVerseRange(nextStart, clampedEnd));
+      end && end >= clampedStart
+        ? end
+        : Math.max(clampedStart, end ?? clampedStart);
+    const clampedEnd = Math.min(Math.max(nextEnd, clampedStart), upperBound);
+    onValueChange(formatVerseRange(clampedStart, clampedEnd));
   };
 
   const handleEndChange = (nextEndRaw: string) => {
-    if (!verseCount) return;
+    if (upperBound == null) return;
     const nextEnd = Number.parseInt(nextEndRaw, 10);
     if (!Number.isFinite(nextEnd)) return;
-    const nextStart = start && start >= 1 ? Math.min(start, nextEnd) : 1;
-    onValueChange(formatVerseRange(nextStart, nextEnd));
+    const nextStart =
+      start && start >= lowerBound
+        ? Math.min(Math.max(start, lowerBound), nextEnd)
+        : lowerBound;
+    const clampedEnd = Math.min(Math.max(nextEnd, nextStart), upperBound);
+    onValueChange(formatVerseRange(nextStart, clampedEnd));
   };
 
   return (
@@ -93,7 +121,7 @@ export function VerseRangePicker({
           value={start ? String(start) : undefined}
           onValueChange={handleStartChange}
           disabled={isDisabled}
-          placeholder={ready ? "Start" : "Select chapter first"}
+          placeholder={ready ? "Start" : "Set study verses first"}
           searchPlaceholder="Verse…"
           emptyMessage="No verses."
           triggerClassName={triggerClassName}
@@ -110,7 +138,7 @@ export function VerseRangePicker({
           value={end ? String(end) : undefined}
           onValueChange={handleEndChange}
           disabled={isDisabled || !start}
-          placeholder={ready ? "End" : "Select chapter first"}
+          placeholder={ready ? "End" : "Set study verses first"}
           searchPlaceholder="Verse…"
           emptyMessage="No verses."
           triggerClassName={triggerClassName}

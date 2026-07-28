@@ -21,6 +21,7 @@ export type WeeklyStudy = {
   verses_range: string | null;
   summary: string;
   memory_verse: string | null;
+  memory_verses_range: string | null;
   reflection_questions: string[] | null;
   poll_question: string | null;
   poll_options: string[] | null;
