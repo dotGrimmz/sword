@@ -138,7 +138,6 @@ function ScripturePassagePagerInner({
               ))}
             </ol>
           </div>
-          <p className={styles.scrollHint}>Scroll to read the full passage</p>
         </>
       )}
     </section>

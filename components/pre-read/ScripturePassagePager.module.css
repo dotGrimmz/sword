@@ -66,6 +66,7 @@
   display: flex;
   gap: 0.65rem;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .verseNumber {
@@ -81,15 +82,9 @@
 .verseText {
   margin: 0;
   flex: 1;
+  min-width: 0;
   font-size: 1.02rem;
   line-height: 1.65;
   color: #1a1a1a;
-}
-
-.scrollHint {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: #4a4a4a;
-  text-align: center;
+  overflow-wrap: anywhere;
 }
