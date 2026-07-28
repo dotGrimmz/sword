@@ -20,6 +20,7 @@ export type StudyHubPreviewProps = {
   versesRange: string;
   summary: string;
   memoryVerse: string;
+  memoryVersesRange: string;
   reflectionQuestions: string[];
   pollQuestion: string;
   pollOptions: string[];
@@ -45,6 +46,7 @@ export function StudyHubPreview({
   versesRange,
   summary,
   memoryVerse,
+  memoryVersesRange,
   reflectionQuestions,
   pollQuestion,
   pollOptions,
@@ -62,6 +64,11 @@ export function StudyHubPreview({
   })();
 
   const reference = formatReference(book, chapter, versesRange);
+  const memoryReference = formatReference(
+    book,
+    chapter,
+    memoryVersesRange.trim() || versesRange,
+  );
   const topic = title.trim() || "Untitled study";
   const visibleMaterials = visibleDraftMaterials(materials);
   const questions = reflectionQuestions.map((q) => q.trim()).filter(Boolean);
@@ -157,7 +164,7 @@ export function StudyHubPreview({
                 <blockquote className={styles.quote}>
                   “{memoryVerse.trim()}”
                 </blockquote>
-                <p className={styles.memoryRef}>{reference}</p>
+                <p className={styles.memoryRef}>{memoryReference}</p>
               </section>
             ) : null}
 

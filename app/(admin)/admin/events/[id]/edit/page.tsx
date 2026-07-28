@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { getAdminSeries } from "@/lib/church-events/loaders";
+import { listEventLocations } from "@/lib/church-events/locations";
 import { createClient } from "@/lib/supabase/server";
 import type { PreRead } from "@/types/pre-read";
 
@@ -18,13 +19,14 @@ type PageProps = {
 export default async function AdminEditEventPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
-  const [series, studiesResult] = await Promise.all([
+  const [series, studiesResult, locations] = await Promise.all([
     getAdminSeries(supabase, id),
     supabase
       .from("pre_reads")
       .select("id, title, book, chapter, week_start")
       .order("week_start", { ascending: false })
       .limit(40),
+    listEventLocations(supabase).catch(() => []),
   ]);
 
   if (!series) notFound();
@@ -47,7 +49,12 @@ export default async function AdminEditEventPage({ params }: PageProps) {
         <h2 className={pageStyles.title}>Edit event</h2>
         <p className={pageStyles.description}>{series.title}</p>
       </header>
-      <EventForm mode="edit" initialSeries={series} studies={studies} />
+      <EventForm
+        mode="edit"
+        initialSeries={series}
+        studies={studies}
+        initialLocations={locations}
+      />
     </main>
   );
 }

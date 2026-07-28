@@ -18,7 +18,7 @@ import type {
 } from "@/types/events";
 
 const SERIES_SELECT = `
-  id, title, description, location_type, venue, address, join_url, cover_url,
+  id, title, description, location_type, location_id, venue, address, join_url, cover_url,
   timezone, status, pre_read_id, starts_at, ends_at,
   recurrence_frequency, recurrence_interval, recurrence_weekdays,
   recurrence_end_type, recurrence_until, recurrence_count,
@@ -193,6 +193,7 @@ export async function createSeries(
       title: input.title,
       description: input.description ?? null,
       location_type: input.location_type,
+      location_id: input.location_id ?? null,
       venue: input.venue ?? null,
       address: input.address ?? null,
       join_url: input.join_url ?? null,
@@ -235,6 +236,7 @@ export async function updateSeries(
       title: input.title,
       description: input.description ?? null,
       location_type: input.location_type,
+      location_id: input.location_id ?? null,
       venue: input.venue ?? null,
       address: input.address ?? null,
       join_url: input.join_url ?? null,

@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SWORD
 
-## Getting Started
+**SWORD** is a mobile-first, offline-capable Bible study PWA for Realign Ministries. Readers can study Scripture, write reflections, mark passages, and join Pre-Read community studies — with content managed through an admin CMS.
 
-First, run the development server:
+Built as a Next.js monolith (UI + BFF API) on Supabase, deployable as an installable Progressive Web App.
+
+## Features
+
+- **Scripture** — Bible reading by book/chapter with resume and translation switching
+- **Reflections & Marked** — personal notes and marked passages, synced when online
+- **Today** — home dashboard for continue reading and recent activity
+- **Pre-Read** — scheduled community studies with materials, comments, and stream hosts
+- **Events** — church event listings and detail pages
+- **Admin** — CMS for Pre-Read content, hosts, events, quizzes, and users
+- **Offline** — IndexedDB caching and mutation sync queue (see [README_OFFLINE.md](./README_OFFLINE.md))
+
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 15 (App Router) + React 19 |
+| Backend | Supabase (Auth, Postgres, Storage, RLS) |
+| UI | Tailwind CSS 4, Radix UI, Motion |
+| Offline / PWA | localForage, next-pwa |
+| Hosting | Vercel |
+
+For architecture detail, see [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md).
+
+## Getting started
+
+**Requirements:** Node.js 20+, npm
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The root route redirects to `/dashboard` when signed in, otherwise `/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Add a `.env.local` with at least:
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-To learn more about Next.js, take a look at the following resources:
+Commonly used optional vars:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Purpose |
+| --- | --- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin operations |
+| `NEXT_PUBLIC_SITE_URL` | App origin (OAuth / SSR callbacks) |
+| `NEXT_PUBLIC_PROD_URL` | Production URL (e.g. QR login) |
+| `OPENAI_API_KEY` | Quiz generation and related AI helpers |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Auth uses Supabase (email/password and Google OAuth). Configure redirect URLs in the Supabase dashboard to match your local and production origins.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Dev server (Turbopack) |
+| `npm run build` | Production build |
+| `npm start` | Serve production build |
+| `npm run lint` | ESLint |
+| `npm test` | Node test runner (`tests/*.test.mjs`) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project layout
+
+```
+app/           # App Router pages + API routes
+components/    # UI screens and shared components
+lib/           # Supabase clients, offline, domain helpers
+supabase/      # Migrations / Supabase config
+scripts/       # Seed and maintenance scripts
+tests/         # Unit tests
+```
+
+## Docs
+
+- [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) — architecture, data model, API surface
+- [README_OFFLINE.md](./README_OFFLINE.md) — offline packs, sync queue, cache versioning

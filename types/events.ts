@@ -4,11 +4,27 @@ export type EventOccurrenceStatus = "scheduled" | "cancelled";
 export type EventRecurrenceFrequency = "none" | "weekly" | "monthly";
 export type EventRecurrenceEndType = "never" | "until" | "count";
 
+export type EventLocation = {
+  id: string;
+  name: string;
+  address: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EventLocationInput = {
+  name: string;
+  address: string;
+  notes?: string | null;
+};
+
 export type EventSeries = {
   id: string;
   title: string;
   description: string | null;
   location_type: EventLocationType;
+  location_id: string | null;
   venue: string | null;
   address: string | null;
   join_url: string | null;
@@ -63,6 +79,7 @@ export type EventSeriesInput = {
   title: string;
   description?: string | null;
   location_type: EventLocationType;
+  location_id?: string | null;
   venue?: string | null;
   address?: string | null;
   join_url?: string | null;

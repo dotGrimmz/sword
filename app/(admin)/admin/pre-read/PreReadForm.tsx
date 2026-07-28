@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { parseVerseRangeValue } from "@/lib/bible/verseRange";
 import { AdminPollResults } from "@/components/pre-read/AdminPollResults";
 import { CommentsSection } from "@/components/pre-read/CommentsSection";
+import { MemoryVerseEditor } from "@/components/pre-read/MemoryVerseEditor";
 import {
   createStudyLinkMaterial,
   deleteStudyMaterial,
@@ -64,6 +65,7 @@ type FormState = {
   versesRange: string;
   summary: string;
   memoryVerse: string;
+  memoryVersesRange: string;
   reflectionQuestions: string[];
   pollQuestion: string;
   pollOptions: string[];
@@ -151,6 +153,7 @@ export default function PreReadForm({
     versesRange: initialData?.verses_range ?? "",
     summary: initialData?.summary ?? "",
     memoryVerse: initialData?.memory_verse ?? "",
+    memoryVersesRange: initialData?.memory_verses_range ?? "",
     reflectionQuestions:
       initialData?.reflection_questions &&
       initialData.reflection_questions.length > 0
@@ -222,7 +225,30 @@ export default function PreReadForm({
 
   const handleVersesChange = (value: string) => {
     setVersesManuallyEdited(true);
-    handleFieldChange("versesRange", value);
+    setForm((prev) => {
+      const studyBounds = parseVerseRangeValue(value);
+      const memoryBounds = parseVerseRangeValue(prev.memoryVersesRange);
+      const memoryOutOfBounds =
+        Boolean(memoryBounds) &&
+        Boolean(studyBounds) &&
+        (memoryBounds!.start < studyBounds!.start ||
+          memoryBounds!.end > studyBounds!.end);
+      return {
+        ...prev,
+        versesRange: value,
+        ...(memoryOutOfBounds
+          ? { memoryVersesRange: "", memoryVerse: "" }
+          : {}),
+      };
+    });
+  };
+
+  const handleMemoryVersesRangeChange = (value: string) => {
+    setForm((prev) => ({ ...prev, memoryVersesRange: value }));
+  };
+
+  const handleMemoryVerseTextChange = (value: string) => {
+    setForm((prev) => ({ ...prev, memoryVerse: value }));
   };
 
   useEffect(() => {
@@ -358,6 +384,8 @@ export default function PreReadForm({
       book: value,
       chapter: "",
       versesRange: "",
+      memoryVersesRange: "",
+      memoryVerse: "",
     }));
     setChapterVerseCount(null);
     setVersesManuallyEdited(false);
@@ -368,6 +396,8 @@ export default function PreReadForm({
       ...prev,
       chapter: value,
       versesRange: "",
+      memoryVersesRange: "",
+      memoryVerse: "",
     }));
     setChapterVerseCount(null);
     setVersesManuallyEdited(false);
@@ -502,6 +532,7 @@ export default function PreReadForm({
       verses_range: form.versesRange.trim() || null,
       summary: form.summary.trim(),
       memory_verse: form.memoryVerse.trim() || null,
+      memory_verses_range: form.memoryVersesRange.trim() || null,
       reflection_questions: reflectionQuestions,
       poll_question: pollQuestion || null,
       poll_options: pollQuestion ? pollOptions : null,
@@ -768,18 +799,20 @@ export default function PreReadForm({
                     : "Pick a book and chapter to unlock verse bounds."}
               </p>
             </div>
-            <div className={styles.field}>
-              <Label htmlFor="memory_verse" className={styles.label}>
-                Memory verse (optional)
-              </Label>
-              <Input
-                id="memory_verse"
-                className={`${styles.control} w-full min-w-0 max-w-full`}
-                value={form.memoryVerse}
-                onChange={(event) =>
-                  handleFieldChange("memoryVerse", event.target.value)
+            <div className={`${styles.field} ${styles.fieldWide}`}>
+              <MemoryVerseEditor
+                book={form.book}
+                chapter={
+                  Number.isFinite(Number.parseInt(form.chapter, 10))
+                    ? Number.parseInt(form.chapter, 10)
+                    : null
                 }
-                placeholder="John 15:5"
+                studyVersesRange={form.versesRange}
+                memoryVersesRange={form.memoryVersesRange}
+                memoryVerseText={form.memoryVerse}
+                onMemoryVersesRangeChange={handleMemoryVersesRangeChange}
+                onMemoryVerseTextChange={handleMemoryVerseTextChange}
+                controlClassName={`${styles.control} w-full min-w-0 max-w-full`}
               />
             </div>
           </div>
@@ -964,6 +997,7 @@ export default function PreReadForm({
           versesRange={form.versesRange}
           summary={form.summary}
           memoryVerse={form.memoryVerse}
+          memoryVersesRange={form.memoryVersesRange}
           reflectionQuestions={form.reflectionQuestions}
           pollQuestion={form.pollQuestion}
           pollOptions={form.pollOptions}

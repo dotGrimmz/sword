@@ -178,11 +178,19 @@ export default async function PreReadPage() {
             <blockquote className={styles.memoryQuote}>
               “{study.memory_verse}”
             </blockquote>
-            <p className={styles.memoryReference}>{reference}</p>
+            <p className={styles.memoryReference}>
+              {formatReference(
+                study.book,
+                study.chapter,
+                study.memory_verses_range ?? study.verses_range,
+              )}
+            </p>
             <AddMemoryVerseButton
               book={study.book}
               chapter={study.chapter}
-              versesRange={study.verses_range}
+              versesRange={
+                study.memory_verses_range ?? study.verses_range
+              }
               memoryVerse={study.memory_verse}
               className={styles.memoryAction}
             />

@@ -150,6 +150,57 @@
   color: #1a1a1a;
 }
 
+.labelRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.locationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sameDayChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.sameDayChipActive {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.sameDayChip:hover:not(:disabled) {
+  border-color: color-mix(in oklab, #d91f26 40%, #e0c4b6);
+}
+
+.sameDayChip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .helper {
   margin: 0;
   font-size: 0.8rem;
@@ -498,5 +549,10 @@ textarea.control {
 
   .formShell :global(button) {
     min-height: 3.5rem;
+  }
+
+  .sameDayChip {
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem;
   }
 }

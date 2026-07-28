@@ -1,5 +1,7 @@
 import { apiFetch } from "@/lib/api/fetch";
 import type {
+  EventLocation,
+  EventLocationInput,
   EventOccurrence,
   EventOccurrenceSummary,
   EventSeriesInput,
@@ -74,3 +76,28 @@ export const cancelAdminOccurrence = (occurrenceId: string) =>
       body: JSON.stringify({ status: "cancelled" }),
     },
   );
+
+export const listAdminEventLocations = () =>
+  apiFetch<{ locations: EventLocation[] }>("/api/admin/event-locations");
+
+export const createAdminEventLocation = (input: EventLocationInput) =>
+  apiFetch<{ location: EventLocation }>("/api/admin/event-locations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+export const updateAdminEventLocation = (
+  id: string,
+  input: EventLocationInput,
+) =>
+  apiFetch<{ location: EventLocation }>(`/api/admin/event-locations/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+export const deleteAdminEventLocation = (id: string) =>
+  apiFetch<{ ok: boolean }>(`/api/admin/event-locations/${id}`, {
+    method: "DELETE",
+  });
