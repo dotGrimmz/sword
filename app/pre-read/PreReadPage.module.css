@@ -12,7 +12,7 @@
   z-index: 0;
   padding: 1rem 1rem 2.5rem;
   background: #fff5f0;
-  overflow-x: clip;
+  /* Avoid overflow-x clip/hidden here — it breaks position:sticky on .topBar. */
 }
 
 .topBar {
@@ -29,12 +29,14 @@
   padding: 0.75rem 1rem;
   background: color-mix(in oklab, #fff5f0 88%, transparent);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 0;
   font-size: 0.9rem;
   font-weight: 650;
   color: #d91f26;
@@ -48,6 +50,7 @@
 .backIcon {
   width: 1.1rem;
   height: 1.1rem;
+  flex-shrink: 0;
 }
 
 .brandMark {
