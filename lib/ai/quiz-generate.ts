@@ -14,23 +14,49 @@ import type {
 
 import { getOpenAIClient, QUIZ_MODEL } from "@/lib/ai/openai";
 
-const MIN_QUESTIONS = 3;
-const MAX_QUESTIONS = 20;
-const DEFAULT_TEMPERATURE = 0.2;
+/**
+ * Quiz generation knobs.
+ *
+ * Admin panel (per generation — defaults hard-coded for now):
+ *   difficulty, questionTypes, focus, temperature ("Variation"),
+ *   questionCount, title, seed, translation + passage range
+ *
+ * Platform defaults (future site settings, not per-quiz):
+ *   min/max questions, heuristic count bands, default translation
+ */
+const PLATFORM = {
+  minQuestions: 3,
+  maxQuestions: 20,
+  defaultTemperature: 0.2,
+  defaultDifficulty: "medium" as QuizDifficulty,
+  defaultFocus: "mixed" as QuizFocus,
+  defaultQuestionTypes: [
+    "multiple_choice",
+    "short_answer",
+  ] as QuizQuestionType[],
+  defaultTranslation: "WEB",
+  /** verseCount ≤ maxVerses → suggested question count */
+  countBands: [
+    { maxVerses: 4, count: 3 },
+    { maxVerses: 12, count: 5 },
+    { maxVerses: 25, count: 8 },
+    { maxVerses: 40, count: 12 },
+    { maxVerses: Infinity, count: 15 },
+  ],
+} as const;
 
-const QUESTION_TYPES: QuizQuestionType[] = [
-  "multiple_choice",
-  "true_false",
-  "short_answer",
-];
-
-const DIFFICULTIES: QuizDifficulty[] = ["easy", "medium", "hard"];
-const FOCUSES: QuizFocus[] = [
+const DIFFICULTIES = new Set<QuizDifficulty>(["easy", "medium", "hard"]);
+const FOCUSES = new Set<QuizFocus>([
   "factual",
   "thematic",
   "application",
   "mixed",
-];
+]);
+const QUESTION_TYPES = new Set<QuizQuestionType>([
+  "multiple_choice",
+  "true_false",
+  "short_answer",
+]);
 
 export class QuizGenerateError extends Error {
   status: number;
@@ -42,43 +68,57 @@ export class QuizGenerateError extends Error {
   }
 }
 
+const pick = <T extends string>(
+  value: unknown,
+  allowed: Set<T>,
+  fallback: T,
+): T => {
+  if (value && allowed.has(value as T)) {
+    return value as T;
+  }
+  return fallback;
+};
+
+const text = (...candidates: unknown[]) => {
+  for (const value of candidates) {
+    const candidate = value as string;
+    if (candidate?.trim?.()) {
+      return candidate.trim();
+    }
+  }
+  return "";
+};
+
+const positiveInt = (value: unknown) => {
+  const n = Number(value);
+  if (Number.isInteger(n) && n > 0) {
+    return n;
+  }
+  return null;
+};
+
 export function parseChapterVerse(
   value: unknown,
   label: string,
 ): QuizVerseRef {
-  if (
-    value &&
-    typeof value === "object" &&
-    "chapter" in value &&
-    "verse" in value
-  ) {
-    const chapter = Number((value as QuizVerseRef).chapter);
-    const verse = Number((value as QuizVerseRef).verse);
-    if (
-      Number.isInteger(chapter) &&
-      chapter > 0 &&
-      Number.isInteger(verse) &&
-      verse > 0
-    ) {
-      return { chapter, verse };
-    }
+  if (!value) {
+    throw new QuizGenerateError(
+      `${label} must be { chapter, verse } or "chapter:verse"`,
+    );
   }
 
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    const parts = trimmed.split(":");
-    if (parts.length === 2) {
-      const chapter = Number(parts[0]);
-      const verse = Number(parts[1]);
-      if (
-        Number.isInteger(chapter) &&
-        chapter > 0 &&
-        Number.isInteger(verse) &&
-        verse > 0
-      ) {
-        return { chapter, verse };
-      }
-    }
+  const { chapter, verse } = value as QuizVerseRef;
+  const objectChapter = positiveInt(chapter);
+  const objectVerse = positiveInt(verse);
+  if (objectChapter && objectVerse) {
+    return { chapter: objectChapter, verse: objectVerse };
+  }
+
+  const [start, end] = `${value}`.trim().split(":");
+  const c = positiveInt(start);
+  const v = positiveInt(end);
+  if (c && v) {
+    return { chapter: c, verse: v };
   }
 
   throw new QuizGenerateError(
@@ -86,63 +126,24 @@ export function parseChapterVerse(
   );
 }
 
-function isRefBeforeOrEqual(left: QuizVerseRef, right: QuizVerseRef) {
-  return (
-    left.chapter < right.chapter ||
-    (left.chapter === right.chapter && left.verse <= right.verse)
-  );
-}
+const isRefBeforeOrEqual = (left: QuizVerseRef, right: QuizVerseRef) =>
+  left.chapter < right.chapter ||
+  (left.chapter === right.chapter && left.verse <= right.verse);
 
-function asDifficulty(value: unknown): QuizDifficulty {
-  if (typeof value === "string" && DIFFICULTIES.includes(value as QuizDifficulty)) {
-    return value as QuizDifficulty;
-  }
-  return "medium";
-}
-
-function asFocus(value: unknown): QuizFocus {
-  if (typeof value === "string" && FOCUSES.includes(value as QuizFocus)) {
-    return value as QuizFocus;
-  }
-  return "mixed";
-}
-
-function asQuestionTypes(value: unknown): QuizQuestionType[] {
-  if (!Array.isArray(value) || value.length === 0) {
-    return ["multiple_choice", "short_answer"];
-  }
-
-  const types = value.filter(
-    (item): item is QuizQuestionType =>
-      typeof item === "string" &&
-      QUESTION_TYPES.includes(item as QuizQuestionType),
-  );
-
-  return types.length > 0 ? [...new Set(types)] : ["multiple_choice"];
-}
-
-function clampTemperature(value: unknown): number {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n)) return DEFAULT_TEMPERATURE;
-  return Math.min(1, Math.max(0, n));
-}
-
-function clampQuestionCount(value: unknown): number | undefined {
-  if (value == null || value === "") return undefined;
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isInteger(n)) {
-    throw new QuizGenerateError("questionCount must be an integer");
-  }
-  if (n < MIN_QUESTIONS || n > MAX_QUESTIONS) {
-    throw new QuizGenerateError(
-      `questionCount must be between ${MIN_QUESTIONS} and ${MAX_QUESTIONS}`,
-    );
-  }
-  return n;
-}
+const clamp = (n: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, n));
 
 /** Deterministic 32-bit seed from passage + generation knobs. */
-export function deriveQuizSeed(parts: {
+export function deriveQuizSeed({
+  translation,
+  book,
+  start,
+  end,
+  difficulty,
+  questionTypes,
+  focus,
+  questionCount,
+}: {
   translation: string;
   book: string;
   start: QuizVerseRef;
@@ -153,91 +154,115 @@ export function deriveQuizSeed(parts: {
   questionCount?: number;
 }): number {
   const payload = [
-    parts.translation.trim().toUpperCase(),
-    parts.book.trim().toLowerCase(),
-    `${parts.start.chapter}:${parts.start.verse}`,
-    `${parts.end.chapter}:${parts.end.verse}`,
-    parts.difficulty,
-    [...parts.questionTypes].sort().join(","),
-    parts.focus,
-    parts.questionCount ?? "auto",
+    translation.trim().toUpperCase(),
+    book.trim().toLowerCase(),
+    `${start.chapter}:${start.verse}`,
+    `${end.chapter}:${end.verse}`,
+    difficulty,
+    [...questionTypes].sort().join(","),
+    focus,
+    questionCount ?? "auto",
   ].join("|");
 
-  const digest = createHash("sha256").update(payload).digest();
-  return digest.readUInt32BE(0);
+  return createHash("sha256").update(payload).digest().readUInt32BE(0);
 }
 
 export function normalizeGenerateRequest(
   body: Record<string, unknown>,
 ): QuizGenerateRequest {
-  const translation =
-    typeof body.translation === "string" && body.translation.trim()
-      ? body.translation.trim()
-      : "WEB";
+  const {
+    translation,
+    book,
+    start: startRaw,
+    end: endRaw,
+    difficulty,
+    questionTypes,
+    question_types,
+    focus,
+    temperature,
+    variation,
+    questionCount,
+    question_count,
+    seed: seedRaw,
+    title,
+  } = body;
 
-  const book =
-    typeof body.book === "string" ? body.book.trim() : "";
-  if (!book) {
+  const bookName = text(book);
+  if (!bookName) {
     throw new QuizGenerateError("book is required");
   }
 
-  const start = parseChapterVerse(body.start, "start");
-  const end = parseChapterVerse(body.end ?? body.start, "end");
-
+  const start = parseChapterVerse(startRaw, "start");
+  const end = parseChapterVerse(endRaw ?? startRaw, "end");
   if (!isRefBeforeOrEqual(start, end)) {
     throw new QuizGenerateError("end must be at or after start");
   }
 
-  const difficulty = asDifficulty(body.difficulty);
-  const questionTypes = asQuestionTypes(body.questionTypes ?? body.question_types);
-  const focus = asFocus(body.focus);
-  const temperature = clampTemperature(
-    body.temperature ?? body.variation ?? DEFAULT_TEMPERATURE,
-  );
-  const questionCount = clampQuestionCount(
-    body.questionCount ?? body.question_count,
-  );
+  const incomingTypes = questionTypes ?? question_types;
+  const rawTypes = Array.isArray(incomingTypes)
+    ? (incomingTypes as QuizQuestionType[])
+    : [...PLATFORM.defaultQuestionTypes];
+
+  const uniqueTypes = [
+    ...new Set(rawTypes.filter((t) => QUESTION_TYPES.has(t))),
+  ];
+
+  let count: number | undefined;
+  const rawCount = questionCount ?? question_count;
+  if (rawCount != null && rawCount !== "") {
+    const n = Number(rawCount);
+    if (!Number.isInteger(n)) {
+      throw new QuizGenerateError("questionCount must be an integer");
+    }
+    if (n < PLATFORM.minQuestions || n > PLATFORM.maxQuestions) {
+      throw new QuizGenerateError(
+        `questionCount must be between ${PLATFORM.minQuestions} and ${PLATFORM.maxQuestions}`,
+      );
+    }
+    count = n;
+  }
 
   let seed: number | undefined;
-  if (body.seed != null && body.seed !== "") {
-    const n = typeof body.seed === "number" ? body.seed : Number(body.seed);
+  if (seedRaw != null && seedRaw !== "") {
+    const n = Number(seedRaw);
     if (!Number.isInteger(n) || n < 0) {
       throw new QuizGenerateError("seed must be a non-negative integer");
     }
     seed = n;
   }
 
-  const title =
-    typeof body.title === "string" && body.title.trim()
-      ? body.title.trim()
-      : undefined;
-
+  const temp = Number(temperature ?? variation);
   return {
-    translation,
-    book,
+    translation: text(translation) || PLATFORM.defaultTranslation,
+    book: bookName,
     start,
     end,
-    questionCount,
-    difficulty,
-    questionTypes,
-    focus,
-    temperature,
+    questionCount: count,
+    difficulty: pick(difficulty, DIFFICULTIES, PLATFORM.defaultDifficulty),
+    questionTypes: uniqueTypes.length
+      ? uniqueTypes
+      : [...PLATFORM.defaultQuestionTypes],
+    focus: pick(focus, FOCUSES, PLATFORM.defaultFocus),
+    temperature: Number.isFinite(temp)
+      ? clamp(temp, 0, 1)
+      : PLATFORM.defaultTemperature,
     seed,
-    title,
+    title: text(title) || undefined,
   };
 }
 
-function formatPassageForPrompt(passage: BiblePassageResponse): string {
-  return passage.verses
-    .map((v) => `${v.chapter}:${v.verse} ${v.text.trim()}`)
+const formatPassageForPrompt = (passage: BiblePassageResponse) =>
+  passage.verses
+    .map(({ chapter, verse, text: verseText }) =>
+      `${chapter}:${verse} ${verseText.trim()}`,
+    )
     .join("\n");
-}
 
-function formatRangeLabel(
+const formatRangeLabel = (
   book: string,
   start: QuizVerseRef,
   end: QuizVerseRef,
-): string {
+) => {
   if (start.chapter === end.chapter && start.verse === end.verse) {
     return `${book} ${start.chapter}:${start.verse}`;
   }
@@ -245,62 +270,41 @@ function formatRangeLabel(
     return `${book} ${start.chapter}:${start.verse}-${end.verse}`;
   }
   return `${book} ${start.chapter}:${start.verse}-${end.chapter}:${end.verse}`;
-}
+};
 
-function suggestCountFromVerseCount(verseCount: number): number {
-  if (verseCount <= 4) return MIN_QUESTIONS;
-  if (verseCount <= 12) return 5;
-  if (verseCount <= 25) return 8;
-  if (verseCount <= 40) return 12;
-  return Math.min(MAX_QUESTIONS, 15);
-}
+const suggestCountFromVerseCount = (verseCount: number) => {
+  const band = PLATFORM.countBands.find(({ maxVerses }) => verseCount <= maxVerses);
+  return Math.min(PLATFORM.maxQuestions, band?.count ?? PLATFORM.minQuestions);
+};
 
-function asQuestionType(value: unknown): QuizQuestionType {
-  if (
-    typeof value === "string" &&
-    QUESTION_TYPES.includes(value as QuizQuestionType)
-  ) {
-    return value as QuizQuestionType;
-  }
-  return "short_answer";
-}
-
-function normalizeGeneratedQuestions(
+const normalizeGeneratedQuestions = (
   raw: unknown,
   allowedTypes: QuizQuestionType[],
-): QuizQuestion[] {
-  if (!Array.isArray(raw) || raw.length === 0) {
+): QuizQuestion[] => {
+  if (!Array.isArray(raw) || !raw.length) {
     throw new QuizGenerateError("Model returned no questions", 502);
   }
 
   return raw.map((item, index) => {
     const row = (item ?? {}) as Record<string, unknown>;
-    const type = asQuestionType(row.type ?? row.questionType);
-    if (!allowedTypes.includes(type)) {
-      // Keep the question but coerce to an allowed type when possible.
-    }
+    const type = pick(
+      row.type ?? row.questionType,
+      QUESTION_TYPES,
+      "short_answer",
+    );
+    const prompt = text(row.prompt, row.question);
+    const correctAnswer = text(
+      row.correctAnswer,
+      row.correct_answer,
+      row.answer,
+    );
 
-    const prompt =
-      typeof row.prompt === "string"
-        ? row.prompt.trim()
-        : typeof row.question === "string"
-          ? row.question.trim()
-          : "";
     if (!prompt) {
       throw new QuizGenerateError(
         `Question ${index + 1} is missing a prompt`,
         502,
       );
     }
-
-    const correctAnswer =
-      typeof row.correctAnswer === "string"
-        ? row.correctAnswer.trim()
-        : typeof row.correct_answer === "string"
-          ? row.correct_answer.trim()
-          : typeof row.answer === "string"
-            ? row.answer.trim()
-            : "";
     if (!correctAnswer) {
       throw new QuizGenerateError(
         `Question ${index + 1} is missing a correctAnswer`,
@@ -308,13 +312,13 @@ function normalizeGeneratedQuestions(
       );
     }
 
-    let options: string[] | null = null;
-    if (Array.isArray(row.options)) {
-      options = row.options
-        .filter((opt): opt is string => typeof opt === "string")
-        .map((opt) => opt.trim())
-        .filter(Boolean);
-      if (options.length === 0) options = null;
+    let options = Array.isArray(row.options)
+      ? (row.options
+          .map((o) => (o as string)?.trim?.())
+          .filter(Boolean) as string[])
+      : null;
+    if (options && !options.length) {
+      options = null;
     }
 
     if (type === "multiple_choice" && (!options || options.length < 2)) {
@@ -328,31 +332,17 @@ function normalizeGeneratedQuestions(
       options = ["True", "False"];
     }
 
-    const citation =
-      typeof row.citation === "string" && row.citation.trim()
-        ? row.citation.trim()
-        : null;
-    const explanation =
-      typeof row.explanation === "string" && row.explanation.trim()
-        ? row.explanation.trim()
-        : null;
-
-    const id =
-      typeof row.id === "string" && row.id.trim()
-        ? row.id.trim()
-        : `q${index + 1}`;
-
     return {
-      id,
+      id: text(row.id) || `q${index + 1}`,
       type: allowedTypes.includes(type) ? type : allowedTypes[0],
       prompt,
       options,
       correctAnswer,
-      citation,
-      explanation,
+      citation: text(row.citation) || null,
+      explanation: text(row.explanation) || null,
     };
   });
-}
+};
 
 type ModelQuizPayload = {
   title?: string;
@@ -360,8 +350,8 @@ type ModelQuizPayload = {
   questions?: unknown;
 };
 
-function buildSystemPrompt(): string {
-  return [
+const buildSystemPrompt = () =>
+  [
     "You generate Bible study quizzes strictly from the provided passage text.",
     "Do not invent details that are not supported by the passage.",
     "Every question must include a citation in book chapter:verse form when possible.",
@@ -369,18 +359,16 @@ function buildSystemPrompt(): string {
     "For multiple_choice provide 3-4 options with exactly one correct answer.",
     "For true_false, correctAnswer must be True or False.",
     "For short_answer, correctAnswer should be a concise expected answer.",
-    `Keep question count between ${MIN_QUESTIONS} and ${MAX_QUESTIONS}.`,
+    `Keep question count between ${PLATFORM.minQuestions} and ${PLATFORM.maxQuestions}.`,
   ].join(" ");
-}
 
-function buildUserPrompt(
+const buildUserPrompt = (
   request: QuizGenerateRequest,
   passage: BiblePassageResponse,
   seed: number,
   targetCount: number,
-): string {
+) => {
   const rangeLabel = formatRangeLabel(request.book, request.start, request.end);
-  const passageText = formatPassageForPrompt(passage);
 
   return [
     `Passage: ${rangeLabel} (${request.translation})`,
@@ -390,10 +378,10 @@ function buildUserPrompt(
     `Allowed question types: ${request.questionTypes.join(", ")}`,
     `Target question count: ${targetCount}`,
     `Seed: ${seed}`,
-    request.title ? `Preferred title: ${request.title}` : null,
+    request.title && `Preferred title: ${request.title}`,
     "",
     "Passage text:",
-    passageText,
+    formatPassageForPrompt(passage),
     "",
     "Respond with JSON:",
     '{ "title": string, "suggestedQuestionCount": number, "questions": [',
@@ -402,9 +390,9 @@ function buildUserPrompt(
     '    "citation": string|null, "explanation": string|null }',
     "] }",
   ]
-    .filter((line) => line !== null)
+    .filter(Boolean)
     .join("\n");
-}
+};
 
 /**
  * Generate a quiz draft from a loaded Bible passage.
@@ -471,11 +459,11 @@ export async function generateQuizFromPassage(
   const questions = normalizeGeneratedQuestions(
     parsed.questions,
     request.questionTypes,
-  ).slice(0, MAX_QUESTIONS);
+  ).slice(0, PLATFORM.maxQuestions);
 
-  if (questions.length < MIN_QUESTIONS) {
+  if (questions.length < PLATFORM.minQuestions) {
     throw new QuizGenerateError(
-      `Expected at least ${MIN_QUESTIONS} questions`,
+      `Expected at least ${PLATFORM.minQuestions} questions`,
       502,
     );
   }
@@ -483,8 +471,8 @@ export async function generateQuizFromPassage(
   const suggestedFromModel = Number(parsed.suggestedQuestionCount);
   const suggestedQuestionCount =
     Number.isInteger(suggestedFromModel) &&
-    suggestedFromModel >= MIN_QUESTIONS &&
-    suggestedFromModel <= MAX_QUESTIONS
+    suggestedFromModel >= PLATFORM.minQuestions &&
+    suggestedFromModel <= PLATFORM.maxQuestions
       ? suggestedFromModel
       : heuristicCount;
 
@@ -497,7 +485,7 @@ export async function generateQuizFromPassage(
   };
 
   const title =
-    (typeof parsed.title === "string" && parsed.title.trim()) ||
+    text(parsed.title) ||
     request.title ||
     `Quiz: ${formatRangeLabel(request.book, request.start, request.end)}`;
 
