@@ -8,7 +8,15 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { User, Palette, Shield, LogOut, Loader2 } from "lucide-react";
+import {
+  User,
+  Palette,
+  Shield,
+  LogOut,
+  Loader2,
+  Smartphone,
+  Share,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { AppHeaderToolbar } from "./AppHeaderToolbar";
 import { useTheme, themeOptions, type Theme } from "./ThemeContext";
@@ -22,6 +30,7 @@ import {
   useUpdateProfileMutation,
   useUploadAvatarMutation,
 } from "@/lib/query/profile";
+import { useAddToHomeScreen } from "@/hooks/useAddToHomeScreen";
 import styles from "./SettingsScreen.module.css";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -63,6 +72,13 @@ interface SettingsScreenProps {
 export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
   void onNavigate;
   const router = useRouter();
+  const {
+    isInstalled,
+    canPrompt,
+    isIos,
+    isPrompting,
+    promptInstall,
+  } = useAddToHomeScreen();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const { theme, setTheme } = useTheme();
   const { setRole } = useProfile();
@@ -586,6 +602,85 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps = {}) {
             </CardContent>
           </Card>
         </motion.div>
+
+        {!isInstalled ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.32, delay: 0.32 }}
+          >
+            <Card className={styles.installCard}>
+              <CardHeader className={styles.sectionHeader}>
+                <CardTitle className={styles.sectionTitle}>
+                  <Smartphone className={styles.sectionIcon} aria-hidden="true" />
+                  <span>Install app</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className={styles.sectionContent}>
+                <p className={styles.sectionDescription}>
+                  Add SWORD to your home screen for quicker access.
+                </p>
+                {canPrompt ? (
+                  <Button
+                    className={styles.installButton}
+                    onClick={async () => {
+                      const { outcome } = await promptInstall();
+                      if (outcome === "accepted") {
+                        toast.success("SWORD added to your home screen");
+                      } else {
+                        toast.message("Install dismissed");
+                      }
+                    }}
+                    disabled={isPrompting}
+                  >
+                    {isPrompting ? (
+                      <Loader2 className={styles.heroPulse} aria-hidden="true" />
+                    ) : (
+                      <Smartphone aria-hidden="true" />
+                    )}
+                    Add to Home Screen
+                  </Button>
+                ) : isIos ? (
+                  <ol className={styles.installSteps}>
+                    <li>
+                      Tap{" "}
+                      <span className={styles.installStepHighlight}>
+                        <Share
+                          className={styles.installShareIcon}
+                          aria-hidden="true"
+                        />
+                        Share
+                      </span>{" "}
+                      in Safari
+                    </li>
+                    <li>
+                      Choose{" "}
+                      <span className={styles.installStepHighlight}>
+                        Add to Home Screen
+                      </span>
+                    </li>
+                    <li>Confirm to place SWORD on your home screen</li>
+                  </ol>
+                ) : (
+                  <ol className={styles.installSteps}>
+                    <li>Open your browser menu</li>
+                    <li>
+                      Choose{" "}
+                      <span className={styles.installStepHighlight}>
+                        Add to Home Screen
+                      </span>{" "}
+                      or{" "}
+                      <span className={styles.installStepHighlight}>
+                        Install app
+                      </span>
+                    </li>
+                    <li>Confirm to place SWORD on your home screen</li>
+                  </ol>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : null}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -315,6 +315,66 @@
   color: color-mix(in oklab, var(--muted-foreground) 88%, transparent);
 }
 
+.installCard {
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--card) 90%, transparent) 0%,
+    color-mix(in oklab, var(--secondary) 22%, transparent) 100%
+  );
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.16);
+  padding: 0.5rem;
+}
+
+.installButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.installButton:hover:not(:disabled) {
+  transform: translateX(2px);
+}
+
+.installButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.installSteps {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--muted-foreground) 96%, var(--foreground));
+}
+
+.installSteps li {
+  padding-left: 0.15rem;
+}
+
+.installStepHighlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 650;
+  color: var(--foreground);
+}
+
+.installShareIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
 .accountCard {
   border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
   background: linear-gradient(

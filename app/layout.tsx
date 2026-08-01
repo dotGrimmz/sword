@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     apple: "/sword_logo.png",
   },
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "SWORD",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {

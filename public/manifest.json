@@ -1,10 +1,10 @@
 {
   "name": "SWORD Bible Study",
   "short_name": "SWORD",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#fff5f0",
+  "theme_color": "#D91F26",
   "description": "Offline-first Scripture, apologetics, and notes companion.",
   "icons": [
     {
