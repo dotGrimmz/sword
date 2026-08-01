@@ -43,4 +43,5 @@ export const queryKeys = {
   studyCurrent: () => ["study", "current"] as const,
   studyMaterials: (id: string) => ["study", id, "materials"] as const,
   homeEvent: () => ["events", "home"] as const,
+  quizzesPublished: () => ["quizzes", "published"] as const,
 } as const;

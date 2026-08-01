@@ -97,3 +97,54 @@ export type QuizGenerateResult = {
   model: string;
   verseCount: number;
 };
+
+/** Published quiz list card — no question content. */
+export type PublicQuizSummary = {
+  id: string;
+  title: string;
+  translation_code: string;
+  book: string;
+  start_chapter: number;
+  start_verse: number;
+  end_chapter: number;
+  end_verse: number;
+  question_count: number;
+  updated_at: string;
+};
+
+/** Question shape safe to send before submit (no answers). */
+export type PublicQuizQuestion = {
+  id: string;
+  type: QuizQuestionType;
+  prompt: string;
+  options: string[] | null;
+  citation: string | null;
+};
+
+export type PublicQuizDetail = PublicQuizSummary & {
+  questions: PublicQuizQuestion[];
+};
+
+export type QuizAttemptAnswer = {
+  questionId: string;
+  value: string;
+};
+
+export type QuizAttemptQuestionResult = {
+  questionId: string;
+  prompt: string;
+  type: QuizQuestionType;
+  givenAnswer: string;
+  correct: boolean;
+  correctAnswer: string;
+  explanation: string | null;
+  citation: string | null;
+};
+
+export type QuizAttemptResult = {
+  attemptId: string;
+  quizId: string;
+  score: number;
+  maxScore: number;
+  results: QuizAttemptQuestionResult[];
+};

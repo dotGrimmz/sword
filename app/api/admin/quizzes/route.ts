@@ -6,13 +6,13 @@ import {
   listAdminQuizzes,
 } from "@/lib/quizzes/loaders";
 import { normalizeQuizInput } from "@/lib/quizzes/normalize";
-import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/admin";
 import type { QuizStatus } from "@/types/quizzes";
 
 const STATUSES: QuizStatus[] = ["draft", "published", "archived"];
 
 export async function GET(request: Request) {
-  const auth = await requireAdminOnly();
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   const url = new URL(request.url);
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       ? (statusParam as QuizStatus)
       : undefined;
 
-  const supabase = await createClient();
+  const supabase = getServiceRoleClient();
   try {
     const quizzes = await listAdminQuizzes(supabase, { status });
     return NextResponse.json({ quizzes });
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminOnly();
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   let body: Record<string, unknown>;
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = getServiceRoleClient();
   try {
     const input = normalizeQuizInput(body);
     const quiz = await createQuiz(supabase, input, auth.user.id);

@@ -13,6 +13,12 @@ import type {
 } from "@/types/quizzes";
 
 import { getOpenAIClient, QUIZ_MODEL } from "@/lib/ai/openai";
+import { suggestQuizQuestionCount } from "@/lib/quizzes/suggest-count";
+
+export {
+  QUIZ_QUESTION_COUNT_BOUNDS,
+  suggestQuizQuestionCount,
+} from "@/lib/quizzes/suggest-count";
 
 /**
  * Quiz generation knobs.
@@ -272,9 +278,53 @@ const formatRangeLabel = (
   return `${book} ${start.chapter}:${start.verse}-${end.chapter}:${end.verse}`;
 };
 
-const suggestCountFromVerseCount = (verseCount: number) => {
-  const band = PLATFORM.countBands.find(({ maxVerses }) => verseCount <= maxVerses);
-  return Math.min(PLATFORM.maxQuestions, band?.count ?? PLATFORM.minQuestions);
+const resolveCorrectAnswer = (
+  row: Record<string, unknown>,
+  type: QuizQuestionType,
+  options: string[] | null,
+): string => {
+  let correctAnswer = text(
+    row.correctAnswer,
+    row.correct_answer,
+    row.answer,
+    row.correct,
+    row.expectedAnswer,
+    row.expected_answer,
+  );
+
+  // Models sometimes return a boolean for true/false.
+  if (!correctAnswer && typeof row.correct === "boolean") {
+    correctAnswer = row.correct ? "True" : "False";
+  }
+  if (!correctAnswer && typeof row.answer === "boolean") {
+    correctAnswer = row.answer ? "True" : "False";
+  }
+
+  // Models sometimes return an option index ("0", "1") or letter ("A", "B").
+  if (!correctAnswer && options?.length) {
+    const indexRaw = text(row.correctOptionIndex, row.correct_option_index);
+    const index = Number(indexRaw);
+    if (Number.isInteger(index) && index >= 0 && index < options.length) {
+      correctAnswer = options[index];
+    } else if (/^[A-Za-z]$/.test(indexRaw)) {
+      const letterIndex = indexRaw.toUpperCase().charCodeAt(0) - 65;
+      if (letterIndex >= 0 && letterIndex < options.length) {
+        correctAnswer = options[letterIndex];
+      }
+    }
+  }
+
+  if (type === "true_false" && correctAnswer) {
+    const normalized = correctAnswer.toLowerCase();
+    if (["true", "t", "yes", "y"].includes(normalized)) {
+      return "True";
+    }
+    if (["false", "f", "no", "n"].includes(normalized)) {
+      return "False";
+    }
+  }
+
+  return correctAnswer;
 };
 
 const normalizeGeneratedQuestions = (
@@ -285,7 +335,10 @@ const normalizeGeneratedQuestions = (
     throw new QuizGenerateError("Model returned no questions", 502);
   }
 
-  return raw.map((item, index) => {
+  const questions: QuizQuestion[] = [];
+  const skipped: Array<{ index: number; reason: string }> = [];
+
+  raw.forEach((item, index) => {
     const row = (item ?? {}) as Record<string, unknown>;
     const type = pick(
       row.type ?? row.questionType,
@@ -293,24 +346,6 @@ const normalizeGeneratedQuestions = (
       "short_answer",
     );
     const prompt = text(row.prompt, row.question);
-    const correctAnswer = text(
-      row.correctAnswer,
-      row.correct_answer,
-      row.answer,
-    );
-
-    if (!prompt) {
-      throw new QuizGenerateError(
-        `Question ${index + 1} is missing a prompt`,
-        502,
-      );
-    }
-    if (!correctAnswer) {
-      throw new QuizGenerateError(
-        `Question ${index + 1} is missing a correctAnswer`,
-        502,
-      );
-    }
 
     let options = Array.isArray(row.options)
       ? (row.options
@@ -321,27 +356,50 @@ const normalizeGeneratedQuestions = (
       options = null;
     }
 
-    if (type === "multiple_choice" && (!options || options.length < 2)) {
-      throw new QuizGenerateError(
-        `Question ${index + 1} multiple_choice needs at least 2 options`,
-        502,
-      );
-    }
-
     if (type === "true_false") {
       options = ["True", "False"];
     }
 
-    return {
-      id: text(row.id) || `q${index + 1}`,
+    const correctAnswer = resolveCorrectAnswer(row, type, options);
+
+    if (!prompt) {
+      skipped.push({ index: index + 1, reason: "missing prompt" });
+      return;
+    }
+    if (!correctAnswer) {
+      skipped.push({ index: index + 1, reason: "missing correctAnswer" });
+      return;
+    }
+
+    if (type === "multiple_choice" && (!options || options.length < 2)) {
+      skipped.push({
+        index: index + 1,
+        reason: "multiple_choice needs at least 2 options",
+      });
+      return;
+    }
+
+    questions.push({
+      id: text(row.id) || `q${questions.length + 1}`,
       type: allowedTypes.includes(type) ? type : allowedTypes[0],
       prompt,
       options,
       correctAnswer,
       citation: text(row.citation) || null,
       explanation: text(row.explanation) || null,
-    };
+    });
   });
+
+  if (!questions.length) {
+    throw new QuizGenerateError(
+      skipped[0]
+        ? `Question ${skipped[0].index} is ${skipped[0].reason}`
+        : "Model returned no valid questions",
+      502,
+    );
+  }
+
+  return questions;
 };
 
 type ModelQuizPayload = {
@@ -356,8 +414,9 @@ const buildSystemPrompt = () =>
     "Do not invent details that are not supported by the passage.",
     "Every question must include a citation in book chapter:verse form when possible.",
     "Return JSON only matching the schema.",
-    "For multiple_choice provide 3-4 options with exactly one correct answer.",
-    "For true_false, correctAnswer must be True or False.",
+    "Every question MUST include a non-empty string correctAnswer field.",
+    "For multiple_choice provide 3-4 options with exactly one correct answer; correctAnswer must match one option exactly.",
+    "For true_false, correctAnswer must be exactly True or False.",
     "For short_answer, correctAnswer should be a concise expected answer.",
     `Keep question count between ${PLATFORM.minQuestions} and ${PLATFORM.maxQuestions}.`,
   ].join(" ");
@@ -419,7 +478,12 @@ export async function generateQuizFromPassage(
       questionCount: request.questionCount,
     });
 
-  const heuristicCount = suggestCountFromVerseCount(passage.verses.length);
+  const heuristicCount = suggestQuizQuestionCount({
+    verseCount: passage.verses.length,
+    difficulty: request.difficulty,
+    focus: request.focus,
+    questionTypes: request.questionTypes,
+  });
   const targetCount = request.questionCount ?? heuristicCount;
 
   const client = getOpenAIClient();

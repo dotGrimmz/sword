@@ -341,7 +341,8 @@
   width: 100%;
 }
 
-.listCardLink {
+.listCardLink,
+.listCardButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -353,13 +354,34 @@
   border: 1px solid color-mix(in oklab, #d91f26 28%, #e8cfc4);
   background: color-mix(in oklab, #d91f26 8%, #ffffff);
   color: #d91f26;
+  font: inherit;
   font-size: 1rem;
   font-weight: 650;
   text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    opacity 150ms ease;
+}
+
+.listCardButton {
+  border-color: transparent;
+  background: linear-gradient(135deg, #d91f26, #f28c00);
+  color: #ffffff;
 }
 
 .listCardLink:hover {
   border-color: #d91f26;
+}
+
+.listCardButton:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.listCardButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 @media (min-width: 720px) {
@@ -367,7 +389,8 @@
     width: auto;
   }
 
-  .listCardLink {
+  .listCardLink,
+  .listCardButton {
     flex: none;
     min-height: 2.5rem;
     padding: 0.5rem 0.9rem;

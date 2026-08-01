@@ -29,6 +29,13 @@ export const updateAdminQuiz = (id: string, input: QuizInput) =>
     body: JSON.stringify(input),
   });
 
+export const setAdminQuizStatus = (id: string, status: QuizStatus) =>
+  apiFetch<{ quiz: Quiz }>(`/api/admin/quizzes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+
 export const deleteAdminQuiz = (id: string) =>
   apiFetch<{ ok: true }>(`/api/admin/quizzes/${id}`, {
     method: "DELETE",
