@@ -5,16 +5,20 @@ import {
   deleteQuiz,
   getAdminQuiz,
   updateQuiz,
+  updateQuizStatus,
 } from "@/lib/quizzes/loaders";
 import { normalizeQuizInput } from "@/lib/quizzes/normalize";
-import { createClient } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/admin";
+import type { QuizStatus } from "@/types/quizzes";
+
+const STATUSES: QuizStatus[] = ["draft", "published", "archived"];
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(_request: Request, context: RouteContext) {
-  const auth = await requireAdminOnly();
+export async function GET(request: Request, context: RouteContext) {
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   const { id } = await context.params;
@@ -22,7 +26,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Quiz id is required" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = getServiceRoleClient();
   try {
     const quiz = await getAdminQuiz(supabase, id);
     if (!quiz) {
@@ -41,7 +45,7 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function PUT(request: Request, context: RouteContext) {
-  const auth = await requireAdminOnly();
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   const { id } = await context.params;
@@ -56,7 +60,7 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = getServiceRoleClient();
   try {
     const input = normalizeQuizInput(body);
     const quiz = await updateQuiz(supabase, id, input);
@@ -69,8 +73,8 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  const auth = await requireAdminOnly();
+export async function PATCH(request: Request, context: RouteContext) {
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   const { id } = await context.params;
@@ -78,7 +82,43 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Quiz id is required" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const status = body.status;
+  if (typeof status !== "string" || !STATUSES.includes(status as QuizStatus)) {
+    return NextResponse.json(
+      { error: "status must be draft, published, or archived" },
+      { status: 400 },
+    );
+  }
+
+  const supabase = getServiceRoleClient();
+  try {
+    const quiz = await updateQuizStatus(supabase, id, status as QuizStatus);
+    return NextResponse.json({ quiz });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to update quiz status";
+    const responseStatus = message.includes("not found") ? 404 : 400;
+    return NextResponse.json({ error: message }, { status: responseStatus });
+  }
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  const auth = await requireAdminOnly(request);
+  if (auth.error) return auth.error;
+
+  const { id } = await context.params;
+  if (!id) {
+    return NextResponse.json({ error: "Quiz id is required" }, { status: 400 });
+  }
+
+  const supabase = getServiceRoleClient();
   try {
     await deleteQuiz(supabase, id);
     return NextResponse.json({ ok: true });

@@ -273,6 +273,96 @@ textarea.control {
   gap: 0.75rem;
 }
 
+.countStepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.countStepperButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.countStepperButton:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 10%, #ffffff);
+  color: #d91f26;
+}
+
+.countStepperButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.countStepperValue {
+  display: flex;
+  min-width: 5.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.countStepperNumber {
+  font-size: 1.6rem;
+  font-weight: 750;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+.countStepperMeta {
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b5a52;
+}
+
+.countResetButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.8rem;
+  border: 1.5px solid #e0c4b6;
+  background: #ffffff;
+  color: #d91f26;
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.countResetButton:hover:not(:disabled) {
+  border-color: #d91f26;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff);
+}
+
+.countResetButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .questionList {
   display: flex;
   flex-direction: column;
@@ -326,4 +416,24 @@ textarea.control {
   color: #4a4a4a;
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+.verseSplit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.verseSubLabel {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: #6b5a52;
+}
+
+@media (max-width: 560px) {
+  .verseSplit {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

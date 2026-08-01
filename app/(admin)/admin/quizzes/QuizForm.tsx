@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import {
   createAdminQuiz,
   deleteAdminQuiz,
@@ -23,6 +24,28 @@ import type {
   QuizStatus,
 } from "@/types/quizzes";
 
+const STATUS_OPTIONS: {
+  value: QuizStatus;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "draft",
+    label: "Draft",
+    description: "Not visible to members. Keep editing until ready.",
+  },
+  {
+    value: "published",
+    label: "Published",
+    description: "Ready to assign. Visible when members receive it.",
+  },
+  {
+    value: "archived",
+    label: "Archived",
+    description: "Retired from active use. Kept for history.",
+  },
+];
+
 import styles from "./QuizForm.module.css";
 import QuizGeneratePanel, {
   type QuizGeneratePanelValues,
@@ -30,11 +53,11 @@ import QuizGeneratePanel, {
 import QuizQuestionsEditor from "./QuizQuestionsEditor";
 
 const btnSecondary =
-  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
+  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
 const btnPrimary =
-  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white cursor-pointer";
+  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white cursor-pointer";
 const btnDanger =
-  "h-14 min-h-14 min-w-[8.5rem] px-6 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-6 md:text-sm border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
+  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
 
 type QuizFormProps = {
   mode: "create" | "edit";
@@ -127,9 +150,35 @@ export default function QuizForm({
             prev.book &&
             !nextBooks.some((book) => book.name === prev.book)
           ) {
-            return { ...prev, book: "" };
+            return {
+              ...prev,
+              book: "",
+              startChapter: 1,
+              endChapter: 1,
+              startVerse: 1,
+              endVerse: 1,
+            };
           }
-          return prev;
+
+          const selected = nextBooks.find((book) => book.name === prev.book);
+          if (!selected) return prev;
+
+          const maxChapter = Math.max(1, selected.chapters);
+          const startChapter = Math.min(
+            Math.max(prev.startChapter, 1),
+            maxChapter,
+          );
+          const endChapter = Math.min(
+            Math.max(prev.endChapter, startChapter),
+            maxChapter,
+          );
+          if (
+            startChapter === prev.startChapter &&
+            endChapter === prev.endChapter
+          ) {
+            return prev;
+          }
+          return { ...prev, startChapter, endChapter };
         });
       })
       .catch((error: unknown) => {
@@ -150,9 +199,9 @@ export default function QuizForm({
     };
   }, [panel.translation]);
 
-  const patchPanel = (patch: Partial<QuizGeneratePanelValues>) => {
+  const patchPanel = useCallback((patch: Partial<QuizGeneratePanelValues>) => {
     setPanel((prev) => ({ ...prev, ...patch }));
-  };
+  }, []);
 
   const buildInput = (): QuizInput | null => {
     const trimmedTitle = title.trim() || panel.title.trim();
@@ -241,6 +290,23 @@ export default function QuizForm({
         ),
       }));
       setQuestions(mapped.questions);
+
+      // Persist immediately so generated drafts survive refresh/navigation.
+      if (mode === "create") {
+        const { quiz } = await createAdminQuiz(mapped);
+        toast.success("Draft saved");
+        router.push(`/admin/quizzes/${quiz.id}/edit`);
+        router.refresh();
+        return;
+      }
+
+      if (initialQuiz) {
+        await updateAdminQuiz(initialQuiz.id, mapped);
+        toast.success("Draft updated — review questions, then save");
+        router.refresh();
+        return;
+      }
+
       toast.success("Draft generated — review questions, then save");
     } catch (error: unknown) {
       const message =
@@ -370,22 +436,29 @@ export default function QuizForm({
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="quiz-status">
-                Status
-              </label>
-              <select
-                id="quiz-status"
-                className={styles.control}
+              <span className={styles.label}>Status</span>
+              <Combobox
+                options={STATUS_OPTIONS.map((item) => ({
+                  value: item.value,
+                  label: item.label,
+                  description: item.description,
+                  keywords: [item.value, item.label],
+                }))}
                 value={status}
+                onValueChange={(value) => setStatus(value as QuizStatus)}
                 disabled={busy}
-                onChange={(event) =>
-                  setStatus(event.target.value as QuizStatus)
+                placeholder="Choose status"
+                searchPlaceholder="Type status…"
+                emptyMessage="No statuses match."
+                triggerClassName={`${styles.control} w-full min-w-0 max-w-full`}
+                aria-label="Quiz status"
+              />
+              <p className={styles.helper}>
+                {
+                  STATUS_OPTIONS.find((item) => item.value === status)
+                    ?.description
                 }
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-              </select>
+              </p>
             </div>
           </div>
         </section>

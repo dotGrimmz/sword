@@ -13,6 +13,12 @@ import type {
 } from "@/types/quizzes";
 
 import { getOpenAIClient, QUIZ_MODEL } from "@/lib/ai/openai";
+import { suggestQuizQuestionCount } from "@/lib/quizzes/suggest-count";
+
+export {
+  QUIZ_QUESTION_COUNT_BOUNDS,
+  suggestQuizQuestionCount,
+} from "@/lib/quizzes/suggest-count";
 
 /**
  * Quiz generation knobs.
@@ -272,11 +278,6 @@ const formatRangeLabel = (
   return `${book} ${start.chapter}:${start.verse}-${end.chapter}:${end.verse}`;
 };
 
-const suggestCountFromVerseCount = (verseCount: number) => {
-  const band = PLATFORM.countBands.find(({ maxVerses }) => verseCount <= maxVerses);
-  return Math.min(PLATFORM.maxQuestions, band?.count ?? PLATFORM.minQuestions);
-};
-
 const resolveCorrectAnswer = (
   row: Record<string, unknown>,
   type: QuizQuestionType,
@@ -477,7 +478,12 @@ export async function generateQuizFromPassage(
       questionCount: request.questionCount,
     });
 
-  const heuristicCount = suggestCountFromVerseCount(passage.verses.length);
+  const heuristicCount = suggestQuizQuestionCount({
+    verseCount: passage.verses.length,
+    difficulty: request.difficulty,
+    focus: request.focus,
+    questionTypes: request.questionTypes,
+  });
   const targetCount = request.questionCount ?? heuristicCount;
 
   const client = getOpenAIClient();

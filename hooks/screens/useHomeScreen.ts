@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
-import { Book, BookOpen, CalendarRange, Heart, Lightbulb } from "lucide-react";
+import {
+  Book,
+  BookOpen,
+  CalendarRange,
+  ClipboardList,
+  Heart,
+  Lightbulb,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useProfile } from "@/components/ProfileContext";
@@ -17,7 +24,9 @@ import { useHomeEventQuery } from "@/lib/query/events";
 import { usePassageText } from "@/lib/query/passages";
 import { useHighlightsQuery } from "@/lib/query/highlights";
 import { useNotesQuery } from "@/lib/query/notes";
+import { usePublishedQuizzesQuery } from "@/lib/query/quizzes";
 import { useCurrentStudyQuery } from "@/lib/query/study";
+import { formatQuizPassageRef } from "@/lib/quizzes/strip";
 import { useReaderPosition } from "@/lib/stores/reader-store";
 import { formatWeekLabel } from "@/lib/study/week";
 import type { BibleBookSummary } from "@/types/bible";
@@ -114,6 +123,8 @@ export function useHomeScreen(options?: {
   const currentStudy: WeeklyStudy | null | undefined = studyQuery.data;
   const homeEventQuery = useHomeEventQuery();
   const homeEvent = homeEventQuery.data ?? null;
+  const quizzesQuery = usePublishedQuizzesQuery();
+  const publishedQuizzes = quizzesQuery.data ?? [];
 
   const notesData = notesQuery.data ?? [];
   const highlightsData = highlightsQuery.data ?? [];
@@ -289,8 +300,30 @@ export function useHomeScreen(options?: {
         ),
       });
     }
+    if (publishedQuizzes.length > 0) {
+      const latest = publishedQuizzes[0];
+      actions.push({
+        icon: ClipboardList,
+        label: "Quizzes",
+        href:
+          publishedQuizzes.length === 1
+            ? `/quizzes/${latest.id}`
+            : "/quizzes",
+        subtitle:
+          publishedQuizzes.length === 1
+            ? latest.title
+            : `${publishedQuizzes.length} quizzes available`,
+      });
+    }
     return actions;
-  }, [continueBook, continueChapter, currentStudy, homeEvent, readerHydrated]);
+  }, [
+    continueBook,
+    continueChapter,
+    currentStudy,
+    homeEvent,
+    publishedQuizzes,
+    readerHydrated,
+  ]);
 
   const studyMeta = currentStudy
     ? {
@@ -324,6 +357,25 @@ export function useHomeScreen(options?: {
       }
     : null;
 
+  const quizMeta =
+    publishedQuizzes.length > 0
+      ? (() => {
+          const latest = publishedQuizzes[0];
+          const count = publishedQuizzes.length;
+          return {
+            title: count === 1 ? latest.title : "Scripture quizzes",
+            meta:
+              count === 1
+                ? `${formatQuizPassageRef(latest)} · ${latest.question_count} ${
+                    latest.question_count === 1 ? "question" : "questions"
+                  }`
+                : `${count} quizzes ready · Latest: ${latest.title}`,
+            href: count === 1 ? `/quizzes/${latest.id}` : "/quizzes",
+            cta: count === 1 ? "Take quiz" : "Browse quizzes",
+          };
+        })()
+      : null;
+
   const showLoading =
     isLoadingBooks ||
     isLoadingTranslations ||
@@ -349,6 +401,7 @@ export function useHomeScreen(options?: {
     currentStudy,
     studyMeta,
     eventMeta,
+    quizMeta,
     todaysVerse,
     isVerseLoading,
     recentNotes,

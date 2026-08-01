@@ -18,6 +18,8 @@ export type ComboboxOption = {
   label: string;
   /** Extra client-side match terms (aliases, abbreviations, etc.). */
   keywords?: string[];
+  /** Optional secondary line / tooltip for the option. */
+  description?: string;
 };
 
 export type ComboboxProps = {
@@ -198,6 +200,7 @@ export function Combobox({
                     type="button"
                     role="option"
                     aria-selected={isSelected}
+                    title={option.description || undefined}
                     data-combobox-index={index}
                     data-active={isActive ? "" : undefined}
                     data-selected={isSelected ? "" : undefined}
@@ -205,7 +208,14 @@ export function Combobox({
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectValue(option.value)}
                   >
-                    <span className={styles.optionLabel}>{option.label}</span>
+                    <span className={styles.optionText}>
+                      <span className={styles.optionLabel}>{option.label}</span>
+                      {option.description ? (
+                        <span className={styles.optionDescription}>
+                          {option.description}
+                        </span>
+                      ) : null}
+                    </span>
                     {isSelected ? (
                       <CheckIcon className={styles.check} aria-hidden="true" />
                     ) : null}

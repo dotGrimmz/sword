@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
  * Loads the passage, calls OpenAI, returns a draft quiz (not persisted).
  */
 export async function POST(request: Request) {
-  const auth = await requireAdminOnly();
+  const auth = await requireAdminOnly(request);
   if (auth.error) return auth.error;
 
   let body: Record<string, unknown>;

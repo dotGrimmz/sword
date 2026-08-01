@@ -64,7 +64,15 @@ export async function createQuiz(
     .select(QUIZ_SELECT)
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    const hint =
+      /relation .*quizzes.* does not exist|Could not find the table/i.test(
+        error.message,
+      )
+        ? " Apply the quizzes migration (supabase/migrations/20260728080000_quizzes.sql)."
+        : "";
+    throw new Error(`${error.message}${hint}`);
+  }
   return normalizeQuizRow(data as Record<string, unknown>);
 }
 
@@ -78,6 +86,26 @@ export async function updateQuiz(
   const { data, error } = await client
     .from("quizzes")
     .update(row as never)
+    .eq("id", id)
+    .select(QUIZ_SELECT)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Quiz not found");
+  return normalizeQuizRow(data as Record<string, unknown>);
+}
+
+export async function updateQuizStatus(
+  client: Client,
+  id: string,
+  status: QuizStatus,
+): Promise<Quiz> {
+  const { data, error } = await client
+    .from("quizzes")
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    } as never)
     .eq("id", id)
     .select(QUIZ_SELECT)
     .maybeSingle();

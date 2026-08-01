@@ -131,7 +131,7 @@
 .option {
   display: flex;
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
   border: 0;
   border-radius: 0.65rem;
@@ -143,6 +143,22 @@
   text-align: left;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
+}
+
+.optionText {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.optionDescription {
+  font-size: 0.8rem;
+  font-weight: 450;
+  line-height: 1.35;
+  color: #6b5a52;
+  white-space: normal;
 }
 
 .option:hover,
@@ -162,7 +178,6 @@
 
 .optionLabel {
   min-width: 0;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -172,6 +187,7 @@
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
+  margin-top: 0.15rem;
   color: #d91f26;
 }
 

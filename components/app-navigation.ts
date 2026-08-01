@@ -41,6 +41,11 @@ export const dashboardSecondaryScreens = {
     label: "Events",
     route: "/events",
   },
+  quizzes: {
+    id: "quizzes",
+    label: "Quizzes",
+    route: "/quizzes",
+  },
 } as const;
 
 export type SecondaryScreenKey = keyof typeof dashboardSecondaryScreens;
@@ -53,6 +58,7 @@ export const screenRoutes = {
   settings: "/dashboard/settings",
   "pre-read": "/pre-read",
   events: "/events",
+  quizzes: "/quizzes",
   /** Deprecated — redirects to Today. */
   memory: "/dashboard",
   /** Deprecated — removed from IA. */

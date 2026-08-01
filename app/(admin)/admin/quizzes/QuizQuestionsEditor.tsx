@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import type { QuizQuestion, QuizQuestionType } from "@/types/quizzes";
 
 import styles from "./QuizForm.module.css";
@@ -11,11 +12,34 @@ type QuizQuestionsEditorProps = {
   onChange: (questions: QuizQuestion[]) => void;
 };
 
-const QUESTION_TYPES: { value: QuizQuestionType; label: string }[] = [
-  { value: "multiple_choice", label: "Multiple choice" },
-  { value: "true_false", label: "True / false" },
-  { value: "short_answer", label: "Short answer" },
+const QUESTION_TYPES: {
+  value: QuizQuestionType;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "multiple_choice",
+    label: "Multiple choice",
+    description: "One correct option among several choices.",
+  },
+  {
+    value: "true_false",
+    label: "True / false",
+    description: "Statement judged as True or False.",
+  },
+  {
+    value: "short_answer",
+    label: "Short answer",
+    description: "Free-text answer matched to an expected response.",
+  },
 ];
+
+const TRUE_FALSE_OPTIONS = [
+  { value: "True", label: "True" },
+  { value: "False", label: "False" },
+];
+
+const controlClass = `${styles.control} w-full min-w-0 max-w-full`;
 
 const btnSecondary =
   "h-11 min-h-11 px-4 text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
@@ -81,6 +105,33 @@ export default function QuizQuestionsEditor({
     updateQuestion(questionIndex, { options });
   };
 
+  const handleTypeChange = (index: number, type: QuizQuestionType) => {
+    const question = questions[index];
+    if (type === "multiple_choice") {
+      updateQuestion(index, {
+        type,
+        options:
+          question.options && question.options.length > 0
+            ? question.options
+            : ["", "", "", ""],
+      });
+      return;
+    }
+    if (type === "true_false") {
+      updateQuestion(index, {
+        type,
+        options: ["True", "False"],
+        correctAnswer:
+          question.correctAnswer === "True" ||
+          question.correctAnswer === "False"
+            ? question.correctAnswer
+            : "True",
+      });
+      return;
+    }
+    updateQuestion(index, { type, options: null });
+  };
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeaderRow}>
@@ -125,50 +176,25 @@ export default function QuizQuestionsEditor({
 
               <div className={styles.fieldGrid}>
                 <div className={styles.field}>
-                  <label
-                    className={styles.label}
-                    htmlFor={`quiz-q-${question.id}-type`}
-                  >
-                    Type
-                  </label>
-                  <select
-                    id={`quiz-q-${question.id}-type`}
-                    className={styles.control}
+                  <span className={styles.label}>Type</span>
+                  <Combobox
+                    options={QUESTION_TYPES.map((item) => ({
+                      value: item.value,
+                      label: item.label,
+                      description: item.description,
+                      keywords: [item.value, item.label],
+                    }))}
                     value={question.type}
+                    onValueChange={(value) =>
+                      handleTypeChange(index, value as QuizQuestionType)
+                    }
                     disabled={disabled}
-                    onChange={(event) => {
-                      const type = event.target.value as QuizQuestionType;
-                      if (type === "multiple_choice") {
-                        updateQuestion(index, {
-                          type,
-                          options:
-                            question.options && question.options.length > 0
-                              ? question.options
-                              : ["", "", "", ""],
-                        });
-                        return;
-                      }
-                      if (type === "true_false") {
-                        updateQuestion(index, {
-                          type,
-                          options: ["True", "False"],
-                          correctAnswer:
-                            question.correctAnswer === "True" ||
-                            question.correctAnswer === "False"
-                              ? question.correctAnswer
-                              : "True",
-                        });
-                        return;
-                      }
-                      updateQuestion(index, { type, options: null });
-                    }}
-                  >
-                    {QUESTION_TYPES.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Choose type"
+                    searchPlaceholder="Type multiple choice…"
+                    emptyMessage="No types match."
+                    triggerClassName={controlClass}
+                    aria-label={`Question ${index + 1} type`}
+                  />
                 </div>
 
                 <div className={`${styles.field} ${styles.fieldWide}`}>
@@ -243,20 +269,19 @@ export default function QuizQuestionsEditor({
                     Correct answer
                   </label>
                   {question.type === "true_false" ? (
-                    <select
-                      id={`quiz-q-${question.id}-answer`}
-                      className={styles.control}
+                    <Combobox
+                      options={TRUE_FALSE_OPTIONS}
                       value={question.correctAnswer || "True"}
-                      disabled={disabled}
-                      onChange={(event) =>
-                        updateQuestion(index, {
-                          correctAnswer: event.target.value,
-                        })
+                      onValueChange={(value) =>
+                        updateQuestion(index, { correctAnswer: value })
                       }
-                    >
-                      <option value="True">True</option>
-                      <option value="False">False</option>
-                    </select>
+                      disabled={disabled}
+                      placeholder="Choose answer"
+                      searchPlaceholder="True or False…"
+                      emptyMessage="No answers match."
+                      triggerClassName={controlClass}
+                      aria-label={`Question ${index + 1} correct answer`}
+                    />
                   ) : (
                     <input
                       id={`quiz-q-${question.id}-answer`}

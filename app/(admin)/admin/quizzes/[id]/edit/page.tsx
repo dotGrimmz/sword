@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { fetchTranslations } from "@/lib/bible/loaders";
 import { getAdminQuiz } from "@/lib/quizzes/loaders";
+import { getServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import pageStyles from "../../../AdminPage.module.css";
@@ -17,10 +18,11 @@ type PageProps = {
 
 export default async function AdminEditQuizPage({ params }: PageProps) {
   const { id } = await params;
-  const supabase = await createClient();
+  const userClient = await createClient();
+  const adminClient = getServiceRoleClient();
   const [quiz, translations] = await Promise.all([
-    getAdminQuiz(supabase, id),
-    fetchTranslations(supabase).catch(() => []),
+    getAdminQuiz(adminClient, id),
+    fetchTranslations(userClient).catch(() => []),
   ]);
 
   if (!quiz) notFound();

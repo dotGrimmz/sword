@@ -27,6 +27,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
     currentStudy,
     studyMeta,
     eventMeta,
+    quizMeta,
     todaysVerse,
     isVerseLoading,
     recentNotes,
@@ -67,7 +68,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
                 <span className={styles.adminEntryEyebrow}>Admin</span>
                 <span className={styles.adminEntryTitle}>Admin console</span>
                 <span className={styles.adminEntryMeta}>
-                  Manage study, events, and login QR
+                  Manage study, events, quizzes, and login QR
                 </span>
               </span>
               <ArrowUpRight className={styles.adminEntryCta} aria-hidden="true" />
@@ -96,6 +97,18 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
               </p>
               <span className={styles.studyPanelCta}>
                 View event
+                <ArrowUpRight className={styles.studyPanelCtaIcon} />
+              </span>
+            </Link>
+          ) : null}
+
+          {quizMeta ? (
+            <Link href={quizMeta.href} className={styles.quizPanel}>
+              <p className={styles.studyPanelEyebrow}>Quizzes</p>
+              <h2 className={styles.studyPanelTitle}>{quizMeta.title}</h2>
+              <p className={styles.studyPanelMeta}>{quizMeta.meta}</p>
+              <span className={styles.studyPanelCta}>
+                {quizMeta.cta}
                 <ArrowUpRight className={styles.studyPanelCtaIcon} />
               </span>
             </Link>
