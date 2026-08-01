@@ -84,7 +84,7 @@ export const TranslationSwitcher = memo(function TranslationSwitcher({
           </SelectItem>
           {translations.map((item) => (
             <SelectItem key={item.code} value={item.code} className={styles.selectItem}>
-              {`${item.code.toUpperCase()} · ${item.name}`}
+              {item.name}
             </SelectItem>
           ))}
         </SelectContent>

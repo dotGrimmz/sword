@@ -108,6 +108,14 @@ const TRANSLATIONS = [
     source: SOURCE_API_BIBLE,
     bibleId: "63097d2a0a2f7db3-01",
   },
+  {
+    code: "DRA",
+    apiCode: "dra",
+    name: "Douay-Rheims (Catholic & Orthodox)",
+    language: "English",
+    version: "1899 American Edition · Public Domain",
+    source: SOURCE_BIBLE_API,
+  },
 ];
 
 const cliArgs = process.argv.slice(2).map((arg) => arg.trim()).filter(Boolean);
@@ -757,6 +765,21 @@ async function ensureTranslation(translation) {
   }
 
   if (data) {
+    const { error: updateError } = await supabase
+      .from("bible_translations")
+      .update({
+        name: translation.name,
+        language: translation.language,
+        version: translation.version,
+      })
+      .eq("id", data.id);
+
+    if (updateError) {
+      throw new Error(
+        `Failed to update ${translation.code} translation metadata: ${updateError.message}`
+      );
+    }
+
     return { id: data.id, created: false };
   }
 
