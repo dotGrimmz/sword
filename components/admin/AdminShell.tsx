@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   CalendarDays,
   CalendarRange,
+  ClipboardList,
   Contact,
   LayoutDashboard,
   QrCode,
@@ -42,6 +43,12 @@ const navItems = [
     match: (path: string) => path.startsWith("/admin/events"),
   },
   {
+    href: "/admin/quizzes",
+    label: "Quizzes",
+    icon: ClipboardList,
+    match: (path: string) => path.startsWith("/admin/quizzes"),
+  },
+  {
     href: "/admin/users",
     label: "Users",
     icon: Contact,
@@ -58,6 +65,7 @@ const navItems = [
 function pageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/pre-read")) return "Study";
   if (pathname.startsWith("/admin/events")) return "Events";
+  if (pathname.startsWith("/admin/quizzes")) return "Quizzes";
   if (pathname.startsWith("/admin/users")) return "Users";
   if (pathname.startsWith("/admin/qr-login")) return "Login QR";
   if (pathname.startsWith("/admin/topics")) return "Topics";
