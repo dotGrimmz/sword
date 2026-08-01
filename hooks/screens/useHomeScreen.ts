@@ -311,8 +311,8 @@ export function useHomeScreen(options?: {
             : "/quizzes",
         subtitle:
           publishedQuizzes.length === 1
-            ? latest.title
-            : `${publishedQuizzes.length} quizzes available`,
+            ? `Practice ${formatQuizPassageRef(latest)}.`
+            : "Practice what you've been studying.",
       });
     }
     return actions;
@@ -357,25 +357,6 @@ export function useHomeScreen(options?: {
       }
     : null;
 
-  const quizMeta =
-    publishedQuizzes.length > 0
-      ? (() => {
-          const latest = publishedQuizzes[0];
-          const count = publishedQuizzes.length;
-          return {
-            title: count === 1 ? latest.title : "Scripture quizzes",
-            meta:
-              count === 1
-                ? `${formatQuizPassageRef(latest)} · ${latest.question_count} ${
-                    latest.question_count === 1 ? "question" : "questions"
-                  }`
-                : `${count} quizzes ready · Latest: ${latest.title}`,
-            href: count === 1 ? `/quizzes/${latest.id}` : "/quizzes",
-            cta: count === 1 ? "Take quiz" : "Browse quizzes",
-          };
-        })()
-      : null;
-
   const showLoading =
     isLoadingBooks ||
     isLoadingTranslations ||
@@ -401,7 +382,6 @@ export function useHomeScreen(options?: {
     currentStudy,
     studyMeta,
     eventMeta,
-    quizMeta,
     todaysVerse,
     isVerseLoading,
     recentNotes,
