@@ -80,7 +80,7 @@ const buildInitialPanel = (
     difficulty: "medium",
     questionTypes: ["multiple_choice", "true_false"],
     focus: "mixed",
-    temperature: 0.7,
+    temperature: 0.2,
     seed: "",
     title: "",
   };
