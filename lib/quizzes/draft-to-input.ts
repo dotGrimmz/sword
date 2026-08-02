@@ -3,11 +3,13 @@ import type {
   QuizInput,
   QuizStatus,
 } from "@/types/quizzes";
+import { DEFAULT_MAX_ATTEMPTS } from "@/types/quizzes";
 
 /** Map an AI generate draft into a persistable QuizInput. */
 export function quizDraftToInput(
   draft: QuizGenerateResult,
   status: QuizStatus = "draft",
+  maxAttempts: number = DEFAULT_MAX_ATTEMPTS,
 ): QuizInput {
   return {
     title: draft.title,
@@ -20,5 +22,6 @@ export function quizDraftToInput(
     end_verse: draft.range.end.verse,
     generation_config: draft.generationConfig,
     questions: draft.questions,
+    max_attempts: maxAttempts,
   };
 }

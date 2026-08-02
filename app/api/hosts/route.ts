@@ -23,11 +23,13 @@ export async function GET(request: Request) {
   let query = supabase
     .from("profiles")
     .select(HOST_SELECT)
-    .in("role", ["host", "admin"])
+    .in("role", ["host", "admin", "master"])
     .order("username", { ascending: true, nullsFirst: false });
 
   if (activeOnly) {
-    query = query.or("role.eq.admin,and(role.eq.host,is_host_active.eq.true)");
+    query = query.or(
+      "role.eq.admin,role.eq.master,and(role.eq.host,is_host_active.eq.true)",
+    );
   }
 
   const { data, error } = await query;

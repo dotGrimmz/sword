@@ -186,7 +186,8 @@
   color: #6b5b54;
 }
 
-.form {
+.form,
+.takeStack {
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
@@ -364,6 +365,124 @@
   margin: 0;
   font-size: 0.95rem;
   color: #6b5b54;
+}
+
+.resultOfficial {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: #1a1a1a;
+}
+
+.resultLocked {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #d91f26;
+}
+
+.attemptMeta {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b5b54;
+}
+
+.studyReview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1.15rem;
+  border-radius: 1rem;
+  border: 1px solid #e8cfc4;
+  background: color-mix(in oklab, #ffffff 82%, #fff5f0);
+}
+
+.studyReviewTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.studyReviewLead {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6b5b54;
+  line-height: 1.45;
+}
+
+.studyReviewAside {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #6b5b54;
+}
+
+.studyFocusList {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.studyFocusItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in oklab, #d91f26 28%, #e8cfc4);
+  background: color-mix(in oklab, #fff0ea 70%, #ffffff);
+}
+
+.studyFocusText {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.studyFocusPrompt {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.35;
+}
+
+.studyFocusCitation {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #6b5b54;
+}
+
+.studyFocusLink,
+.citationLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  color: #d91f26;
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.studyFocusLink:hover,
+.citationLink:hover {
+  text-decoration: underline;
+}
+
+.citationLink {
+  margin-top: 0.15rem;
+  width: fit-content;
 }
 
 .reviewList {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isAdminRole } from "@/lib/admin/roles";
 import { getServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,7 +33,7 @@ async function resolveCommentAccess(commentId: string) {
     .eq("id", session.user.id)
     .maybeSingle();
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isAdminRole(profile?.role);
   const adminClient = getServiceRoleClient();
 
   const { data: commentData, error: commentError } = await adminClient

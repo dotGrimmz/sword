@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   try {
     const admin = getServiceRoleClient();
-    const quizzes = await listPublishedQuizzes(admin);
+    const quizzes = await listPublishedQuizzes(admin, user.id);
     return NextResponse.json({ quizzes });
   } catch (error) {
     return NextResponse.json(

@@ -5,7 +5,7 @@ export type HostProfile = {
   stream_tagline: string | null;
   stream_url: string | null;
   is_host_active: boolean;
-  role: "admin" | "host" | "user" | (string & {});
+  role: "admin" | "master" | "host" | "user" | (string & {});
 };
 
 export type PreRead = {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AdminShell } from "@/components/admin/AdminShell";
 import type { UserRole } from "@/components/ProfileContext";
+import { isAdminRole } from "@/lib/admin/roles";
 import { resolveTheme } from "@/lib/themes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,9 +31,13 @@ export default async function AdminLayout({
   const role = (data?.role as UserRole | null) ?? null;
   const theme = data?.theme ? resolveTheme(data.theme) : null;
 
-  if (role !== "admin") {
+  if (!isAdminRole(role)) {
     redirect("/dashboard");
   }
 
-  return <AdminShell initialTheme={theme}>{children}</AdminShell>;
+  return (
+    <AdminShell initialTheme={theme} role={role}>
+      {children}
+    </AdminShell>
+  );
 }

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ClipboardList, ClipboardPlus } from "lucide-react";
 
+import AiUsageCard from "@/components/admin/AiUsageCard";
+import { getCurrentUserRole } from "@/lib/admin/current-role";
+import { isMasterRole } from "@/lib/admin/roles";
 import { listAdminQuizzes } from "@/lib/quizzes/loaders";
 import { getServiceRoleClient } from "@/lib/supabase/admin";
 
@@ -11,11 +14,15 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminQuizzesPage() {
   const supabase = getServiceRoleClient();
-  const quizzes = await listAdminQuizzes(supabase);
+  const [quizzes, role] = await Promise.all([
+    listAdminQuizzes(supabase),
+    getCurrentUserRole(),
+  ]);
 
   const published = quizzes.filter((item) => item.status === "published").length;
   const drafts = quizzes.filter((item) => item.status === "draft").length;
   const archived = quizzes.filter((item) => item.status === "archived").length;
+  const showUsage = isMasterRole(role);
 
   return (
     <main className={styles.page}>
@@ -27,6 +34,8 @@ export default async function AdminQuizzesPage() {
           for members.
         </p>
       </header>
+
+      {showUsage ? <AiUsageCard /> : null}
 
       <section className={styles.statsRow} aria-label="Quiz counts">
         <div className={styles.statCard}>

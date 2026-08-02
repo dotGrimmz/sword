@@ -37,6 +37,13 @@ export type QuizQuestion = {
   explanation: string | null;
 };
 
+/** Default / clamp bounds for per-quiz attempt limits. */
+export const DEFAULT_MAX_ATTEMPTS = 3;
+export const MIN_MAX_ATTEMPTS = 1;
+export const MAX_MAX_ATTEMPTS = 20;
+
+export const ATTEMPT_LIMIT_REACHED_MESSAGE = "Attempt limit reached";
+
 export type Quiz = {
   id: string;
   title: string;
@@ -50,6 +57,7 @@ export type Quiz = {
   generation_config: QuizGenerationConfig;
   questions: QuizQuestion[];
   question_count: number;
+  max_attempts: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -66,6 +74,7 @@ export type QuizInput = {
   end_verse: number;
   generation_config: QuizGenerationConfig;
   questions: QuizQuestion[];
+  max_attempts: number;
 };
 
 export type QuizGenerateRequest = {
@@ -98,6 +107,18 @@ export type QuizGenerateResult = {
   verseCount: number;
 };
 
+/** Official score progress for a member on one quiz (from quiz_scores). */
+export type QuizAttemptProgress = {
+  attemptCount: number;
+  maxAttempts: number;
+  attemptsRemaining: number;
+  bestScore: number | null;
+  bestMaxScore: number | null;
+  bestPercent: number | null;
+  finalized: boolean;
+  bestAttemptId: string | null;
+};
+
 /** Published quiz list card — no question content. */
 export type PublicQuizSummary = {
   id: string;
@@ -109,7 +130,10 @@ export type PublicQuizSummary = {
   end_chapter: number;
   end_verse: number;
   question_count: number;
+  max_attempts: number;
   updated_at: string;
+  /** Present when loaded for the signed-in member. */
+  progress?: QuizAttemptProgress | null;
 };
 
 /** Question shape safe to send before submit (no answers). */
@@ -147,4 +171,55 @@ export type QuizAttemptResult = {
   score: number;
   maxScore: number;
   results: QuizAttemptQuestionResult[];
+  attemptNumber: number;
+  maxAttempts: number;
+  attemptsRemaining: number;
+  bestScore: number;
+  bestMaxScore: number;
+  bestPercent: number;
+  finalized: boolean;
+};
+
+/** Admin: one member's official score on a quiz. */
+export type AdminQuizScoreRow = {
+  userId: string;
+  username: string | null;
+  email: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+  title: string | null;
+  role: string;
+  bestScore: number;
+  maxScore: number;
+  bestPercent: number;
+  attemptCount: number;
+  maxAttempts: number;
+  finalized: boolean;
+  bestAttemptId: string | null;
+  firstCompletedAt: string;
+  bestAchievedAt: string;
+};
+
+export type AdminQuizAttemptAnswer = {
+  questionId: string;
+  prompt: string;
+  value: string;
+  correct: boolean;
+  correctAnswer: string | null;
+};
+
+/** Admin: one completed attempt with answer breakdown. */
+export type AdminQuizAttemptRow = {
+  attemptId: string;
+  score: number;
+  maxScore: number;
+  completedAt: string | null;
+  isBest: boolean;
+  answers: AdminQuizAttemptAnswer[];
+};
+
+export type AdminQuizScoresSummary = {
+  memberCount: number;
+  finalizedCount: number;
+  averageBestPercent: number | null;
 };

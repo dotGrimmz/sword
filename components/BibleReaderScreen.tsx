@@ -125,6 +125,7 @@ export function BibleReaderScreen() {
   const searchParams = useSearchParams();
   const queryBookParam = searchParams?.get("book") ?? null;
   const queryChapterParam = searchParams?.get("chapter") ?? null;
+  const queryVerseParam = searchParams?.get("verse") ?? null;
 
   const chapterQuery = useChapterQuery(
     translationCode,
@@ -181,7 +182,7 @@ export function BibleReaderScreen() {
 
     const normalizedBook = normalizeBookInput(rawBook);
     const normalizedCollapsed = normalizedBook.replace(/ /g, "");
-    const queryKey = `${normalizedBook}|${rawChapter ?? ""}`;
+    const queryKey = `${normalizedBook}|${rawChapter ?? ""}|${queryVerseParam ?? ""}`;
 
     if (queryAppliedRef.current === queryKey) {
       return;
@@ -220,7 +221,13 @@ export function BibleReaderScreen() {
 
     applyFromQuery(matchingBook.id, requestedChapter);
     queryAppliedRef.current = queryKey;
-  }, [applyFromQuery, books, queryBookParam, queryChapterParam]);
+  }, [
+    applyFromQuery,
+    books,
+    queryBookParam,
+    queryChapterParam,
+    queryVerseParam,
+  ]);
 
   useEffect(() => {
     if (!hasHydrated || books.length === 0) {
@@ -244,9 +251,22 @@ export function BibleReaderScreen() {
   }, [selectedBookId, bookIndex, books, chapter, hasHydrated, queryBookParam, setChapter, setPosition]);
 
   useEffect(() => {
+    const rawVerse = queryVerseParam?.trim();
+    const parsedVerse = rawVerse ? Number.parseInt(rawVerse, 10) : NaN;
+    if (
+      queryBookParam?.trim() &&
+      Number.isFinite(parsedVerse) &&
+      parsedVerse >= 1
+    ) {
+      setSelectedVerse(parsedVerse);
+      // Allow scroll-into-view once verses for this chapter load.
+      skipVerseScrollRef.current = false;
+      return;
+    }
+
     setSelectedVerse(1);
     skipVerseScrollRef.current = true;
-  }, [chapter, selectedBookId, setSelectedVerse]);
+  }, [chapter, selectedBookId, queryBookParam, queryVerseParam, setSelectedVerse]);
 
   useEffect(() => {
     if (verses.length === 0) {

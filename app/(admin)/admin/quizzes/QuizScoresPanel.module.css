@@ -1,0 +1,267 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.empty {
+  margin: 0;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1rem;
+  border: 1px dashed #e8cfc4;
+  background: color-mix(in oklab, #ffffff 88%, #fff5f0);
+  color: #6b5b54;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 1rem;
+  border: 1px solid #e8cfc4;
+  background: #ffffff;
+  box-shadow: 0 8px 24px color-mix(in oklab, #d91f26 6%, transparent);
+  overflow: hidden;
+}
+
+.rowHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.1rem 1.2rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rowHeader:hover {
+  background: color-mix(in oklab, #fff5f0 70%, #ffffff);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.avatar,
+.avatarFallback {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, #d91f26 12%, #fff5f0);
+  color: #d91f26;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b5b54;
+}
+
+.scoreAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.scoreValue {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 750;
+  color: #1a1a1a;
+}
+
+.scoreMeta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #6b5b54;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badgeLocked {
+  background: color-mix(in oklab, #d91f26 12%, #ffffff);
+  color: #d91f26;
+}
+
+.badgeBest {
+  background: color-mix(in oklab, #2f8f4e 14%, #ffffff);
+  color: #2f8f4e;
+}
+
+.expandHint {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: #d91f26;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0 1.2rem 1.2rem;
+  border-top: 1px solid #f0ddd3;
+}
+
+.detailLoading,
+.detailError {
+  margin: 0.85rem 0 0;
+  font-size: 0.9rem;
+  color: #6b5b54;
+}
+
+.detailError {
+  color: #b81820;
+}
+
+.attempt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e8cfc4;
+  background: color-mix(in oklab, #fff8f4 80%, #ffffff);
+}
+
+.attemptHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.attemptScore {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.attemptDate {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b5b54;
+}
+
+.answerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.answerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid #eed9cf;
+  background: #ffffff;
+}
+
+.answerItemCorrect {
+  border-color: color-mix(in oklab, #2f8f4e 30%, #eed9cf);
+}
+
+.answerItemIncorrect {
+  border-color: color-mix(in oklab, #d91f26 30%, #eed9cf);
+}
+
+.answerPrompt {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: #1a1a1a;
+  line-height: 1.35;
+}
+
+.answerLine {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #4a4a4a;
+  line-height: 1.4;
+}
+
+.answerBadge {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.answerBadgeCorrect {
+  color: #2f8f4e;
+}
+
+.answerBadgeIncorrect {
+  color: #d91f26;
+}

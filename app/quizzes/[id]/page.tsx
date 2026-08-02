@@ -4,7 +4,11 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { QuizTakeForm } from "@/components/quizzes/QuizTakeForm";
-import { getPublishedQuizForTake } from "@/lib/quizzes/member-loaders";
+import {
+  getBestAttemptResult,
+  getPublishedQuizForTake,
+  getQuizAttemptProgress,
+} from "@/lib/quizzes/member-loaders";
 import { formatQuizPassageRef } from "@/lib/quizzes/strip";
 import { getServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -48,6 +52,19 @@ export default async function QuizTakePage({ params }: PageProps) {
     notFound();
   }
 
+  const progress = await getQuizAttemptProgress(
+    admin,
+    quiz.id,
+    session.user.id,
+    quiz.max_attempts,
+  );
+  const lockedResult = progress.finalized
+    ? await getBestAttemptResult(admin, {
+        quizId: quiz.id,
+        userId: session.user.id,
+      })
+    : null;
+
   return (
     <main className={styles.page}>
       <div className={styles.topBar}>
@@ -68,10 +85,17 @@ export default async function QuizTakePage({ params }: PageProps) {
             {quiz.question_count}{" "}
             {quiz.question_count === 1 ? "question" : "questions"}
           </span>
+          <span>
+            {progress.attemptCount}/{quiz.max_attempts} attempts
+          </span>
         </p>
       </header>
 
-      <QuizTakeForm quiz={quiz} />
+      <QuizTakeForm
+        quiz={quiz}
+        initialProgress={progress}
+        lockedResult={lockedResult}
+      />
     </main>
   );
 }

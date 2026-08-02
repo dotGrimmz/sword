@@ -1,5 +1,8 @@
 import { apiFetch } from "@/lib/api/fetch";
 import type {
+  AdminQuizAttemptRow,
+  AdminQuizScoreRow,
+  AdminQuizScoresSummary,
   Quiz,
   QuizGenerateRequest,
   QuizGenerateResult,
@@ -49,3 +52,15 @@ export const generateAdminQuiz = (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+
+export const getAdminQuizScores = (id: string) =>
+  apiFetch<{
+    quiz: Quiz;
+    scores: AdminQuizScoreRow[];
+    summary: AdminQuizScoresSummary;
+  }>(`/api/admin/quizzes/${id}/scores`);
+
+export const getAdminQuizUserAttempts = (quizId: string, userId: string) =>
+  apiFetch<{ attempts: AdminQuizAttemptRow[] }>(
+    `/api/admin/quizzes/${quizId}/scores/${userId}`,
+  );

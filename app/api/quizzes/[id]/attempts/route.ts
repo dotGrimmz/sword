@@ -4,6 +4,7 @@ import { createQuizAttempt } from "@/lib/quizzes/member-loaders";
 import { getServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { QuizAttemptAnswer } from "@/types/quizzes";
+import { ATTEMPT_LIMIT_REACHED_MESSAGE } from "@/types/quizzes";
 
 const accessTokenFromRequest = (request: Request) => {
   const header = request.headers.get("authorization");
@@ -86,7 +87,12 @@ export async function POST(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to submit quiz";
-    const status = message === "Quiz not found" ? 404 : 500;
+    const status =
+      message === "Quiz not found"
+        ? 404
+        : message === ATTEMPT_LIMIT_REACHED_MESSAGE
+          ? 409
+          : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

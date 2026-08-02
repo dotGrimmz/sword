@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { UserRole } from "@/components/ProfileContext";
+import { isAdminRole, isMasterRole } from "@/lib/admin/roles";
 import { createClient } from "@/lib/supabase/server";
+
+export { isAdminRole, isMasterRole } from "@/lib/admin/roles";
 
 type Authed = {
   user: { id: string };
@@ -25,10 +28,10 @@ const accessTokenFromRequest = (request?: Request) => {
   return token || undefined;
 };
 
-/** Gate admin console APIs — permission role only (`admin`). */
-export async function requireAdminOnly(
-  request?: Request,
-): Promise<Authed | AuthError> {
+const resolveAuthedRole = async (
+  request: Request | undefined,
+  allowed: (role: UserRole | null) => boolean,
+): Promise<Authed | AuthError> => {
   const supabase = await createClient(accessTokenFromRequest(request));
   const {
     data: { user },
@@ -51,7 +54,7 @@ export async function requireAdminOnly(
     .maybeSingle();
 
   const role = (profile?.role as UserRole | null) ?? null;
-  if (role !== "admin") {
+  if (!allowed(role)) {
     return {
       user: null,
       role: null,
@@ -60,5 +63,19 @@ export async function requireAdminOnly(
     };
   }
 
-  return { user: { id: user.id }, role, supabase, error: null };
+  return { user: { id: user.id }, role: role as UserRole, supabase, error: null };
+};
+
+/** Gate admin console APIs — `admin` or `master`. */
+export async function requireAdminOnly(
+  request?: Request,
+): Promise<Authed | AuthError> {
+  return resolveAuthedRole(request, isAdminRole);
+}
+
+/** Gate owner/dev APIs — `master` only. */
+export async function requireMasterOnly(
+  request?: Request,
+): Promise<Authed | AuthError> {
+  return resolveAuthedRole(request, isMasterRole);
 }

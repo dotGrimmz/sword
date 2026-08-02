@@ -23,6 +23,11 @@ import type {
   QuizQuestion,
   QuizStatus,
 } from "@/types/quizzes";
+import {
+  DEFAULT_MAX_ATTEMPTS,
+  MAX_MAX_ATTEMPTS,
+  MIN_MAX_ATTEMPTS,
+} from "@/types/quizzes";
 
 const STATUS_OPTIONS: {
   value: QuizStatus;
@@ -53,11 +58,11 @@ import QuizGeneratePanel, {
 import QuizQuestionsEditor from "./QuizQuestionsEditor";
 
 const btnSecondary =
-  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
+  "h-14 min-h-14 min-w-[8.5rem] px-5 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-[1.15rem] md:text-[0.9rem] rounded-[0.75rem] border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
 const btnPrimary =
-  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white cursor-pointer";
+  "h-14 min-h-14 min-w-[8.5rem] px-5 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-[1.15rem] md:text-[0.9rem] rounded-[0.75rem] border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white cursor-pointer";
 const btnDanger =
-  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
+  "h-14 min-h-14 min-w-[8.5rem] px-5 text-base md:h-11 md:min-h-11 md:min-w-[7.5rem] md:px-[1.15rem] md:text-[0.9rem] rounded-[0.75rem] border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
 
 type QuizFormProps = {
   mode: "create" | "edit";
@@ -66,6 +71,7 @@ type QuizFormProps = {
 };
 
 const defaultTranslation = (translations: BibleTranslationSummary[]) =>
+  translations.find((item) => item.code === "NKJV")?.code ??
   translations.find((item) => item.code === "WEB")?.code ??
   translations[0]?.code ??
   "";
@@ -88,7 +94,6 @@ const buildInitialPanel = (
       focus: quiz.generation_config.focus,
       temperature: quiz.generation_config.temperature,
       seed: String(quiz.generation_config.seed ?? ""),
-      title: quiz.title,
     };
   }
 
@@ -98,14 +103,13 @@ const buildInitialPanel = (
     startChapter: 1,
     startVerse: 1,
     endChapter: 1,
-    endVerse: 5,
+    endVerse: 1,
     questionCount: 5,
     difficulty: "medium",
     questionTypes: ["multiple_choice", "true_false"],
     focus: "mixed",
     temperature: 0.2,
     seed: "",
-    title: "",
   };
 };
 
@@ -118,6 +122,9 @@ export default function QuizForm({
   const [title, setTitle] = useState(initialQuiz?.title ?? "");
   const [status, setStatus] = useState<QuizStatus>(
     initialQuiz?.status ?? "draft",
+  );
+  const [maxAttempts, setMaxAttempts] = useState(
+    initialQuiz?.max_attempts ?? DEFAULT_MAX_ATTEMPTS,
   );
   const [panel, setPanel] = useState<QuizGeneratePanelValues>(() =>
     buildInitialPanel(initialQuiz, translations),
@@ -204,7 +211,7 @@ export default function QuizForm({
   }, []);
 
   const buildInput = (): QuizInput | null => {
-    const trimmedTitle = title.trim() || panel.title.trim();
+    const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       toast.error("Title is required");
       return null;
@@ -223,6 +230,11 @@ export default function QuizForm({
         ? Date.now() % 1_000_000_000
         : Number(panel.seed);
 
+    const clampedAttempts = Math.min(
+      MAX_MAX_ATTEMPTS,
+      Math.max(MIN_MAX_ATTEMPTS, Math.round(maxAttempts) || DEFAULT_MAX_ATTEMPTS),
+    );
+
     return {
       title: trimmedTitle,
       status,
@@ -240,6 +252,7 @@ export default function QuizForm({
         seed: Number.isFinite(seedNumber) ? seedNumber : Date.now() % 1_000_000_000,
       },
       questions,
+      max_attempts: clampedAttempts,
     };
   };
 
@@ -262,14 +275,17 @@ export default function QuizForm({
       ...(panel.seed.trim()
         ? { seed: Number(panel.seed) }
         : {}),
-      ...(panel.title.trim() ? { title: panel.title.trim() } : {}),
+      ...(title.trim() ? { title: title.trim() } : {}),
     };
 
     setGenerating(true);
     try {
       const { draft } = await generateAdminQuiz(request);
-      const mapped = quizDraftToInput(draft, status);
-      setTitle(mapped.title);
+      const mapped = quizDraftToInput(draft, status, maxAttempts);
+      // Fill empty titles from the model; keep an admin-provided title as-is.
+      if (!title.trim()) {
+        setTitle(mapped.title);
+      }
       setPanel((prev) => ({
         ...prev,
         translation: mapped.translation_code,
@@ -283,7 +299,6 @@ export default function QuizForm({
         focus: mapped.generation_config.focus,
         temperature: mapped.generation_config.temperature,
         seed: String(mapped.generation_config.seed),
-        title: mapped.title,
         questionCount: Math.min(
           20,
           Math.max(3, draft.suggestedQuestionCount || prev.questionCount),
@@ -432,8 +447,13 @@ export default function QuizForm({
                 className={styles.control}
                 value={title}
                 disabled={busy}
+                placeholder="Leave blank to auto-generate from the passage"
                 onChange={(event) => setTitle(event.target.value)}
               />
+              <p className={styles.helper}>
+                Leave blank and Generate draft will invent a short title from the
+                passage theme.
+              </p>
             </div>
             <div className={styles.field}>
               <span className={styles.label}>Status</span>
@@ -458,6 +478,31 @@ export default function QuizForm({
                   STATUS_OPTIONS.find((item) => item.value === status)
                     ?.description
                 }
+              </p>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="quiz-max-attempts">
+                Max attempts
+              </label>
+              <input
+                id="quiz-max-attempts"
+                type="number"
+                className={styles.control}
+                min={MIN_MAX_ATTEMPTS}
+                max={MAX_MAX_ATTEMPTS}
+                step={1}
+                value={maxAttempts}
+                disabled={busy}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  setMaxAttempts(
+                    Number.isFinite(next) ? next : DEFAULT_MAX_ATTEMPTS,
+                  );
+                }}
+              />
+              <p className={styles.helper}>
+                How many times a member can submit this quiz. Default{" "}
+                {DEFAULT_MAX_ATTEMPTS}. Best score is kept for leaderboards.
               </p>
             </div>
           </div>

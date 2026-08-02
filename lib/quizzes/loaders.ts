@@ -11,7 +11,7 @@ type Client = SupabaseClient;
 const QUIZ_SELECT = `
   id, title, status, translation_code, book,
   start_chapter, start_verse, end_chapter, end_verse,
-  generation_config, questions, question_count,
+  generation_config, questions, question_count, max_attempts,
   created_by, created_at, updated_at
 `;
 

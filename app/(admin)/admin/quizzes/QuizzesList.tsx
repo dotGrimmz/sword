@@ -108,6 +108,12 @@ export default function QuizzesList({ quizzes }: QuizzesListProps) {
                   </button>
                 ) : null}
                 <Link
+                  href={`/admin/quizzes/${quiz.id}/scores`}
+                  className={styles.listCardLink}
+                >
+                  Scores
+                </Link>
+                <Link
                   href={`/admin/quizzes/${quiz.id}/edit`}
                   className={styles.listCardLink}
                 >

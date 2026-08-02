@@ -26,7 +26,6 @@ import { useHighlightsQuery } from "@/lib/query/highlights";
 import { useNotesQuery } from "@/lib/query/notes";
 import { usePublishedQuizzesQuery } from "@/lib/query/quizzes";
 import { useCurrentStudyQuery } from "@/lib/query/study";
-import { formatQuizPassageRef } from "@/lib/quizzes/strip";
 import { useReaderPosition } from "@/lib/stores/reader-store";
 import { formatWeekLabel } from "@/lib/study/week";
 import type { BibleBookSummary } from "@/types/bible";
@@ -301,18 +300,11 @@ export function useHomeScreen(options?: {
       });
     }
     if (publishedQuizzes.length > 0) {
-      const latest = publishedQuizzes[0];
       actions.push({
         icon: ClipboardList,
         label: "Quizzes",
-        href:
-          publishedQuizzes.length === 1
-            ? `/quizzes/${latest.id}`
-            : "/quizzes",
-        subtitle:
-          publishedQuizzes.length === 1
-            ? `Practice ${formatQuizPassageRef(latest)}.`
-            : "Practice what you've been studying.",
+        href: "/quizzes",
+        subtitle: "Practice what you've been studying.",
       });
     }
     return actions;

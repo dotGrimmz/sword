@@ -8,6 +8,11 @@ import type {
   QuizQuestionType,
   QuizStatus,
 } from "@/types/quizzes";
+import {
+  DEFAULT_MAX_ATTEMPTS,
+  MAX_MAX_ATTEMPTS,
+  MIN_MAX_ATTEMPTS,
+} from "@/types/quizzes";
 
 const DIFFICULTIES: QuizDifficulty[] = ["easy", "medium", "hard"];
 const FOCUSES: QuizFocus[] = [
@@ -82,6 +87,12 @@ const asSeed = (value: unknown): number => {
   if (!Number.isInteger(n) || n < 0) return 0;
   return n;
 };
+
+export function normalizeMaxAttempts(value: unknown): number {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(n)) return DEFAULT_MAX_ATTEMPTS;
+  return Math.min(MAX_MAX_ATTEMPTS, Math.max(MIN_MAX_ATTEMPTS, n));
+}
 
 export function normalizeGenerationConfig(
   value: unknown,
@@ -202,6 +213,7 @@ export function normalizeQuizRow(row: Record<string, unknown>): Quiz {
     generation_config: normalizeGenerationConfig(row.generation_config),
     questions,
     question_count: Number(row.question_count ?? questions.length) || 0,
+    max_attempts: normalizeMaxAttempts(row.max_attempts),
     created_by: (row.created_by as string | null) ?? null,
     created_at: String(row.created_at ?? ""),
     updated_at: String(row.updated_at ?? ""),
@@ -272,6 +284,7 @@ export function normalizeQuizInput(body: Record<string, unknown>): QuizInput {
     end_verse,
     generation_config,
     questions,
+    max_attempts: normalizeMaxAttempts(body.max_attempts),
   };
 }
 
@@ -288,6 +301,7 @@ export function quizInputToRow(input: QuizInput, createdBy?: string) {
     generation_config: input.generation_config,
     questions: input.questions,
     question_count: input.questions.length,
+    max_attempts: normalizeMaxAttempts(input.max_attempts),
     ...(createdBy ? { created_by: createdBy } : {}),
     updated_at: new Date().toISOString(),
   };

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import type { UserRole } from "@/components/ProfileContext";
+import { isAdminRole } from "@/lib/admin/roles";
 import { fetchAdminUsers } from "@/lib/admin/users";
 import { createClient } from "@/lib/supabase/server";
 
@@ -26,7 +27,7 @@ export default async function AdminUsersPage() {
     .maybeSingle();
 
   const role = (profile?.role as UserRole | null) ?? null;
-  if (role !== "admin") {
+  if (!isAdminRole(role)) {
     redirect("/dashboard");
   }
 

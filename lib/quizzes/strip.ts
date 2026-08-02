@@ -17,6 +17,7 @@ export function toPublicQuizSummary(quiz: Quiz): PublicQuizSummary {
     end_chapter: quiz.end_chapter,
     end_verse: quiz.end_verse,
     question_count: quiz.question_count,
+    max_attempts: quiz.max_attempts,
     updated_at: quiz.updated_at,
   };
 }

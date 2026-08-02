@@ -45,6 +45,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
+  cursor: pointer;
   transition: border-color 150ms ease, color 150ms ease;
 }
 

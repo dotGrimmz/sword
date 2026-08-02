@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, CalendarRange, QrCode } from "lucide-react";
 
+import AiUsageCard from "@/components/admin/AiUsageCard";
+import { getCurrentUserRole } from "@/lib/admin/current-role";
+import { isMasterRole } from "@/lib/admin/roles";
 import { fetchPreReads } from "@/lib/api/pre-reads";
 import { formatWeekLabel, isCurrentWeek, startOfWeek } from "@/lib/study/week";
 
@@ -9,7 +12,10 @@ import styles from "./AdminPage.module.css";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  const preReads = await fetchPreReads();
+  const [preReads, role] = await Promise.all([
+    fetchPreReads(),
+    getCurrentUserRole(),
+  ]);
 
   const weekStart = startOfWeek(new Date());
   const thisWeekStudy =
@@ -17,6 +23,7 @@ export default async function AdminOverviewPage() {
       (study) => study.week_start && isCurrentWeek(study.week_start),
     ) ?? null;
   const publishedCount = preReads.filter((study) => study.published).length;
+  const showUsage = isMasterRole(role);
 
   return (
     <main className={styles.page}>
@@ -28,6 +35,8 @@ export default async function AdminOverviewPage() {
           scripture and materials.
         </p>
       </header>
+
+      {showUsage ? <AiUsageCard /> : null}
 
       <section className={styles.statsRow} aria-label="Quick counts">
         <div className={styles.statCard}>

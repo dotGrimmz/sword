@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isAdminRole } from "@/lib/admin/roles";
 import { createClient } from "@/lib/supabase/server";
 
 const COMMENT_SELECT = `
@@ -71,7 +72,7 @@ export async function GET(
     .eq("id", session.user.id)
     .maybeSingle();
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isAdminRole(profile?.role);
 
   const { data, error } = await supabase
     .from("pre_read_comments")
@@ -185,7 +186,7 @@ export async function POST(
     .eq("id", session.user.id)
     .maybeSingle();
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isAdminRole(profile?.role);
 
   const { data, error } = await supabase
     .from("pre_read_comments")

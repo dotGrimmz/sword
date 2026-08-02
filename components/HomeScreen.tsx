@@ -14,6 +14,7 @@ import {
 } from "./ui/card";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useHomeScreen } from "@/hooks/screens/useHomeScreen";
+import { isAdminRole } from "@/lib/admin/roles";
 import styles from "./HomeScreen.module.css";
 
 interface HomeScreenProps {
@@ -58,7 +59,7 @@ export function HomeScreen({ onNavigate }: HomeScreenProps) {
             Scripture • Wisdom • Order • Reflection • Devotion
           </p>
 
-          {role === "admin" ? (
+          {isAdminRole(role) ? (
             <Link href="/admin" className={styles.adminEntry}>
               <span className={styles.adminEntryIconWrap} aria-hidden="true">
                 <Shield className={styles.adminEntryIcon} />

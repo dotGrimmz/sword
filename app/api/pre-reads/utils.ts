@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isAdminRole } from "@/lib/admin/roles";
 import { startOfWeek, weekVisibilityWindow } from "@/lib/study/week";
 import {
   PRE_READ_SELECT,
@@ -202,7 +203,7 @@ export async function requireAdmin(
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isAdminRole(profile?.role)) {
     return {
       user: null as null,
       error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),

@@ -34,6 +34,12 @@ export default async function AdminEditQuizPage({ params }: PageProps) {
           <ArrowLeft className={pageStyles.backIcon} aria-hidden="true" />
           Back to quizzes
         </Link>
+        <Link
+          href={`/admin/quizzes/${quiz.id}/scores`}
+          className={pageStyles.backLink}
+        >
+          View scores
+        </Link>
       </div>
       <header className={pageStyles.header}>
         <p className={pageStyles.eyebrow}>Admin · Quizzes</p>

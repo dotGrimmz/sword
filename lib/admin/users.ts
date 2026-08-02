@@ -16,7 +16,12 @@ type ProfileRow = {
 };
 
 const asRole = (value: unknown): UserRole => {
-  if (value === "admin" || value === "host" || value === "user") {
+  if (
+    value === "admin" ||
+    value === "master" ||
+    value === "host" ||
+    value === "user"
+  ) {
     return value;
   }
   return "user";

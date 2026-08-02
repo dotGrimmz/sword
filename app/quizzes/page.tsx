@@ -28,7 +28,7 @@ export default async function QuizzesPage() {
   }
 
   const admin = getServiceRoleClient();
-  const quizzes = await listPublishedQuizzes(admin);
+  const quizzes = await listPublishedQuizzes(admin, session.user.id);
 
   return (
     <main className={styles.page}>

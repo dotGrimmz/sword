@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
-export type UserRole = "user" | "host" | "admin";
+export type UserRole = "user" | "host" | "admin" | "master";
 
 interface ProfileContextValue {
   role: UserRole;

@@ -273,6 +273,48 @@ textarea.control {
   gap: 0.75rem;
 }
 
+/* Match admin primary CTA ("Edit this week's study") sizing. */
+.generateButton {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-sizing: border-box;
+  min-height: 3.5rem !important;
+  height: auto !important;
+  width: 100%;
+  min-width: 0;
+  padding: 0.9rem 1.25rem !important;
+  border: 0 !important;
+  border-radius: 0.75rem !important;
+  background: linear-gradient(105deg, #d91f26, #f28c00) !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px color-mix(in oklab, #d91f26 28%, transparent) !important;
+  cursor: pointer;
+}
+
+.generateButton:hover:not(:disabled) {
+  filter: brightness(1.03);
+  color: #ffffff !important;
+}
+
+.generateButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (min-width: 720px) {
+  .generateButton {
+    width: auto;
+    min-height: 2.75rem !important;
+    padding: 0.75rem 1.15rem !important;
+    font-size: 0.9rem !important;
+  }
+}
+
 .countStepper {
   display: flex;
   flex-wrap: wrap;

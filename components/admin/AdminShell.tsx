@@ -11,19 +11,23 @@ import {
   Contact,
   LayoutDashboard,
   QrCode,
+  Wrench,
 } from "lucide-react";
 
+import type { UserRole } from "@/components/ProfileContext";
 import { ThemeProvider, type Theme } from "@/components/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
+import { isMasterRole } from "@/lib/admin/roles";
 
 import styles from "./AdminShell.module.css";
 
 type AdminShellProps = {
   children: ReactNode;
   initialTheme?: Theme | null;
+  role?: UserRole | null;
 };
 
-const navItems = [
+const baseNavItems = [
   {
     href: "/admin",
     label: "Overview",
@@ -62,21 +66,36 @@ const navItems = [
   },
 ] as const;
 
+const masterNavItem = {
+  href: "/admin/dev",
+  label: "Dev",
+  icon: Wrench,
+  match: (path: string) => path.startsWith("/admin/dev"),
+} as const;
+
 function pageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/pre-read")) return "Study";
   if (pathname.startsWith("/admin/events")) return "Events";
   if (pathname.startsWith("/admin/quizzes")) return "Quizzes";
   if (pathname.startsWith("/admin/users")) return "Users";
   if (pathname.startsWith("/admin/qr-login")) return "Login QR";
+  if (pathname.startsWith("/admin/dev")) return "Dev";
   if (pathname.startsWith("/admin/topics")) return "Topics";
   if (pathname.startsWith("/admin/paths")) return "Paths";
   if (pathname.startsWith("/admin/sources")) return "Sources";
   return "Overview";
 }
 
-export function AdminShell({ children, initialTheme }: AdminShellProps) {
+export function AdminShell({
+  children,
+  initialTheme,
+  role = null,
+}: AdminShellProps) {
   const pathname = usePathname() ?? "/admin";
   const title = pageTitle(pathname);
+  const navItems = isMasterRole(role)
+    ? [...baseNavItems, masterNavItem]
+    : [...baseNavItems];
 
   return (
     <ThemeProvider initialTheme={initialTheme}>

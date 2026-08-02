@@ -137,7 +137,6 @@ export type QuizGeneratePanelValues = {
   focus: QuizFocus;
   temperature: number;
   seed: string;
-  title: string;
 };
 
 type QuizGeneratePanelProps = {
@@ -150,9 +149,6 @@ type QuizGeneratePanelProps = {
   onChange: (patch: Partial<QuizGeneratePanelValues>) => void;
   onGenerate: () => void;
 };
-
-const btnPrimary =
-  "h-16 min-h-16 min-w-[10rem] px-8 text-base border-0 bg-gradient-to-br from-[#d91f26] to-[#f28c00] text-white font-bold shadow-[0_10px_24px_color-mix(in_oklab,#d91f26_28%,transparent)] hover:brightness-105 hover:text-white cursor-pointer";
 
 const clampInt = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -215,6 +211,9 @@ export default function QuizGeneratePanel({
   const startLoadGenRef = useRef(0);
   const endLoadGenRef = useRef(0);
   const lastSuggestionKeyRef = useRef<string | null>(null);
+  // Auto-fill end verse to the chapter's last verse until the user edits it.
+  // Existing quizzes (book already set) keep their saved end verse.
+  const autoEndVerseRef = useRef(!values.book);
 
   const selectedBook = useMemo(
     () => books.find((book) => book.name === values.book) ?? null,
@@ -435,11 +434,13 @@ export default function QuizGeneratePanel({
         if (current.startChapter === current.endChapter) {
           setEndVerseCount(verseCount);
           setLoadingEndVerses(false);
-          const nextEnd = clampInt(
-            Math.max(current.endVerse, nextStart),
-            nextStart,
-            verseCount,
-          );
+          const nextEnd = autoEndVerseRef.current
+            ? verseCount
+            : clampInt(
+                Math.max(current.endVerse, nextStart),
+                nextStart,
+                verseCount,
+              );
           if (nextEnd !== current.endVerse) {
             patch.endVerse = nextEnd;
           }
@@ -505,7 +506,9 @@ export default function QuizGeneratePanel({
         if (!verseCount) return;
 
         const current = valuesRef.current;
-        const nextEnd = clampInt(current.endVerse, 1, verseCount);
+        const nextEnd = autoEndVerseRef.current
+          ? verseCount
+          : clampInt(current.endVerse, 1, verseCount);
         if (nextEnd !== current.endVerse) {
           onChangeRef.current({ endVerse: nextEnd });
         }
@@ -536,6 +539,7 @@ export default function QuizGeneratePanel({
   };
 
   const handleBookSelect = (bookName: string) => {
+    autoEndVerseRef.current = true;
     onChange({
       book: bookName,
       startChapter: 1,
@@ -553,6 +557,7 @@ export default function QuizGeneratePanel({
     const maxChapter = selectedBook?.chapters ?? chapter;
     const startChapter = clampInt(chapter, 1, maxChapter);
     const endChapter = Math.max(startChapter, values.endChapter);
+    autoEndVerseRef.current = true;
     onChange({
       startChapter,
       endChapter,
@@ -571,6 +576,7 @@ export default function QuizGeneratePanel({
     const maxChapter = selectedBook?.chapters ?? chapter;
     const endChapter = clampInt(chapter, 1, maxChapter);
     const startChapter = Math.min(values.startChapter, endChapter);
+    autoEndVerseRef.current = true;
     onChange({
       startChapter,
       endChapter,
@@ -586,6 +592,7 @@ export default function QuizGeneratePanel({
   const handleSameChapterVerses = (range: string) => {
     const parsed = parseVerseRangeValue(range);
     if (!parsed) return;
+    autoEndVerseRef.current = false;
     onChange({ startVerse: parsed.start, endVerse: parsed.end });
   };
 
@@ -598,6 +605,7 @@ export default function QuizGeneratePanel({
   const handleEndVerseSelect = (raw: string) => {
     const verse = Number.parseInt(raw, 10);
     if (!Number.isFinite(verse) || !endVerseCount) return;
+    autoEndVerseRef.current = false;
     onChange({ endVerse: clampInt(verse, 1, endVerseCount) });
   };
 
@@ -614,10 +622,10 @@ export default function QuizGeneratePanel({
       return "Loading verse bounds…";
     }
     if (sameChapter && startVerseCount) {
-      return `Chapter ${values.startChapter} has ${startVerseCount} verses.`;
+      return `Chapter ${values.startChapter} has ${startVerseCount} verses. End verse defaults to the last verse.`;
     }
     if (!sameChapter && startVerseCount && endVerseCount) {
-      return `Start ch. ${values.startChapter}: ${startVerseCount} verses · End ch. ${values.endChapter}: ${endVerseCount} verses.`;
+      return `Chapter ${values.startChapter} has ${startVerseCount} verses. Chapter ${values.endChapter} has ${endVerseCount} verses. End verse defaults to the last verse.`;
     }
     return "Pick chapters to unlock verse bounds.";
   })();
@@ -639,7 +647,8 @@ export default function QuizGeneratePanel({
           <Combobox
             options={translationOptions}
             value={values.translation || undefined}
-            onValueChange={(code) =>
+            onValueChange={(code) => {
+              autoEndVerseRef.current = true;
               onChange({
                 translation: code,
                 book: "",
@@ -647,8 +656,8 @@ export default function QuizGeneratePanel({
                 endChapter: 1,
                 startVerse: 1,
                 endVerse: 1,
-              })
-            }
+              });
+            }}
             disabled={busy || translations.length === 0}
             placeholder={
               translations.length === 0
@@ -943,27 +952,12 @@ export default function QuizGeneratePanel({
             onChange={(event) => onChange({ seed: event.target.value })}
           />
         </div>
-
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="quiz-gen-title">
-            Suggested title
-          </label>
-          <input
-            id="quiz-gen-title"
-            type="text"
-            className={styles.control}
-            value={values.title}
-            disabled={busy}
-            placeholder="Optional hint for the model"
-            onChange={(event) => onChange({ title: event.target.value })}
-          />
-        </div>
       </div>
 
       <div className={styles.generateActions}>
         <Button
           type="button"
-          className={btnPrimary}
+          className={styles.generateButton}
           disabled={busy || !rangeReady}
           onClick={onGenerate}
         >

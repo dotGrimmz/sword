@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ACTIVE_TRANSLATION_COOKIE } from "@/lib/translation/cookie";
 
 type ReaderPageProps = {
-  searchParams?: Promise<{ book?: string; chapter?: string }>;
+  searchParams?: Promise<{ book?: string; chapter?: string; verse?: string }>;
 };
 
 export default async function ReaderPage({ searchParams }: ReaderPageProps) {

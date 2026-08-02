@@ -418,6 +418,9 @@ const buildSystemPrompt = () =>
     "For multiple_choice provide 3-4 options with exactly one correct answer; correctAnswer must match one option exactly.",
     "For true_false, correctAnswer must be exactly True or False.",
     "For short_answer, correctAnswer should be a concise expected answer.",
+    "Always include a title: if a preferred title is provided, use it (light cleanup OK);",
+    "otherwise invent a short, specific title by reasoning over the passage's main theme,",
+    "people, events, or teaching — not a bare reference like \"Genesis 1:1-31\" or \"Quiz: John 3\".",
     `Keep question count between ${PLATFORM.minQuestions} and ${PLATFORM.maxQuestions}.`,
   ].join(" ");
 
@@ -428,6 +431,7 @@ const buildUserPrompt = (
   targetCount: number,
 ) => {
   const rangeLabel = formatRangeLabel(request.book, request.start, request.end);
+  const preferredTitle = request.title?.trim();
 
   return [
     `Passage: ${rangeLabel} (${request.translation})`,
@@ -437,7 +441,15 @@ const buildUserPrompt = (
     `Allowed question types: ${request.questionTypes.join(", ")}`,
     `Target question count: ${targetCount}`,
     `Seed: ${seed}`,
-    request.title && `Preferred title: ${request.title}`,
+    preferredTitle
+      ? `Preferred title (use this): ${preferredTitle}`
+      : [
+          "Title: none provided.",
+          "Read the passage, identify its central theme or moment,",
+          "and invent a concise quiz title (about 3–8 words) that reflects that content.",
+          "Examples of good style: \"Light in the Darkness\", \"The Good Samaritan\", \"Faith Without Works\".",
+          "Do not use only the book/chapter/verse reference as the title.",
+        ].join(" "),
     "",
     "Passage text:",
     formatPassageForPrompt(passage),
@@ -548,9 +560,10 @@ export async function generateQuizFromPassage(
     seed,
   };
 
+  // Prefer an admin-supplied title; otherwise use the model's passage-based title.
   const title =
+    text(request.title) ||
     text(parsed.title) ||
-    request.title ||
     `Quiz: ${formatRangeLabel(request.book, request.start, request.end)}`;
 
   return {
