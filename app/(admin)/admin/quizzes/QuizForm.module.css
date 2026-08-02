@@ -306,8 +306,88 @@ textarea.control {
   cursor: not-allowed;
 }
 
+.packButton {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-sizing: border-box;
+  min-height: 3.5rem !important;
+  height: auto !important;
+  width: 100%;
+  min-width: 0;
+  padding: 0.9rem 1.25rem !important;
+  border: 1.5px solid #e0c4b6 !important;
+  border-radius: 0.75rem !important;
+  background: #ffffff !important;
+  color: #d91f26 !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.packButton:hover:not(:disabled) {
+  border-color: #d91f26 !important;
+  background: color-mix(in oklab, #d91f26 8%, #ffffff) !important;
+}
+
+.packButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.packCancelButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #e0c4b6;
+  background: #fff8f4;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.packCancelButton:hover {
+  border-color: #d91f26;
+  color: #d91f26;
+}
+
+.packProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.packProgressTrack {
+  width: 100%;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #ffe8dc;
+  overflow: hidden;
+}
+
+.packProgressBar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d91f26, #f28c00);
+  transition: width 200ms ease;
+}
+
 @media (min-width: 720px) {
   .generateButton {
+    width: auto;
+    min-height: 2.75rem !important;
+    padding: 0.75rem 1.15rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .packButton {
     width: auto;
     min-height: 2.75rem !important;
     padding: 0.75rem 1.15rem !important;

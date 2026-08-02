@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -10,10 +10,16 @@ import {
   createAdminQuiz,
   deleteAdminQuiz,
   generateAdminQuiz,
+  listAdminQuizzes,
   updateAdminQuiz,
 } from "@/lib/api/admin-quizzes";
 import { getBooksForTranslation } from "@/lib/api/bible";
 import { ApiError } from "@/lib/api/fetch";
+import {
+  hasExistingChapterQuiz,
+  planChapterPack,
+  type ChapterPackProgress,
+} from "@/lib/quizzes/chapter-pack";
 import { quizDraftToInput } from "@/lib/quizzes/draft-to-input";
 import type { BibleBookSummary, BibleTranslationSummary } from "@/types/bible";
 import type {
@@ -137,6 +143,10 @@ export default function QuizForm({
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [packProgress, setPackProgress] = useState<ChapterPackProgress | null>(
+    null,
+  );
+  const packCancelRef = useRef(false);
 
   useEffect(() => {
     const code = panel.translation;
@@ -334,6 +344,196 @@ export default function QuizForm({
     }
   };
 
+  const handleCancelChapterPack = () => {
+    packCancelRef.current = true;
+  };
+
+  const handleGenerateChapterPack = async () => {
+    if (mode !== "create") {
+      toast.error("Chapter packs can only be created from New quiz");
+      return;
+    }
+    if (!panel.book) {
+      toast.error("Select a book before generating a chapter pack");
+      return;
+    }
+
+    const selectedBook = books.find((book) => book.name === panel.book);
+    if (!selectedBook || selectedBook.chapters < 1) {
+      toast.error("Could not resolve chapter count for this book");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Create up to ${selectedBook.chapters} draft quizzes for ${selectedBook.name} (one per chapter)?\n\nChapters that already have a quiz for ${panel.translation} will be skipped. Keep this tab open until it finishes.`,
+    );
+    if (!confirmed) return;
+
+    const plan = planChapterPack({
+      book: selectedBook.name,
+      translation: panel.translation,
+      chapterCount: selectedBook.chapters,
+    });
+
+    packCancelRef.current = false;
+    let created = 0;
+    let skipped = 0;
+    let failed = 0;
+    let existing: Quiz[] = [];
+
+    try {
+      const listed = await listAdminQuizzes();
+      existing = listed.quizzes;
+    } catch {
+      // Non-fatal — pack still runs, just without skip detection.
+      existing = [];
+    }
+
+    const clampedAttempts = Math.min(
+      MAX_MAX_ATTEMPTS,
+      Math.max(MIN_MAX_ATTEMPTS, Math.round(maxAttempts) || DEFAULT_MAX_ATTEMPTS),
+    );
+
+    setPackProgress({
+      status: "running",
+      total: plan.jobs.length,
+      index: 0,
+      chapter: 0,
+      created,
+      skipped,
+      failed,
+      message: `Starting ${selectedBook.name} chapter pack…`,
+    });
+
+    for (let i = 0; i < plan.jobs.length; i += 1) {
+      if (packCancelRef.current) {
+        setPackProgress({
+          status: "cancelled",
+          total: plan.jobs.length,
+          index: i,
+          chapter: plan.jobs[i]?.chapter ?? 0,
+          created,
+          skipped,
+          failed,
+          message: `Cancelled after ${created} created, ${skipped} skipped, ${failed} failed.`,
+        });
+        toast.message("Chapter pack cancelled");
+        return;
+      }
+
+      const job = plan.jobs[i];
+      setPackProgress({
+        status: "running",
+        total: plan.jobs.length,
+        index: i,
+        chapter: job.chapter,
+        created,
+        skipped,
+        failed,
+        message: `Generating ${selectedBook.name} ${job.chapter} (${i + 1}/${plan.jobs.length})…`,
+      });
+
+      if (
+        hasExistingChapterQuiz(existing, {
+          book: selectedBook.name,
+          translation: panel.translation,
+          chapter: job.chapter,
+        })
+      ) {
+        skipped += 1;
+        continue;
+      }
+
+      try {
+        // Load chapter length so the range covers the full chapter.
+        const chapterResponse = await fetch(
+          `/api/bible/${encodeURIComponent(selectedBook.name)}/${job.chapter}?translation=${encodeURIComponent(panel.translation)}`,
+          { cache: "no-store" },
+        );
+        if (!chapterResponse.ok) {
+          throw new Error(`Unable to load ${selectedBook.name} ${job.chapter}`);
+        }
+        const chapterPayload = (await chapterResponse.json()) as {
+          verses?: unknown[];
+        };
+        const endVerse = Array.isArray(chapterPayload.verses)
+          ? Math.max(1, chapterPayload.verses.length)
+          : 1;
+
+        const request: QuizGenerateRequest = {
+          translation: panel.translation,
+          book: selectedBook.name,
+          start: { chapter: job.chapter, verse: 1 },
+          end: { chapter: job.chapter, verse: endVerse },
+          difficulty: panel.difficulty,
+          questionTypes: panel.questionTypes,
+          focus: panel.focus,
+          temperature: panel.temperature,
+          title: job.titleHint,
+          ...(panel.seed.trim()
+            ? { seed: Number(panel.seed) + job.chapter }
+            : {}),
+        };
+
+        const { draft } = await generateAdminQuiz(request);
+        const mapped = quizDraftToInput(draft, "draft", clampedAttempts);
+        // Prefer the chapter label if the model returns something vague.
+        if (!mapped.title.trim()) {
+          mapped.title = job.titleHint;
+        }
+        const { quiz } = await createAdminQuiz(mapped);
+        existing = [quiz, ...existing];
+        created += 1;
+      } catch (error: unknown) {
+        failed += 1;
+        const message =
+          error instanceof ApiError
+            ? error.message
+            : error instanceof Error
+              ? error.message
+              : "Chapter generate failed";
+        setPackProgress({
+          status: "running",
+          total: plan.jobs.length,
+          index: i + 1,
+          chapter: job.chapter,
+          created,
+          skipped,
+          failed,
+          message: `Failed ${selectedBook.name} ${job.chapter}: ${message}`,
+        });
+        // Continue remaining chapters rather than aborting the whole pack.
+      }
+    }
+
+    setPackProgress({
+      status: "done",
+      total: plan.jobs.length,
+      index: plan.jobs.length,
+      chapter: plan.jobs[plan.jobs.length - 1]?.chapter ?? 0,
+      created,
+      skipped,
+      failed,
+      message: `Done — ${created} created, ${skipped} skipped, ${failed} failed.`,
+    });
+
+    if (created > 0) {
+      toast.success(
+        `Chapter pack ready: ${created} draft${created === 1 ? "" : "s"} for ${selectedBook.name}`,
+      );
+      router.push("/admin/quizzes");
+      router.refresh();
+      return;
+    }
+
+    if (failed > 0) {
+      toast.error("Chapter pack finished with errors and no new drafts");
+      return;
+    }
+
+    toast.message("Nothing new to create — all chapters already had quizzes");
+  };
+
   const handleSave = async () => {
     const input = buildInput();
     if (!input) return;
@@ -387,7 +587,11 @@ export default function QuizForm({
     }
   };
 
-  const busy = generating || saving || deleting;
+  const busy =
+    generating ||
+    saving ||
+    deleting ||
+    packProgress?.status === "running";
 
   return (
     <div className={styles.formShell}>
@@ -514,9 +718,13 @@ export default function QuizForm({
           books={books}
           booksLoading={booksLoading}
           generating={generating}
-          disabled={busy && !generating}
+          disabled={busy && !generating && packProgress?.status !== "running"}
+          allowChapterPack={mode === "create"}
+          packProgress={packProgress}
           onChange={patchPanel}
           onGenerate={handleGenerate}
+          onGenerateChapterPack={handleGenerateChapterPack}
+          onCancelChapterPack={handleCancelChapterPack}
         />
 
         <QuizQuestionsEditor

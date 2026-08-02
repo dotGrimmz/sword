@@ -24,6 +24,7 @@ import type {
   QuizFocus,
   QuizQuestionType,
 } from "@/types/quizzes";
+import type { ChapterPackProgress } from "@/lib/quizzes/chapter-pack";
 
 import styles from "./QuizForm.module.css";
 
@@ -146,8 +147,13 @@ type QuizGeneratePanelProps = {
   booksLoading: boolean;
   generating: boolean;
   disabled?: boolean;
+  /** Create-mode only: allow generating one draft quiz per chapter. */
+  allowChapterPack?: boolean;
+  packProgress?: ChapterPackProgress | null;
   onChange: (patch: Partial<QuizGeneratePanelValues>) => void;
   onGenerate: () => void;
+  onGenerateChapterPack?: () => void;
+  onCancelChapterPack?: () => void;
 };
 
 const clampInt = (value: number, min: number, max: number) =>
@@ -196,8 +202,12 @@ export default function QuizGeneratePanel({
   booksLoading,
   generating,
   disabled = false,
+  allowChapterPack = false,
+  packProgress = null,
   onChange,
   onGenerate,
+  onGenerateChapterPack,
+  onCancelChapterPack,
 }: QuizGeneratePanelProps) {
   const valuesRef = useRef(values);
   valuesRef.current = values;
@@ -304,7 +314,8 @@ export default function QuizGeneratePanel({
   }, [selectedBook]);
 
   const sameChapter = values.startChapter === values.endChapter;
-  const busy = disabled || generating;
+  const packing = packProgress?.status === "running";
+  const busy = disabled || generating || packing;
   const controlClass = `${styles.control} w-full min-w-0 max-w-full`;
 
   const chapterComboboxOptions = useMemo(
@@ -1040,7 +1051,54 @@ export default function QuizGeneratePanel({
               ? "Generate book overview"
               : "Generate draft"}
         </Button>
+        {allowChapterPack && onGenerateChapterPack ? (
+          <Button
+            type="button"
+            className={styles.packButton}
+            disabled={busy || !selectedBook}
+            onClick={onGenerateChapterPack}
+          >
+            {packing
+              ? `Packing ${packProgress?.chapter ?? 0}/${packProgress?.total ?? 0}…`
+              : selectedBook
+                ? `Generate chapter pack (${selectedBook.chapters})`
+                : "Generate chapter pack"}
+          </Button>
+        ) : null}
+        {packing && onCancelChapterPack ? (
+          <button
+            type="button"
+            className={styles.packCancelButton}
+            onClick={onCancelChapterPack}
+          >
+            Cancel pack
+          </button>
+        ) : null}
       </div>
+      {packProgress ? (
+        <div className={styles.packProgress} aria-live="polite">
+          <div className={styles.packProgressTrack}>
+            <div
+              className={styles.packProgressBar}
+              style={{
+                width: `${Math.min(
+                  100,
+                  packProgress.total
+                    ? (100 * packProgress.index) / packProgress.total
+                    : 0,
+                )}%`,
+              }}
+            />
+          </div>
+          <p className={styles.helper}>{packProgress.message}</p>
+        </div>
+      ) : allowChapterPack ? (
+        <p className={styles.helper}>
+          Chapter pack creates one draft quiz per chapter (skips chapters that
+          already have a quiz for this translation). Runs in this browser — keep
+          the tab open.
+        </p>
+      ) : null}
     </section>
   );
 }
