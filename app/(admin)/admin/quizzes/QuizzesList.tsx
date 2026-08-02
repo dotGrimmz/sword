@@ -65,11 +65,32 @@ export default function QuizzesList({ quizzes }: QuizzesListProps) {
     }
   };
 
+  const handleUnpublish = async (quiz: Quiz) => {
+    const confirmed = window.confirm(
+      `Unpublish “${quiz.title}”?\n\nMembers will no longer see it. Their scores and attempts are kept — use Scores → Reset if you want a clean slate.`,
+    );
+    if (!confirmed) return;
+
+    setPendingId(quiz.id);
+    try {
+      await setAdminQuizStatus(quiz.id, "draft");
+      toast.success(`Unpublished “${quiz.title}”`);
+      router.refresh();
+    } catch (error: unknown) {
+      const message =
+        error instanceof ApiError ? error.message : "Failed to unpublish quiz";
+      toast.error(message);
+    } finally {
+      setPendingId(null);
+    }
+  };
+
   return (
     <section className={styles.listStack} aria-label="All quizzes">
       {quizzes.map((quiz) => {
         const status = getStatus(quiz.status);
-        const publishing = pendingId === quiz.id;
+        const pending = pendingId === quiz.id;
+        const isPublished = quiz.status === "published";
         const canPublish = quiz.status !== "published";
 
         return (
@@ -101,10 +122,20 @@ export default function QuizzesList({ quizzes }: QuizzesListProps) {
                   <button
                     type="button"
                     className={styles.listCardButton}
-                    disabled={publishing || pendingId !== null}
+                    disabled={pending || pendingId !== null}
                     onClick={() => void handlePublish(quiz)}
                   >
-                    {publishing ? "Publishing…" : "Publish"}
+                    {pending ? "Publishing…" : "Publish"}
+                  </button>
+                ) : null}
+                {isPublished ? (
+                  <button
+                    type="button"
+                    className={styles.listCardLink}
+                    disabled={pending || pendingId !== null}
+                    onClick={() => void handleUnpublish(quiz)}
+                  >
+                    {pending ? "Unpublishing…" : "Unpublish"}
                   </button>
                 ) : null}
                 <Link

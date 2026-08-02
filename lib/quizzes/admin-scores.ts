@@ -242,3 +242,69 @@ export async function listAdminQuizAttemptsForUser(
     answers: parseStoredAnswers(row.answers, questionsById),
   }));
 }
+
+/**
+ * Delete one member's attempt history + score row for a quiz so they can
+ * take it again from a clean slate.
+ */
+export async function resetAdminQuizScoresForUser(
+  client: Client,
+  quizId: string,
+  userId: string,
+): Promise<{ quiz: Quiz; deletedAttempts: number } | null> {
+  const quiz = await getAdminQuiz(client, quizId);
+  if (!quiz) return null;
+
+  const { data: attempts, error: attemptsError } = await client
+    .from("quiz_attempts")
+    .delete()
+    .eq("quiz_id", quizId)
+    .eq("user_id", userId)
+    .select("id");
+
+  if (attemptsError) throw new Error(attemptsError.message);
+
+  const { error: scoresError } = await client
+    .from("quiz_scores")
+    .delete()
+    .eq("quiz_id", quizId)
+    .eq("user_id", userId);
+
+  if (scoresError) throw new Error(scoresError.message);
+
+  return {
+    quiz,
+    deletedAttempts: (attempts ?? []).length,
+  };
+}
+
+/** Delete every member's attempts + scores for a quiz. */
+export async function resetAdminQuizScores(
+  client: Client,
+  quizId: string,
+): Promise<{ quiz: Quiz; deletedScores: number; deletedAttempts: number } | null> {
+  const quiz = await getAdminQuiz(client, quizId);
+  if (!quiz) return null;
+
+  const { data: attempts, error: attemptsError } = await client
+    .from("quiz_attempts")
+    .delete()
+    .eq("quiz_id", quizId)
+    .select("id");
+
+  if (attemptsError) throw new Error(attemptsError.message);
+
+  const { data: scores, error: scoresError } = await client
+    .from("quiz_scores")
+    .delete()
+    .eq("quiz_id", quizId)
+    .select("id");
+
+  if (scoresError) throw new Error(scoresError.message);
+
+  return {
+    quiz,
+    deletedScores: (scores ?? []).length,
+    deletedAttempts: (attempts ?? []).length,
+  };
+}

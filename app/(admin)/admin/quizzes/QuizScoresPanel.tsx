@@ -1,9 +1,15 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
 
-import { getAdminQuizUserAttempts } from "@/lib/api/admin-quizzes";
+import {
+  getAdminQuizUserAttempts,
+  resetAdminQuizScores,
+  resetAdminQuizUserAttempts,
+} from "@/lib/api/admin-quizzes";
 import { ApiError } from "@/lib/api/fetch";
 import type {
   AdminQuizAttemptRow,
@@ -45,16 +51,19 @@ export default function QuizScoresPanel({
   scores,
   summary,
 }: QuizScoresPanelProps) {
+  const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [attemptsByUser, setAttemptsByUser] = useState<
     Record<string, AdminQuizAttemptRow[]>
   >({});
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const [errorByUser, setErrorByUser] = useState<Record<string, string>>({});
+  const [resettingUserId, setResettingUserId] = useState<string | null>(null);
+  const [resettingAll, setResettingAll] = useState(false);
 
   const loadAttempts = useCallback(
-    async (userId: string) => {
-      if (attemptsByUser[userId]) return;
+    async (userId: string, force = false) => {
+      if (!force && attemptsByUser[userId]) return;
 
       setLoadingUserId(userId);
       setErrorByUser((prev) => {
@@ -88,8 +97,82 @@ export default function QuizScoresPanel({
     void loadAttempts(userId);
   };
 
+  const handleResetUser = async (row: AdminQuizScoreRow) => {
+    const confirmed = window.confirm(
+      `Reset attempts for ${row.displayName}?\n\nThis deletes their ${row.attemptCount} attempt${row.attemptCount === 1 ? "" : "s"} and score for this quiz. They can take it again from scratch.`,
+    );
+    if (!confirmed) return;
+
+    setResettingUserId(row.userId);
+    try {
+      await resetAdminQuizUserAttempts(quizId, row.userId);
+      toast.success(`Reset attempts for ${row.displayName}`);
+      setAttemptsByUser((prev) => {
+        const next = { ...prev };
+        delete next[row.userId];
+        return next;
+      });
+      if (expandedId === row.userId) setExpandedId(null);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Failed to reset member attempts";
+      toast.error(message);
+    } finally {
+      setResettingUserId(null);
+    }
+  };
+
+  const handleResetAll = async () => {
+    if (scores.length === 0) return;
+    const confirmed = window.confirm(
+      `Reset ALL scores for this quiz?\n\nThis deletes attempts and scores for ${summary.memberCount} member${summary.memberCount === 1 ? "" : "s"}. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setResettingAll(true);
+    try {
+      const result = await resetAdminQuizScores(quizId);
+      toast.success(
+        `Reset ${result.deletedScores} score${result.deletedScores === 1 ? "" : "s"} (${result.deletedAttempts} attempt${result.deletedAttempts === 1 ? "" : "s"})`,
+      );
+      setAttemptsByUser({});
+      setExpandedId(null);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Failed to reset quiz scores";
+      toast.error(message);
+    } finally {
+      setResettingAll(false);
+    }
+  };
+
+  const busy = resettingAll || resettingUserId !== null;
+
   return (
     <div className={styles.panel}>
+      <div className={styles.toolbar}>
+        <p className={styles.toolbarCopy}>
+          Unpublishing hides the quiz but keeps scores. Reset clears attempt
+          limits so members can start over.
+        </p>
+        {scores.length > 0 ? (
+          <button
+            type="button"
+            className={styles.resetAllButton}
+            disabled={busy}
+            onClick={() => void handleResetAll()}
+          >
+            {resettingAll ? "Resetting…" : "Reset all attempts"}
+          </button>
+        ) : null}
+      </div>
+
       <div className={pageStyles.statsRow}>
         <div className={pageStyles.statCard}>
           <p className={pageStyles.statLabel}>Members</p>
@@ -121,6 +204,7 @@ export default function QuizScoresPanel({
             const attempts = attemptsByUser[row.userId];
             const loading = loadingUserId === row.userId;
             const error = errorByUser[row.userId];
+            const resetting = resettingUserId === row.userId;
 
             return (
               <article key={row.userId} className={styles.row}>
@@ -187,6 +271,18 @@ export default function QuizScoresPanel({
 
                 {expanded ? (
                   <div className={styles.detail}>
+                    <div className={styles.detailActions}>
+                      <button
+                        type="button"
+                        className={styles.resetUserButton}
+                        disabled={busy}
+                        onClick={() => void handleResetUser(row)}
+                      >
+                        {resetting
+                          ? "Resetting…"
+                          : "Reset this member’s attempts"}
+                      </button>
+                    </div>
                     {loading ? (
                       <p className={styles.detailLoading}>Loading attempts…</p>
                     ) : null}

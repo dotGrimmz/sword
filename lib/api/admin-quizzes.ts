@@ -60,7 +60,22 @@ export const getAdminQuizScores = (id: string) =>
     summary: AdminQuizScoresSummary;
   }>(`/api/admin/quizzes/${id}/scores`);
 
+export const resetAdminQuizScores = (id: string) =>
+  apiFetch<{
+    ok: true;
+    deletedScores: number;
+    deletedAttempts: number;
+  }>(`/api/admin/quizzes/${id}/scores`, {
+    method: "DELETE",
+  });
+
 export const getAdminQuizUserAttempts = (quizId: string, userId: string) =>
   apiFetch<{ attempts: AdminQuizAttemptRow[] }>(
     `/api/admin/quizzes/${quizId}/scores/${userId}`,
+  );
+
+export const resetAdminQuizUserAttempts = (quizId: string, userId: string) =>
+  apiFetch<{ ok: true; deletedAttempts: number }>(
+    `/api/admin/quizzes/${quizId}/scores/${userId}`,
+    { method: "DELETE" },
   );
