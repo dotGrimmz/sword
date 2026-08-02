@@ -35,9 +35,21 @@ export function suggestQuizQuestionCount(options: {
   difficulty?: QuizDifficulty;
   focus?: QuizFocus;
   questionTypes?: QuizQuestionType[];
+  /** When set, multi-chapter / book spans lean toward fuller overview quizzes. */
+  chapterCount?: number;
 }): number {
   const verseCount = Math.max(0, Math.floor(options.verseCount));
+  const chapterCount = Math.max(1, Math.floor(options.chapterCount ?? 1));
   let count = baseCountFromVerseCount(verseCount);
+
+  // Book/section overviews should sit near the top of the allowed band.
+  if (chapterCount >= 20 || verseCount >= 800) {
+    count = Math.max(count, 18);
+  } else if (chapterCount >= 8 || verseCount >= 200) {
+    count = Math.max(count, 16);
+  } else if (chapterCount >= 4 || verseCount >= 80) {
+    count = Math.max(count, 14);
+  }
 
   if (options.difficulty === "easy") count -= 1;
   if (options.difficulty === "hard") count += 2;
@@ -50,7 +62,9 @@ export function suggestQuizQuestionCount(options: {
   if (typeCount >= 3) count += 1;
 
   // Very short passages cannot support a large quiz well.
-  if (verseCount > 0) {
+  // Skip this clamp for multi-chapter overviews where verseCount is large
+  // but questions intentionally sample themes rather than every verse.
+  if (verseCount > 0 && chapterCount < 4 && verseCount < 80) {
     count = Math.min(count, Math.max(MIN_QUESTIONS, verseCount + 2));
   }
 

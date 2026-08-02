@@ -13,6 +13,10 @@ import type {
 } from "@/types/quizzes";
 
 import { getOpenAIClient, QUIZ_MODEL } from "@/lib/ai/openai";
+import {
+  buildPassagePromptPayload,
+  type PassagePromptPayload,
+} from "@/lib/quizzes/passage-prompt";
 import { suggestQuizQuestionCount } from "@/lib/quizzes/suggest-count";
 
 export {
@@ -257,13 +261,6 @@ export function normalizeGenerateRequest(
   };
 }
 
-const formatPassageForPrompt = (passage: BiblePassageResponse) =>
-  passage.verses
-    .map(({ chapter, verse, text: verseText }) =>
-      `${chapter}:${verse} ${verseText.trim()}`,
-    )
-    .join("\n");
-
 const formatRangeLabel = (
   book: string,
   start: QuizVerseRef,
@@ -408,8 +405,8 @@ type ModelQuizPayload = {
   questions?: unknown;
 };
 
-const buildSystemPrompt = () =>
-  [
+const buildSystemPrompt = (overview: boolean) => {
+  const base = [
     "You generate Bible study quizzes strictly from the provided passage text.",
     "Do not invent details that are not supported by the passage.",
     "Every question must include a citation in book chapter:verse form when possible.",
@@ -422,20 +419,37 @@ const buildSystemPrompt = () =>
     "otherwise invent a short, specific title by reasoning over the passage's main theme,",
     "people, events, or teaching — not a bare reference like \"Genesis 1:1-31\" or \"Quiz: John 3\".",
     `Keep question count between ${PLATFORM.minQuestions} and ${PLATFORM.maxQuestions}.`,
-  ].join(" ");
+  ];
+
+  if (overview) {
+    base.push(
+      "This is a BOOK or multi-chapter OVERVIEW quiz.",
+      "The passage text is a representative sample across chapters, not the complete book.",
+      "Write questions that cover major people, events, themes, and the arc of the whole range.",
+      "Spread citations across different chapters when possible.",
+      "Prefer thematic and application questions over obscure trivia that requires verses not shown.",
+      "Title the quiz as a book overview when the range covers most or all of a book (e.g. \"Genesis Overview\").",
+    );
+  }
+
+  return base.join(" ");
+};
 
 const buildUserPrompt = (
   request: QuizGenerateRequest,
-  passage: BiblePassageResponse,
   seed: number,
   targetCount: number,
+  promptPayload: PassagePromptPayload,
 ) => {
   const rangeLabel = formatRangeLabel(request.book, request.start, request.end);
   const preferredTitle = request.title?.trim();
 
   return [
     `Passage: ${rangeLabel} (${request.translation})`,
-    `Verse count: ${passage.verses.length}`,
+    `Verse count: ${promptPayload.totalVerseCount}`,
+    promptPayload.overview
+      ? `Mode: book/section overview (${promptPayload.sampledVerseCount} sample verses across ${promptPayload.chapterCount} chapters)`
+      : "Mode: full passage",
     `Difficulty: ${request.difficulty}`,
     `Focus: ${request.focus}`,
     `Allowed question types: ${request.questionTypes.join(", ")}`,
@@ -445,14 +459,15 @@ const buildUserPrompt = (
       ? `Preferred title (use this): ${preferredTitle}`
       : [
           "Title: none provided.",
-          "Read the passage, identify its central theme or moment,",
-          "and invent a concise quiz title (about 3–8 words) that reflects that content.",
-          "Examples of good style: \"Light in the Darkness\", \"The Good Samaritan\", \"Faith Without Works\".",
+          promptPayload.overview
+            ? "Invent a concise overview title that names the book or section (about 3–8 words)."
+            : "Read the passage, identify its central theme or moment, and invent a concise quiz title (about 3–8 words) that reflects that content.",
+          "Examples of good style: \"Light in the Darkness\", \"The Good Samaritan\", \"Genesis Overview\".",
           "Do not use only the book/chapter/verse reference as the title.",
         ].join(" "),
     "",
-    "Passage text:",
-    formatPassageForPrompt(passage),
+    promptPayload.overview ? "Passage sample (overview):" : "Passage text:",
+    promptPayload.text,
     "",
     "Respond with JSON:",
     '{ "title": string, "suggestedQuestionCount": number, "questions": [',
@@ -495,8 +510,11 @@ export async function generateQuizFromPassage(
     difficulty: request.difficulty,
     focus: request.focus,
     questionTypes: request.questionTypes,
+    chapterCount:
+      request.end.chapter - request.start.chapter + 1,
   });
   const targetCount = request.questionCount ?? heuristicCount;
+  const promptPayload = buildPassagePromptPayload(passage);
 
   const client = getOpenAIClient();
   let completion;
@@ -507,10 +525,15 @@ export async function generateQuizFromPassage(
       seed,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: buildSystemPrompt() },
+        { role: "system", content: buildSystemPrompt(promptPayload.overview) },
         {
           role: "user",
-          content: buildUserPrompt(request, passage, seed, targetCount),
+          content: buildUserPrompt(
+            request,
+            seed,
+            targetCount,
+            promptPayload,
+          ),
         },
       ],
     });

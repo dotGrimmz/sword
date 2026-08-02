@@ -247,6 +247,7 @@ export default function QuizGeneratePanel({
       difficulty: values.difficulty,
       focus: values.focus,
       questionTypes: values.questionTypes,
+      chapterCount: Math.max(1, values.endChapter - values.startChapter + 1),
     });
   }, [
     estimatedVerseCount,
@@ -254,6 +255,8 @@ export default function QuizGeneratePanel({
     values.difficulty,
     values.focus,
     values.questionTypes,
+    values.startChapter,
+    values.endChapter,
   ]);
 
   const suggestionKey = useMemo(() => {
@@ -551,6 +554,19 @@ export default function QuizGeneratePanel({
     setEndVerseCount(null);
   };
 
+  const handleEntireBook = () => {
+    if (!selectedBook) return;
+    autoEndVerseRef.current = true;
+    onChange({
+      startChapter: 1,
+      endChapter: selectedBook.chapters,
+      startVerse: 1,
+      endVerse: 1,
+    });
+    setStartVerseCount(null);
+    setEndVerseCount(null);
+  };
+
   const handleStartChapterSelect = (raw: string) => {
     const chapter = Number.parseInt(raw, 10);
     if (!Number.isFinite(chapter)) return;
@@ -616,8 +632,19 @@ export default function QuizGeneratePanel({
     !loadingStartVerses &&
     !(loadingEndVerses && !sameChapter);
 
+  const isEntireBook =
+    Boolean(selectedBook) &&
+    values.startChapter === 1 &&
+    values.startVerse === 1 &&
+    values.endChapter === (selectedBook?.chapters ?? 0) &&
+    endVerseCount != null &&
+    values.endVerse === endVerseCount;
+
   const verseHelper = (() => {
     if (!selectedBook) return "Pick a book to unlock chapter and verse bounds.";
+    if (isEntireBook) {
+      return `Entire ${selectedBook.name} selected (${selectedBook.chapters} chapters). Generate creates a book overview quiz (up to ${QUIZ_QUESTION_COUNT_BOUNDS.max} questions).`;
+    }
     if (loadingStartVerses || (loadingEndVerses && !sameChapter)) {
       return "Loading verse bounds…";
     }
@@ -636,8 +663,8 @@ export default function QuizGeneratePanel({
         <p className={styles.sectionEyebrow}>Passage</p>
         <h3 className={styles.sectionTitle}>Generate from scripture</h3>
         <p className={styles.sectionMeta}>
-          Choose a translation and range, tune the knobs, then generate a draft.
-          Nothing is saved until you hit Save.
+          Choose a translation and range — or an entire book for an overview
+          quiz — then generate a draft. Nothing is saved until you hit Save.
         </p>
       </div>
 
@@ -684,6 +711,53 @@ export default function QuizGeneratePanel({
             triggerClassName={controlClass}
             aria-label="Bible book"
           />
+        </div>
+
+        <div className={`${styles.field} ${styles.fieldWide}`}>
+          <span className={styles.label}>Range preset</span>
+          <div className={styles.chipGroup} role="group" aria-label="Range preset">
+            <button
+              type="button"
+              className={
+                selectedBook && !isEntireBook
+                  ? `${styles.chip} ${styles.chipActive}`
+                  : styles.chip
+              }
+              disabled={busy || !selectedBook}
+              aria-pressed={Boolean(selectedBook && !isEntireBook)}
+              onClick={() => {
+                if (!selectedBook || !isEntireBook) return;
+                autoEndVerseRef.current = true;
+                onChange({
+                  startChapter: 1,
+                  endChapter: 1,
+                  startVerse: 1,
+                  endVerse: 1,
+                });
+                setStartVerseCount(null);
+                setEndVerseCount(null);
+              }}
+            >
+              Custom range
+            </button>
+            <button
+              type="button"
+              className={
+                isEntireBook ? `${styles.chip} ${styles.chipActive}` : styles.chip
+              }
+              disabled={busy || !selectedBook}
+              aria-pressed={isEntireBook}
+              onClick={handleEntireBook}
+            >
+              Entire book
+              {selectedBook ? ` (${selectedBook.chapters} ch.)` : ""}
+            </button>
+          </div>
+          <p className={styles.helper}>
+            {isEntireBook
+              ? "Builds one overview quiz across the whole book — major people, events, and themes — not a verse-by-verse exam."
+              : "Pick chapters and verses below, or switch to Entire book for a Genesis-style overview in one step."}
+          </p>
         </div>
 
         <div className={styles.field}>
@@ -929,10 +1003,9 @@ export default function QuizGeneratePanel({
                 ) : null}
               </div>
               <p className={styles.helper}>
-                Based on about {estimatedVerseCount} verse
-                {estimatedVerseCount === 1 ? "" : "s"} in this range,{" "}
-                {values.difficulty} difficulty, and {values.focus} focus. Nudge
-                up or down if you want a shorter or deeper quiz.
+                {isEntireBook
+                  ? `Book overview across about ${estimatedVerseCount} verses in ${selectedBook?.name ?? "this book"}, ${values.difficulty} difficulty, and ${values.focus} focus. Suggests a fuller quiz near the ${QUIZ_QUESTION_COUNT_BOUNDS.max}-question cap.`
+                  : `Based on about ${estimatedVerseCount} verse${estimatedVerseCount === 1 ? "" : "s"} in this range, ${values.difficulty} difficulty, and ${values.focus} focus. Nudge up or down if you want a shorter or deeper quiz.`}
               </p>
             </>
           )}
@@ -961,7 +1034,11 @@ export default function QuizGeneratePanel({
           disabled={busy || !rangeReady}
           onClick={onGenerate}
         >
-          {generating ? "Generating…" : "Generate draft"}
+          {generating
+            ? "Generating…"
+            : isEntireBook
+              ? "Generate book overview"
+              : "Generate draft"}
         </Button>
       </div>
     </section>
