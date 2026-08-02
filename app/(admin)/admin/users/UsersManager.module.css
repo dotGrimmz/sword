@@ -124,6 +124,38 @@
   justify-content: flex-end;
 }
 
+.actions :global(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;
+  height: auto;
+  padding: 0.75rem 1.15rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.actionButtonPrimary {
+  border: 0 !important;
+  background: linear-gradient(105deg, #d91f26, #f28c00) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px color-mix(in oklab, #d91f26 24%, transparent);
+}
+
+.actionButtonPrimary:hover:not(:disabled) {
+  filter: brightness(1.03);
+  color: #ffffff !important;
+}
+
+@media (min-width: 768px) {
+  .actions :global(button) {
+    min-height: 2.5rem;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.875rem;
+  }
+}
+
 .empty {
   padding: 1.5rem 1rem;
   text-align: center;

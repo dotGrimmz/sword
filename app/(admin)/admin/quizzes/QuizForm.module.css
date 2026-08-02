@@ -479,3 +479,81 @@ textarea.control {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+@media (max-width: 719px) {
+  .toolbar {
+    padding: 1.1rem 1rem;
+  }
+
+  .toolbarActions {
+    width: 100%;
+  }
+
+  .toolbarActions :global(button) {
+    flex: 1 1 calc(50% - 0.4rem);
+    min-height: 3.5rem;
+    height: auto;
+    padding-block: 0.85rem;
+  }
+
+  .section {
+    padding: 1.1rem 1rem;
+  }
+
+  .sectionHeaderRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sectionHeaderRow :global(button) {
+    width: 100%;
+    min-height: 3.5rem;
+    height: auto;
+    padding-block: 0.85rem;
+  }
+
+  .control {
+    min-height: 3.5rem;
+    font-size: 1.05rem;
+    padding: 0.85rem 1rem;
+  }
+
+  textarea.control {
+    min-height: 9rem;
+  }
+
+  .chip {
+    min-height: 3rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .countStepperButton {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .countResetButton {
+    min-height: 3.5rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .formShell :global(button:not([role="combobox"])) {
+    min-height: 3.5rem;
+  }
+
+  .formShell :global(button[role="combobox"]) {
+    min-height: 3.5rem;
+  }
+
+  .generateButton {
+    min-height: 3.5rem !important;
+    padding: 0.9rem 1.25rem !important;
+  }
+
+  .questionHeader :global(button) {
+    min-height: 3rem;
+    height: auto;
+    padding-block: 0.65rem;
+  }
+}

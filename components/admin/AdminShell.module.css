@@ -172,15 +172,17 @@
 @media (max-width: 860px) {
   .shell {
     flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .sidebar {
-    position: sticky;
+    position: relative;
     inset: auto;
     width: 100%;
     height: auto;
     border-right: none;
     border-bottom: 1px solid var(--admin-outline);
+    z-index: 1;
   }
 
   .nav {
@@ -201,6 +203,16 @@
 
   .main {
     margin-left: 0;
+  }
+
+  /* Keep the page title in normal flow on mobile so it cannot cover
+     search fields / section headers while scrolling. */
+  .topBar {
+    position: relative;
+    top: auto;
+    z-index: 1;
+    background: var(--admin-surface-solid);
+    backdrop-filter: none;
   }
 
   .content {

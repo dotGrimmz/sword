@@ -42,9 +42,9 @@ const TRUE_FALSE_OPTIONS = [
 const controlClass = `${styles.control} w-full min-w-0 max-w-full`;
 
 const btnSecondary =
-  "h-11 min-h-11 px-4 text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
+  "h-14 min-h-14 px-5 text-base md:h-11 md:min-h-11 md:px-4 md:text-sm border-[#e0c4b6] bg-white text-[#1a1a1a] hover:border-[#d91f26] hover:bg-[#d91f26]/10 hover:text-[#d91f26] cursor-pointer";
 const btnDanger =
-  "h-10 min-h-10 px-3 text-sm border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
+  "h-14 min-h-14 px-4 text-base md:h-10 md:min-h-10 md:px-3 md:text-sm border-[#e0c4b6] bg-white text-[#d91f26] hover:border-[#d91f26] hover:bg-[#d91f26]/10 cursor-pointer";
 
 const newQuestionId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto

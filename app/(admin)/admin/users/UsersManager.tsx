@@ -199,6 +199,7 @@ export default function UsersManager({ initialUsers }: UsersManagerProps) {
                   <Button
                     type="button"
                     variant="outline"
+                    className={styles.actionButton}
                     disabled={!dirty || row.isSaving}
                     onClick={() => handleReset(row.id)}
                   >
@@ -206,6 +207,7 @@ export default function UsersManager({ initialUsers }: UsersManagerProps) {
                   </Button>
                   <Button
                     type="button"
+                    className={styles.actionButtonPrimary}
                     disabled={!dirty || row.isSaving}
                     onClick={() => void handleSave(row.id)}
                   >
