@@ -4,14 +4,13 @@ import * as React from "react";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 
 import { filterComboboxOptions } from "@/lib/bible/filterBooks";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/components/ui/utils";
-
-import styles from "./Combobox.module.css";
 
 export type ComboboxOption = {
   value: string;
@@ -40,6 +39,8 @@ export type ComboboxProps = {
 /**
  * Reusable client-side typeahead + dropdown.
  * Filters options locally by label, value, and optional keywords.
+ * Default styles match Radix Select so member screens stay consistent;
+ * admin forms override the trigger via `triggerClassName`.
  */
 export function Combobox({
   options,
@@ -134,7 +135,7 @@ export function Combobox({
   };
 
   return (
-    <div className={cn(styles.root, className)}>
+    <div className={cn("w-full min-w-0", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -146,12 +147,15 @@ export function Combobox({
             aria-label={ariaLabel}
             disabled={disabled}
             data-placeholder={!selected ? "" : undefined}
-            className={cn(styles.trigger, triggerClassName)}
+            className={cn(
+              "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm font-normal whitespace-nowrap shadow-none transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+              triggerClassName,
+            )}
           >
-            <span className={styles.triggerLabel}>
+            <span className="min-w-0 flex-1 truncate text-left">
               {selected?.label ?? placeholder}
             </span>
-            <ChevronDownIcon className={styles.chevron} aria-hidden="true" />
+            <ChevronDownIcon className="size-4 shrink-0 opacity-50" aria-hidden="true" />
           </button>
         </PopoverTrigger>
         <PopoverContent
@@ -159,14 +163,13 @@ export function Combobox({
           sideOffset={6}
           className={cn(
             // Above Modal content (z-70) so typeahead works inside dialogs.
-            "z-[80] w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] border-0 bg-transparent p-0 shadow-none",
-            styles.content,
+            "z-[80] w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] p-0",
             contentClassName,
           )}
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <div className={styles.searchRow}>
-            <input
+          <div className="border-b p-2">
+            <Input
               ref={searchRef}
               value={query}
               onChange={(event) => {
@@ -175,7 +178,7 @@ export function Combobox({
               }}
               onKeyDown={onSearchKeyDown}
               placeholder={searchPlaceholder}
-              className={styles.searchInput}
+              className="h-10"
               aria-autocomplete="list"
               aria-controls={id ? `${id}-listbox` : undefined}
               autoComplete="off"
@@ -187,10 +190,12 @@ export function Combobox({
             ref={listRef}
             id={id ? `${id}-listbox` : undefined}
             role="listbox"
-            className={styles.list}
+            className="max-h-60 overflow-y-auto overscroll-contain p-1"
           >
             {filtered.length === 0 ? (
-              <p className={styles.empty}>{emptyMessage}</p>
+              <p className="text-muted-foreground px-2 py-3 text-center text-sm">
+                {emptyMessage}
+              </p>
             ) : (
               filtered.map((option, index) => {
                 const isSelected = option.value === value;
@@ -203,22 +208,31 @@ export function Combobox({
                     aria-selected={isSelected}
                     title={option.description || undefined}
                     data-combobox-index={index}
-                    data-active={isActive ? "" : undefined}
-                    data-selected={isSelected ? "" : undefined}
-                    className={styles.option}
+                    className={cn(
+                      "relative flex w-full cursor-default items-start gap-2 rounded-md px-2.5 py-2.5 text-left text-sm outline-hidden transition-colors",
+                      isActive && "bg-accent text-accent-foreground",
+                      isSelected && !isActive && "bg-accent/50",
+                    )}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectValue(option.value)}
                   >
-                    <span className={styles.optionText}>
-                      <span className={styles.optionLabel}>{option.label}</span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate">{option.label}</span>
                       {option.description ? (
-                        <span className={styles.optionDescription}>
+                        <span
+                          className={cn(
+                            "text-xs leading-snug whitespace-normal",
+                            isActive
+                              ? "text-accent-foreground/80"
+                              : "text-muted-foreground",
+                          )}
+                        >
                           {option.description}
                         </span>
                       ) : null}
                     </span>
                     {isSelected ? (
-                      <CheckIcon className={styles.check} aria-hidden="true" />
+                      <CheckIcon className="mt-0.5 size-4 shrink-0 opacity-70" aria-hidden="true" />
                     ) : null}
                   </button>
                 );
