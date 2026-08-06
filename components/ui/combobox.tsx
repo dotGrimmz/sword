@@ -165,12 +165,12 @@ export function Combobox({
           sideOffset={6}
           className={cn(
             // Above Modal content (z-70) so typeahead works inside dialogs.
-            "z-[80] w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] p-0",
+            "z-[80] w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] overflow-hidden p-1",
             contentClassName,
           )}
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <div className="flex items-center border-b border-border px-3">
+          <div className="p-1">
             <input
               ref={searchRef}
               value={query}
@@ -180,7 +180,11 @@ export function Combobox({
               }}
               onKeyDown={onSearchKeyDown}
               placeholder={searchPlaceholder}
-              className="placeholder:text-muted-foreground flex h-11 w-full min-w-0 border-0 bg-transparent py-3 text-base outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              className={cn(
+                // Inset rounded field aligned with option rows (same radius / padding).
+                "placeholder:text-muted-foreground flex h-10 w-full min-w-0 items-center rounded-md border border-border/60 bg-input-background px-2.5 py-2 text-base shadow-none outline-none transition-[color,box-shadow] md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+              )}
               aria-autocomplete="list"
               aria-controls={id ? `${id}-listbox` : undefined}
               autoComplete="off"
@@ -192,7 +196,7 @@ export function Combobox({
             ref={listRef}
             id={id ? `${id}-listbox` : undefined}
             role="listbox"
-            className="max-h-60 overflow-y-auto overscroll-contain p-1"
+            className="max-h-60 overflow-y-auto overscroll-contain p-1 pt-0"
           >
             {filtered.length === 0 ? (
               <p className="text-muted-foreground px-2 py-3 text-center text-sm">
@@ -215,7 +219,7 @@ export function Combobox({
                     data-highlighted={isActive ? "" : undefined}
                     className={cn(
                       // Mirror `SelectItem` so typeahead options match chapter/verse selects.
-                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm outline-hidden transition-colors",
+                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-md border-0 bg-transparent px-2.5 py-2 text-left text-sm shadow-none outline-hidden transition-colors",
                       "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
                       "data-[state=checked]:bg-[radial-gradient(circle_at_top_left,_color-mix(in_srgb,_var(--accent)_48%,_transparent)_0%,_color-mix(in_srgb,_var(--secondary)_52%,_transparent)_100%)]",
                       "data-[state=checked]:text-primary-foreground data-[state=checked]:shadow-[0_12px_24px_rgba(37,99,235,0.18)]",
