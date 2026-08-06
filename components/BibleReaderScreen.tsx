@@ -650,6 +650,7 @@ export function BibleReaderScreen() {
               )}
               contentClassName={styles.selectContent}
               optionClassName={styles.selectItem}
+              searchClassName={styles.comboboxSearch}
             />
           </div>
 

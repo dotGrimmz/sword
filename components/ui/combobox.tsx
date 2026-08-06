@@ -33,6 +33,8 @@ export type ComboboxProps = {
   contentClassName?: string;
   /** Applied to each option — match nearby `SelectItem` classNames. */
   optionClassName?: string;
+  /** Optional override for the search field; defaults inherit option sizing. */
+  searchClassName?: string;
   id?: string;
   "aria-label"?: string;
 };
@@ -55,6 +57,7 @@ export function Combobox({
   triggerClassName,
   contentClassName,
   optionClassName,
+  searchClassName,
   id,
   "aria-label": ariaLabel,
 }: ComboboxProps) {
@@ -181,9 +184,13 @@ export function Combobox({
               onKeyDown={onSearchKeyDown}
               placeholder={searchPlaceholder}
               className={cn(
-                // Inset rounded field aligned with option rows (same radius / padding).
-                "placeholder:text-muted-foreground flex h-10 w-full min-w-0 items-center rounded-md border border-border/60 bg-input-background px-2.5 py-2 text-base shadow-none outline-none transition-[color,box-shadow] md:text-sm",
+                // Match SelectItem / option row geometry (reader options are min 40px;
+                // mobile selects use ~52px touch targets).
+                "placeholder:text-muted-foreground box-border flex w-full min-w-0 items-center rounded-md border border-border/60 bg-input-background text-left text-sm shadow-none outline-none transition-[color,box-shadow]",
+                "min-h-10 px-4 py-2.5",
+                "max-md:min-h-[52px] max-md:px-4 max-md:py-[14px] max-md:text-[1.0625rem]",
                 "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                searchClassName,
               )}
               aria-autocomplete="list"
               aria-controls={id ? `${id}-listbox` : undefined}
@@ -219,7 +226,7 @@ export function Combobox({
                     data-highlighted={isActive ? "" : undefined}
                     className={cn(
                       // Mirror `SelectItem` so typeahead options match chapter/verse selects.
-                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-md border-0 bg-transparent px-2.5 py-2 text-left text-sm shadow-none outline-hidden transition-colors",
+                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-md border-0 bg-transparent px-2.5 py-2 text-left text-sm shadow-none outline-hidden transition-colors max-md:min-h-[52px] max-md:px-4 max-md:py-[14px] max-md:text-[1.0625rem]",
                       "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
                       "data-[state=checked]:bg-[radial-gradient(circle_at_top_left,_color-mix(in_srgb,_var(--accent)_48%,_transparent)_0%,_color-mix(in_srgb,_var(--secondary)_52%,_transparent)_100%)]",
                       "data-[state=checked]:text-primary-foreground data-[state=checked]:shadow-[0_12px_24px_rgba(37,99,235,0.18)]",
