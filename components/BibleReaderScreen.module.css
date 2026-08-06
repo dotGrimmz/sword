@@ -320,9 +320,11 @@
 
 .titleSelect {
   width: 100%;
-  min-height: auto;
+  min-height: auto !important;
+  height: auto !important;
   padding: 0 1.5rem 0 0 !important;
   border: none !important;
+  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   font-size: clamp(1.125rem, 5vw, 1.5rem);
@@ -331,7 +333,20 @@
   line-height: 1.2;
 }
 
-.titleSelect :global([data-slot="select-value"]) {
+.titleSelect:hover:not(:disabled),
+.titleSelect:focus-visible {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.titleSelect:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.titleSelect :global([data-slot="select-value"]),
+.titleSelect > span:first-of-type {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

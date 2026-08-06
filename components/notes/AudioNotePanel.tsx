@@ -14,14 +14,8 @@ import { Mic, RotateCcw, Square, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 
+import { BookCombobox } from "@/components/bible/BookCombobox";
 import { useSpeechRecognition } from "@/lib/hooks/useSpeechRecognition";
 import { parseReferenceFromText } from "@/lib/bible/parseReferenceFromText";
 import type { BibleBookSummary } from "@/types/bible";
@@ -450,21 +444,17 @@ export function AudioNotePanel({
               <label className={styles.fieldLabel} htmlFor="audio-note-book">
                 Book
               </label>
-              <Select
+              <BookCombobox
+                id="audio-note-book"
+                books={books}
                 value={selectedBookId ?? undefined}
+                valueKey="id"
                 onValueChange={(value) => setSelectedBookId(value)}
-              >
-                <SelectTrigger id="audio-note-book" className={controls.control}>
-                  <SelectValue placeholder="Select book" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bookOptions.map((book) => (
-                    <SelectItem key={book.id} value={book.id}>
-                      {book.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Select book"
+                searchPlaceholder="Search books…"
+                triggerClassName={controls.control}
+                aria-label="Bible book"
+              />
             </div>
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="audio-note-chapter">

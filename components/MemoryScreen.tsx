@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { BookCombobox } from "@/components/bible/BookCombobox";
 import { buildReferenceLabel } from "@/lib/api/bible";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import {
@@ -637,32 +638,21 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                     >
                       <div className={styles.fieldGroup}>
                         <span className={styles.fieldLabel}>Book</span>
-                        <Select
+                        <BookCombobox
+                          books={books}
                           value={createBookId ?? undefined}
+                          valueKey="id"
                           onValueChange={(value) => {
                             setCreateBookId(value);
                             setCreateChapter("1");
                             setCreateVerseStart("1");
                             setCreateVerseEnd("1");
                           }}
-                        >
-                          <SelectTrigger className={styles.selectTrigger}>
-                            <SelectValue placeholder="Select book" />
-                          </SelectTrigger>
-                          <SelectContent
-                            className={`${styles.selectContent} z-[9999]`}
-                          >
-                            {books.map((book) => (
-                              <SelectItem
-                                key={book.id}
-                                value={book.id}
-                                className={styles.selectItem}
-                              >
-                                {book.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          placeholder="Select book"
+                          searchPlaceholder="Search books…"
+                          triggerClassName={styles.selectTrigger}
+                          aria-label="Bible book"
+                        />
                         <p className={styles.dialogHint}>
                           {books.length > 0
                             ? `${books.length} books available in ${
