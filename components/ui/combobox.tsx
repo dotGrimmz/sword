@@ -4,7 +4,6 @@ import * as React from "react";
 import { ChevronDownIcon } from "lucide-react";
 
 import { filterComboboxOptions } from "@/lib/bible/filterBooks";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -171,8 +170,8 @@ export function Combobox({
           )}
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <div className="border-b p-2">
-            <Input
+          <div className="flex items-center border-b border-border px-3">
+            <input
               ref={searchRef}
               value={query}
               onChange={(event) => {
@@ -181,7 +180,7 @@ export function Combobox({
               }}
               onKeyDown={onSearchKeyDown}
               placeholder={searchPlaceholder}
-              className="h-10"
+              className="placeholder:text-muted-foreground flex h-11 w-full min-w-0 border-0 bg-transparent py-3 text-base outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
               aria-autocomplete="list"
               aria-controls={id ? `${id}-listbox` : undefined}
               autoComplete="off"
