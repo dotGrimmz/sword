@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
+import { BookCombobox } from "@/components/bible/BookCombobox";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { buildReferenceLabel } from "@/lib/api/bible";
 import type { BibleBookSummary } from "@/types/bible";
@@ -523,30 +524,21 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
               <div className={`${styles.fieldGrid} ${styles.fieldGridTwoColumns}`}>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Book</span>
-                  <Select
+                  <BookCombobox
+                    books={books}
                     value={createBookId ?? undefined}
+                    valueKey="id"
                     onValueChange={(value) => {
                       setCreateBookId(value);
                       setCreateChapter("1");
                       setCreateVerseStart("1");
                       setCreateVerseEnd("1");
                     }}
-                  >
-                    <SelectTrigger className={controls.control}>
-                      <SelectValue placeholder="Select book" />
-                    </SelectTrigger>
-                    <SelectContent className={`${styles.selectContent} z-[9999]`}>
-                      {books.map((book) => (
-                        <SelectItem
-                          key={book.id}
-                          value={book.id}
-                          className={styles.selectItem}
-                        >
-                          {book.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Select book"
+                    searchPlaceholder="Search books…"
+                    triggerClassName={controls.control}
+                    aria-label="Bible book"
+                  />
                 </div>
                 <div className={styles.fieldGroup}>
                   <span className={styles.fieldLabel}>Chapter</span>

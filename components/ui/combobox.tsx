@@ -158,7 +158,8 @@ export function Combobox({
           align="start"
           sideOffset={6}
           className={cn(
-            "w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] border-0 bg-transparent p-0 shadow-none",
+            // Above Modal content (z-70) so typeahead works inside dialogs.
+            "z-[80] w-[var(--radix-popover-trigger-width)] max-w-[min(100vw-1.5rem,28rem)] border-0 bg-transparent p-0 shadow-none",
             styles.content,
             contentClassName,
           )}

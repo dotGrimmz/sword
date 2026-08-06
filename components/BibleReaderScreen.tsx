@@ -36,9 +36,9 @@ import {
 } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Textarea } from "./ui/textarea";
+import { BookCombobox } from "@/components/bible/BookCombobox";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { AppHeaderToolbar } from "@/components/AppHeaderToolbar";
-import bibleSelectStyles from "@/components/TranslationSwitcher.module.css";
 import { buildReferenceLabel } from "@/lib/api/bible";
 import { useChapterQuery } from "@/lib/query/bible";
 import {
@@ -633,34 +633,22 @@ export function BibleReaderScreen() {
       <div className={styles.toolbar}>
         <div className={styles.headerRow}>
           <div className={styles.titleBlock}>
-            <Select
+            <BookCombobox
+              books={books}
               value={selectedBookId ?? undefined}
+              valueKey="id"
               onValueChange={(value) => {
                 setPosition(value, 1);
               }}
               disabled={books.length === 0}
-            >
-              <SelectTrigger
-                className={clsx(styles.selectTriggerBase, styles.titleSelect)}
-                aria-label="Choose book"
-              >
-                <SelectValue placeholder="Scripture" />
-              </SelectTrigger>
-              <SelectContent
-                className={bibleSelectStyles.selectContent}
-                sideOffset={6}
-              >
-                {books.map((book) => (
-                  <SelectItem
-                    key={book.id}
-                    value={book.id}
-                    className={bibleSelectStyles.selectItem}
-                  >
-                    {book.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Scripture"
+              searchPlaceholder="Search books…"
+              aria-label="Choose book"
+              triggerClassName={clsx(
+                styles.selectTriggerBase,
+                styles.titleSelect,
+              )}
+            />
           </div>
 
           <AppHeaderToolbar />
