@@ -648,6 +648,9 @@ export function BibleReaderScreen() {
                 styles.selectTriggerBase,
                 styles.titleSelect,
               )}
+              contentClassName={styles.selectContent}
+              optionClassName={styles.selectItem}
+              searchClassName={styles.comboboxSearch}
             />
           </div>
 
