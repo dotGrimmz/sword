@@ -537,6 +537,8 @@ export function NotesScreen({ onNavigate }: NotesScreenProps = {}) {
                     placeholder="Select book"
                     searchPlaceholder="Search books…"
                     triggerClassName={controls.control}
+                    contentClassName={`${styles.selectContent} z-[9999]`}
+                    optionClassName={styles.selectItem}
                     aria-label="Bible book"
                   />
                 </div>

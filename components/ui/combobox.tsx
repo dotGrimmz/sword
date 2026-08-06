@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 
 import { filterComboboxOptions } from "@/lib/bible/filterBooks";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ export type ComboboxProps = {
   className?: string;
   triggerClassName?: string;
   contentClassName?: string;
+  /** Applied to each option — match nearby `SelectItem` classNames. */
+  optionClassName?: string;
   id?: string;
   "aria-label"?: string;
 };
@@ -53,6 +55,7 @@ export function Combobox({
   className,
   triggerClassName,
   contentClassName,
+  optionClassName,
   id,
   "aria-label": ariaLabel,
 }: ComboboxProps) {
@@ -207,11 +210,18 @@ export function Combobox({
                     role="option"
                     aria-selected={isSelected}
                     title={option.description || undefined}
+                    data-slot="select-item"
                     data-combobox-index={index}
+                    data-state={isSelected ? "checked" : "unchecked"}
+                    data-highlighted={isActive ? "" : undefined}
                     className={cn(
-                      "relative flex w-full cursor-default items-start gap-2 rounded-md px-2.5 py-2.5 text-left text-sm outline-hidden transition-colors",
-                      isActive && "bg-accent text-accent-foreground",
-                      isSelected && !isActive && "bg-accent/50",
+                      // Mirror `SelectItem` so typeahead options match chapter/verse selects.
+                      "relative flex w-full cursor-default select-none items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm outline-hidden transition-colors",
+                      "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
+                      "data-[state=checked]:bg-[radial-gradient(circle_at_top_left,_color-mix(in_srgb,_var(--accent)_48%,_transparent)_0%,_color-mix(in_srgb,_var(--secondary)_52%,_transparent)_100%)]",
+                      "data-[state=checked]:text-primary-foreground data-[state=checked]:shadow-[0_12px_24px_rgba(37,99,235,0.18)]",
+                      "data-[state=checked]:data-[highlighted]:bg-accent data-[state=checked]:data-[highlighted]:text-accent-foreground data-[state=checked]:data-[highlighted]:shadow-none",
+                      optionClassName,
                     )}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => selectValue(option.value)}
@@ -231,9 +241,6 @@ export function Combobox({
                         </span>
                       ) : null}
                     </span>
-                    {isSelected ? (
-                      <CheckIcon className="mt-0.5 size-4 shrink-0 opacity-70" aria-hidden="true" />
-                    ) : null}
                   </button>
                 );
               })

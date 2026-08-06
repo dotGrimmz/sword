@@ -26,6 +26,7 @@ export type BookComboboxProps = {
   className?: string;
   triggerClassName?: string;
   contentClassName?: string;
+  optionClassName?: string;
   id?: string;
   "aria-label"?: string;
 };
@@ -46,6 +47,7 @@ export function BookCombobox({
   className,
   triggerClassName,
   contentClassName,
+  optionClassName,
   id,
   "aria-label": ariaLabel = "Bible book",
 }: BookComboboxProps) {
@@ -86,6 +88,7 @@ export function BookCombobox({
       className={className}
       triggerClassName={triggerClassName}
       contentClassName={contentClassName}
+      optionClassName={optionClassName}
       aria-label={ariaLabel}
     />
   );

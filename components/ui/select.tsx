@@ -108,9 +108,11 @@ function SelectItem({
       data-slot="select-item"
       className={cn(
         "relative flex w-full cursor-default select-none items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-hidden transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "focus-visible:bg-accent focus-visible:text-accent-foreground",
         "data-[state=checked]:bg-[radial-gradient(circle_at_top_left,_color-mix(in_srgb,_var(--accent)_48%,_transparent)_0%,_color-mix(in_srgb,_var(--secondary)_52%,_transparent)_100%)]",
         "data-[state=checked]:text-primary-foreground data-[state=checked]:shadow-[0_12px_24px_rgba(37,99,235,0.18)]",
+        "data-[state=checked]:data-[highlighted]:bg-accent data-[state=checked]:data-[highlighted]:text-accent-foreground data-[state=checked]:data-[highlighted]:shadow-none",
         className,
       )}
       {...props}

@@ -651,6 +651,8 @@ export function MemoryScreen({ onNavigate }: MemoryScreenProps = {}) {
                           placeholder="Select book"
                           searchPlaceholder="Search books…"
                           triggerClassName={styles.selectTrigger}
+                          contentClassName={`${styles.selectContent} z-[9999]`}
+                          optionClassName={styles.selectItem}
                           aria-label="Bible book"
                         />
                         <p className={styles.dialogHint}>
